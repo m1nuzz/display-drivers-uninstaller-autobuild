@@ -46,7 +46,12 @@ Namespace Display_Driver_Uninstaller
 				.CreateNoWindow = True,
 				.Verb = "runas"
 			}
-				Process.Start(processInfo)
+				Using process As New Process With {
+				.StartInfo = processInfo
+			}
+					process.Start()
+					process.WaitForExit()
+				End Using
 			Catch ex As Exception
 				EventLog.WriteEntry("DDUSafeBootHandler", "Erreur lors de la désinstallation: " & ex.Message, EventLogEntryType.Error)
 			End Try
@@ -59,7 +64,12 @@ Namespace Display_Driver_Uninstaller
 				.CreateNoWindow = True,
 				.Verb = "runas"
 			}
-				Process.Start(processInfo)
+				Using process As New Process With {
+				.StartInfo = processInfo
+			}
+					process.Start()
+					process.WaitForExit()
+				End Using
 			Catch ex As Exception
 				EventLog.WriteEntry("DDUSafeBootHandler", "Erreur lors de la désinstallation: " & ex.Message, EventLogEntryType.Error)
 			End Try

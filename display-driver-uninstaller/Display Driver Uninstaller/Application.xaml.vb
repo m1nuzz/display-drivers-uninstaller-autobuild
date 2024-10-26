@@ -879,7 +879,6 @@ Namespace Display_Driver_Uninstaller
 			}
 					process.Start()
 					process.WaitForExit()
-					process.Close()
 				End Using
 
 				Log.AddMessage("SafeBoot Handler Service installed successfully")
@@ -896,7 +895,7 @@ Namespace Display_Driver_Uninstaller
 				Log.AddMessage("Restarting Computer ")
 				Application.SaveData()
 
-				Using process As Process = New Process() With
+				Using process As New Process() With
 			  {
 			   .StartInfo = New ProcessStartInfo(Paths.System32 & "shutdown", "/r /t 0") With
 			   {
@@ -909,7 +908,6 @@ Namespace Display_Driver_Uninstaller
 					Try
 						process.Start()
 						process.WaitForExit()
-						process.Close()
 					Catch ex As Exception
 						Log.AddException(ex, "Failed to use into shutdown! - " & Paths.System32 & "shutdown")
 					End Try
