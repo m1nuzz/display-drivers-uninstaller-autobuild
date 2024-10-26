@@ -342,6 +342,23 @@ Namespace Display_Driver_Uninstaller
 			'	IsDebug = True
 			'End If
 
+			' Vérify if we started as a service
+			If Environment.CommandLine.Contains("/service") Then
+				Try
+					Dim ServicesToRun() As System.ServiceProcess.ServiceBase = {New DDUSafeBootService()}
+					System.ServiceProcess.ServiceBase.Run(ServicesToRun)
+					AllowSafeBootServiceToRunInSafemode(False)
+					Me.Shutdown()
+					Exit Sub
+				Catch ex As Exception
+					EventLog.WriteEntry("DDUSafeBootHandler", ex.Message, EventLogEntryType.Error)
+					Log.AddException(ex, "Failed to start DDU SafeBoot Service")
+					Log.SaveToFile()
+					Me.Shutdown()
+					Exit Sub
+				End Try
+			End If
+
 			If Not IsNet48OrNewer() Then
 				Microsoft.VisualBasic.MsgBox("Minimum requirement is Microsoft .NET Framework 4.8. Please update your current .NET Framework.")
 				Me.Shutdown()
@@ -746,15 +763,15 @@ Namespace Display_Driver_Uninstaller
 				SystemRestore(Nothing) 'we try to do a system restore if allowed before going into safemode.
 				Log.AddMessage("Restarting in safemode")
 
-				Using process As Process = New Process() With
-			  {
-			   .StartInfo = New ProcessStartInfo(Paths.System32 & "BCDEDIT", If(withNetwork, "/set {current} safeboot network", "/set {current} safeboot minimal")) With
-			   {
-			 .UseShellExecute = False,
-			 .CreateNoWindow = True,
-			 .RedirectStandardOutput = False
-			   }
-			  }
+				Using process As New Process() With
+				{
+				.StartInfo = New ProcessStartInfo(Paths.System32 & "BCDEDIT", If(withNetwork, "/set {current} safeboot network", "/set {current} safeboot minimal")) With
+					{
+					.UseShellExecute = False,
+					.CreateNoWindow = True,
+					.RedirectStandardOutput = False
+					}
+				}
 
 					Try
 						process.Start()
@@ -767,6 +784,8 @@ Namespace Display_Driver_Uninstaller
 
 				End Using
 
+				InstallSafeBootService()
+
 				Try
 					Using regkey As RegistryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce", True)
 						If regkey IsNot Nothing Then
@@ -778,6 +797,7 @@ Namespace Display_Driver_Uninstaller
 					Log.AddException(ex)
 				End Try
 
+				AllowSafeBootServiceToRunInSafemode(True)
 
 				RestartComputer()
 
@@ -787,6 +807,87 @@ Namespace Display_Driver_Uninstaller
 				Return False
 			End Try
 		End Function
+
+		Private Sub AllowSafeBootServiceToRunInSafemode(ByVal addSafeBootValue As Boolean)
+			If (addSafeBootValue) Then
+				Try
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\SafeBoot\Minimal", True)
+						If regkey IsNot Nothing Then
+							Using regSubKey As RegistryKey = regkey.CreateSubKey("DDUSafeBootHandler", RegistryKeyPermissionCheck.ReadWriteSubTree)
+								regSubKey.SetValue("", "Service")
+							End Using
+						End If
+					End Using
+				Catch ex As Exception
+					Application.Log.AddException(ex, "Failed to set '\SafeBoot\Minimal' RegistryKey for APPXSvc,etc...!")
+				End Try
+
+				Try
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\SafeBoot\Network", True)
+						If regkey IsNot Nothing Then
+							Using regSubKey As RegistryKey = regkey.CreateSubKey("DDUSafeBootHandler", RegistryKeyPermissionCheck.ReadWriteSubTree)
+								regSubKey.SetValue("", "Service")
+							End Using
+						End If
+					End Using
+				Catch ex As Exception
+					Application.Log.AddException(ex, "Failed to set '\SafeBoot\Minimal' RegistryKey for APPXSvc,etc...!")
+				End Try
+				Return
+			End If
+
+			Try
+				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\SafeBoot\Minimal", True)
+					If regkey IsNot Nothing Then
+						regkey.DeleteSubKeyTree("DDUSafeBootHandler")
+					End If
+				End Using
+			Catch ex As Exception
+				Application.Log.AddException(ex, "Failed to remove '\SafeBoot\Minimal' RegistryKey (DDUSafeBootHandler)!")
+			End Try
+
+			Try
+				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\SafeBoot\Network", True)
+					If regkey IsNot Nothing Then
+						regkey.DeleteSubKeyTree("DDUSafeBootHandler")
+					End If
+				End Using
+			Catch ex As Exception
+				Application.Log.AddException(ex, "Failed to remove '\SafeBoot\Minimal' RegistryKey (DDUSafeBootHandler)!")
+			End Try
+
+		End Sub
+
+		Private Sub InstallSafeBootService()
+			Try
+
+				Dim serviceExePath As String = Path.Combine(Path.GetTempPath(), "DDUSafeBootHandler.exe")
+
+
+				File.Copy(Paths.AppExeFile, serviceExePath, True)
+
+
+				Dim processInfo As New ProcessStartInfo("sc.exe",
+			$"create DDUSafeBootHandler binPath= ""{serviceExePath} /service"" start= auto") With {
+			.UseShellExecute = True,
+			.CreateNoWindow = True,
+			.Verb = "runas"
+		}
+
+				Using process As New Process With {
+				.StartInfo = processInfo
+			}
+					process.Start()
+					process.WaitForExit()
+					process.Close()
+				End Using
+
+				Log.AddMessage("SafeBoot Handler Service installed successfully")
+
+			Catch ex As Exception
+				Log.AddException(ex, "Failed to install SafeBoot Handler Service")
+			End Try
+		End Sub
 
 		Public Shared Sub RestartComputer()
 			If Not m_dispatcher.CheckAccess() Then

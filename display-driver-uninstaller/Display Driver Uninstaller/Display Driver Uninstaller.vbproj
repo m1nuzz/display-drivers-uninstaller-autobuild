@@ -102,6 +102,9 @@
     <Compile Include="AUDIOCleanup.vb" />
     <Compile Include="CheckUpdate.vb" />
     <Compile Include="CleanupEngine.vb" />
+    <Compile Include="DDUSafeBootService.vb">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DesktopIconRemover.vb" />
     <Compile Include="FileIO.vb" />
     <Compile Include="FrmSystemRestore.xaml.vb">
