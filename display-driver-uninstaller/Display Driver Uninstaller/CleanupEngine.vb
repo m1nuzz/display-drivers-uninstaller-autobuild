@@ -1663,7 +1663,7 @@ Namespace Display_Driver_Uninstaller
 			Dim objAuto As AutoResetEvent = New AutoResetEvent(False)
 			ImpersonateLoggedOnUser.Taketoken()
 
-			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Services", False)
+			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Services", True)
 				If regkey IsNot Nothing Then
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
@@ -1677,6 +1677,7 @@ Namespace Display_Driver_Uninstaller
 
 								If ServiceInstaller.GetServiceStatus(service) = Nothing Then
 									'Service is not present
+									Deletesubregkey(regkey, service)
 								Else
 									Try
 										ServiceInstaller.Uninstall(service)
@@ -1684,7 +1685,6 @@ Namespace Display_Driver_Uninstaller
 										Application.Log.AddException(ex)
 										Continue For
 									End Try
-
 
 									Dim waits As Int32 = 0
 

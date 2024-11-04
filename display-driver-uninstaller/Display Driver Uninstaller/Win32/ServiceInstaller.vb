@@ -24,12 +24,12 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Sub
 
 		Public Sub Uninstall(ByVal serviceName As String)
-			Dim ServiceInstallerObj As System.ServiceProcess.ServiceInstaller = New System.ServiceProcess.ServiceInstaller()
-			Dim Context As InstallContext = New InstallContext("<<log file path>>", Nothing)
-			ServiceInstallerObj.Context = Context
-			ServiceInstallerObj.ServiceName = serviceName
+			Dim serviceInstallerObj As System.ServiceProcess.ServiceInstaller = New System.ServiceProcess.ServiceInstaller()
+			Dim context As InstallContext = New InstallContext("<<log file path>>", Nothing)
+			serviceInstallerObj.Context = context
+			serviceInstallerObj.ServiceName = serviceName
 			Try
-				ServiceInstallerObj.Uninstall(Nothing)
+				serviceInstallerObj.Uninstall(Nothing)
 			Catch ex As Win32Exception
 				Application.Log.AddException(ex)
 			End Try

@@ -476,6 +476,9 @@ Namespace Display_Driver_Uninstaller
 									Application.Log.AddMessage("SetupAPI: Remove SoftwareComponent Completed.")
 								End If
 								'	SetupAPI.EnableDevice(GPU, False)
+								If config.SelectedGPU = GPUVendor.AMD Then
+									PreCleanAmd(config) 'Added because when the driver is removed, the AMD removal of some reg entries is not complete and interfere with DDU
+								End If
 								SetupAPI.UninstallDevice(GPU) 'Then we remove the GPU itself.
 							End If
 						Next
@@ -878,7 +881,7 @@ Namespace Display_Driver_Uninstaller
 		End Sub
 
 		Private Sub Cleanamdserviceprocess(ByVal config As ThreadSettings)
-			Dim CleanupEngine As New CleanupEngine
+			Dim cleanupEngine As New CleanupEngine
 			Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\services.cfg")
 			Dim objAuto As AutoResetEvent = New AutoResetEvent(False)
 
@@ -886,17 +889,19 @@ Namespace Display_Driver_Uninstaller
 
 			Application.Log.AddMessage("Cleaning Process/Services...")
 
-			CleanupEngine.Cleanserviceprocess(services, config)    '// add each line as String Array.
+			cleanupEngine.Cleanserviceprocess(services, config)    '// add each line as String Array.
 
-			Dim killpid As New ProcessStartInfo
-			killpid.FileName = config.Paths.System32 & "cmd.exe"
-			killpid.Arguments = " /C" & "taskkill /f /im CLIStart.exe"
-			killpid.UseShellExecute = False
-			killpid.CreateNoWindow = True
-			killpid.RedirectStandardOutput = False
+			Dim killpid As New ProcessStartInfo With {
+				.FileName = config.Paths.System32 & "cmd.exe",
+				.Arguments = " /C" & "taskkill /f /im CLIStart.exe",
+				.UseShellExecute = False,
+				.CreateNoWindow = True,
+				.RedirectStandardOutput = False
+			}
 
-			Dim processkillpid As New Process
-			processkillpid.StartInfo = killpid
+			Dim processkillpid As New Process With {
+				.StartInfo = killpid
+			}
 			processkillpid.Start()
 			processkillpid.WaitForExit()
 			processkillpid.Close()
@@ -927,6 +932,21 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
+		Private Sub PreCleanAmd(config As ThreadSettings)
+			Dim CleanupEngine As New CleanupEngine
+
+			If Not WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.Taketoken()
+			End If
+
+			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\clsidleftover.cfg")
+			CleanupEngine.Clsidleftover(clsidleftover)
+
+			If WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.ReleaseToken()
+			End If
+		End Sub
+
 		Private Sub Cleanamd(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			Dim TaskList = New List(Of Tasks.Task)()
@@ -941,7 +961,9 @@ Namespace Display_Driver_Uninstaller
 			Dim driverfilesKMPFD As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMPFD.cfg")
 			Dim driverfilesKMAFD As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMAFD.cfg")
 
-			ImpersonateLoggedOnUser.Taketoken()
+			If Not WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.Taketoken()
+			End If
 
 			UpdateTextMethod(UpdateTextTranslated(2))
 			Application.Log.AddMessage("Cleaning known Regkeys")
@@ -2549,7 +2571,10 @@ Namespace Display_Driver_Uninstaller
 			Dim driverfilesKMAFD = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMAFD.cfg")
 			Dim TaskList = New List(Of Tasks.Task)()
 
-			ImpersonateLoggedOnUser.Taketoken()
+			If Not WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.Taketoken()
+			End If
+
 			'Delete AMD data Folders
 			UpdateTextMethod(UpdateTextTranslated(1))
 
