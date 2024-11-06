@@ -272,7 +272,7 @@ Namespace Display_Driver_Uninstaller
 		End Sub
 
 		Private Sub VisitDDUHomepageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles VisitDDUHomeMenuItem.Click
-			WinAPI.OpenVisitLink(" -visitdiscord")
+			WinAPI.OpenVisitLink(" -visitdduhome")
 		End Sub
 
 		Private Sub OptionsMenuItem_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles OptionsMenuItem.Click
