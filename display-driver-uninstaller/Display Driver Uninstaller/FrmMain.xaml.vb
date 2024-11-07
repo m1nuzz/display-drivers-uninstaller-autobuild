@@ -533,6 +533,7 @@ Namespace Display_Driver_Uninstaller
 			Try
 				If CleaningTask IsNot Nothing AndAlso Not CleaningTask.IsCompleted Then
 					e.Cancel = True
+					Application.Log.SaveToFile()
 					Exit Sub
 				End If
 			Catch ex As Exception

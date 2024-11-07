@@ -109,6 +109,7 @@ Namespace Display_Driver_Uninstaller
 
 
 		Private Delegate Sub SaveLogDelegate()
+
 		Private Sub SaveLog()
 			SyncLock m_threadlock
 				If Application.Settings.SaveLogs Then

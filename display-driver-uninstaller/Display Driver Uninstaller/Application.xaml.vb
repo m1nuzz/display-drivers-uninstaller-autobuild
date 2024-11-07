@@ -245,6 +245,7 @@ Namespace Display_Driver_Uninstaller
 			Catch ex As Exception
 				Log.AddException(ex, "Some part of window loading failed!" & CRLF & ">> LaunchMainWindow()")
 				Log.SaveToFile()
+				m_isDataSaved = True
 
 				MessageBox.Show("Launching Main Window failed!" & CRLF &
 			 CRLF &
