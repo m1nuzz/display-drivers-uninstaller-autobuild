@@ -750,7 +750,7 @@ Namespace Display_Driver_Uninstaller
 								If StrContainsAny(croot, True, "GeforceExperience", "nvidiaapp") AndAlso Not config.RemoveGFE Then
 									'do nothing
 								Else
-									If child.ToLower.StartsWith(croot.ToLower, StringComparison.OrdinalIgnoreCase) Then
+									If child.StartsWith(croot, StringComparison.OrdinalIgnoreCase) Then
 										Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, child & "\CLSID")
 											If regkey2 IsNot Nothing Then
 												wantedvalue = TryCast(regkey2.GetValue("", String.Empty), String)
@@ -861,7 +861,7 @@ Namespace Display_Driver_Uninstaller
 									End If
 								End If
 							Next
-							If child.ToLower.EndsWith("file", StringComparison.OrdinalIgnoreCase) AndAlso
+							If child.EndsWith("file", StringComparison.OrdinalIgnoreCase) AndAlso
 							config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Nvidia Then
 
 								Using regkey5 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, child)
@@ -928,7 +928,7 @@ Namespace Display_Driver_Uninstaller
 								For Each croot As String In classroots
 									If IsNullOrWhitespace(croot) Then Continue For
 
-									If child.ToLower.StartsWith(croot.ToLower, StringComparison.OrdinalIgnoreCase) Then
+									If child.StartsWith(croot, StringComparison.OrdinalIgnoreCase) Then
 										Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child & "\CLSID")
 											If regkey2 IsNot Nothing Then
 												wantedvalue = TryCast(regkey2.GetValue("", String.Empty), String)

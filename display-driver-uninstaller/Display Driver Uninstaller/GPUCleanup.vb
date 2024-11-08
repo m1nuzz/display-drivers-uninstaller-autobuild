@@ -177,13 +177,13 @@ Namespace Display_Driver_Uninstaller
 				'------------------------------------------------------------------------------------
 				Try
 					UpdateTextMethod(UpdateTextTranslated(24))
-					Application.Log.AddMessage("Executing SetupAPI: Remove Audio controler associated to the GPU(s).")
+					Application.Log.AddMessage("SetupAPI: Removing Audio controller associated to the GPU(s).")
 					Dim AudioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True)
 					If AudioDevices.Count > 0 Then
 						For Each AudioDevice As SetupAPI.Device In AudioDevices
 							If AudioDevice IsNot Nothing Then
 								'Removing Audio endpoints
-
+								Application.Log.AddMessage("SetupAPI: Removing Audio Endpoint associated to the GPU(s) Audio controller.")
 								Dim Audioendpoints As List(Of SetupAPI.Device) = SetupAPI.GetDevices("audioendpoint", Nothing, False, True)
 								If Audioendpoints.Count > 0 Then
 									For Each Audioendpoint As SetupAPI.Device In Audioendpoints
@@ -199,11 +199,11 @@ Namespace Display_Driver_Uninstaller
 									Next
 									Audioendpoints.Clear()
 								End If
-
+								Application.Log.AddMessage("SetupAPI: Removal of Audio Endpoint(s) associated to the GPU(s) Audio controller completed.")
 
 								'Removing Software components (DCH stuff, win10+)
 								If _win10 Then
-									Application.Log.AddMessage("Executing SetupAPI: Remove SoftwareComponent.")
+									Application.Log.AddMessage("SetupAPI: Removing the SoftwareComponent associated to the GPU(s) Audio controler.")
 									Dim SoftwareComponents As List(Of SetupAPI.Device) = SetupAPI.GetDevices("SoftwareComponent", Nothing, False, True)
 									If SoftwareComponents.Count > 0 Then
 										For Each SoftwareComponent As SetupAPI.Device In SoftwareComponents
@@ -219,12 +219,17 @@ Namespace Display_Driver_Uninstaller
 										Next
 										SoftwareComponents.Clear()
 									End If
-									Application.Log.AddMessage("SetupAPI: Remove SoftwareComponent Complete.")
+									Application.Log.AddMessage("SetupAPI: Removal of the SoftwareComponent(s) associated to the GPU(s) Audio controler completed.")
 								End If
+
+								Application.Log.AddMessage("SetupAPI: Removing the Audio controller associated to the GPU(s).")
 
 								SetupAPI.UninstallDevice(AudioDevice) 'Removing the audio card
 
+								Application.Log.AddMessage("SetupAPI: Removal of the Audio controller associated to the GPU(s) completed.")
+
 								If config.RemoveAudioBus Then
+									Application.Log.AddMessage("SetupAPI: Removing the AudioBus associated to the GPU(s) Audio controler.")
 									For Each Parent As SetupAPI.Device In AudioDevice.ParentDevices
 										If Parent IsNot Nothing Then 'TODO : Parent.ChildDevices.Length < 1
 											Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", Parent.DeviceID, False, True, True)
@@ -238,6 +243,7 @@ Namespace Display_Driver_Uninstaller
 										End If
 									Next
 								End If
+								Application.Log.AddMessage("SetupAPI: Removal of the AudioBus associated to the GPU(s) Audio controler completed.")
 							End If
 						Next
 
@@ -477,8 +483,17 @@ Namespace Display_Driver_Uninstaller
 								End If
 								'	SetupAPI.EnableDevice(GPU, False)
 								If config.SelectedGPU = GPUVendor.AMD Then
-									PreCleanAmd(config) 'Added because when the driver is removed, the AMD removal of some reg entries is not complete and interfere with DDU
+									CleanAmd(config, True) 'needed since 24h2 it seems
 								End If
+
+								If config.SelectedGPU = GPUVendor.Nvidia Then
+									CleanNvidia(config, True) 'needed since 24h2 it seems
+								End If
+
+								If config.SelectedGPU = GPUVendor.Intel Then
+									CleanIntel(config, True) 'needed since 24h2 it seems
+								End If
+
 								SetupAPI.UninstallDevice(GPU) 'Then we remove the GPU itself.
 							End If
 						Next
@@ -819,14 +834,14 @@ Namespace Display_Driver_Uninstaller
 
 			If config.SelectedGPU = GPUVendor.AMD Then
 				Cleanamdserviceprocess(config)
-				Cleanamd(config)
+				CleanAmd(config)
 				Cleanamdfolders(config)
 			End If
 
 			If config.SelectedGPU = GPUVendor.Nvidia Then
 				Checkpcieroot(config)
 				Cleannvidiaserviceprocess(config)
-				Cleannvidia(config)
+				CleanNvidia(config)
 				CleanNvidiaFolders(config)
 				CleanupEngine.RemoveRegDeviceSoftware("NVIDIA CoInstaller Display.Driver")
 
@@ -932,24 +947,8 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Sub PreCleanAmd(config As ThreadSettings)
+		Private Sub CleanAmd(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
-
-			If Not WindowsIdentity.GetCurrent().IsSystem Then
-				ImpersonateLoggedOnUser.Taketoken()
-			End If
-
-			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\clsidleftover.cfg")
-			CleanupEngine.Clsidleftover(clsidleftover)
-
-			If WindowsIdentity.GetCurrent().IsSystem Then
-				ImpersonateLoggedOnUser.ReleaseToken()
-			End If
-		End Sub
-
-		Private Sub Cleanamd(ByVal config As ThreadSettings)
-			Dim CleanupEngine As New CleanupEngine
-			Dim TaskList = New List(Of Tasks.Task)()
 			Dim wantedvalue As String = Nothing
 			Dim wantedvalue2 As String = Nothing
 			Dim filePath As String = Nothing
@@ -965,62 +964,64 @@ Namespace Display_Driver_Uninstaller
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
 
-			UpdateTextMethod(UpdateTextTranslated(2))
-			Application.Log.AddMessage("Cleaning known Regkeys")
+			If preclean Then
+
+				UpdateTextMethod(UpdateTextTranslated(2))
+				Application.Log.AddMessage("Cleaning known Regkeys")
 
 
-			'Delete AMD regkey
-			'Deleting DCOM object
+				'Delete AMD regkey
+				'Deleting DCOM object
 
-			Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
+				Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
 
-			CleanupEngine.ClassRoot(classroot, config)  '// add each line as String Array.
+				CleanupEngine.ClassRoot(classroot, config)  '// add each line as String Array.
 
 
-			'Removal of the (DCH) AMD control panel comming from the Window Store. (In progress...)
-			If _win10 Then
-				If config.RemoveAMDCP Then
+				'Removal of the (DCH) AMD control panel comming from the Window Store. (In progress...)
+				If _win10 Then
+					If config.RemoveAMDCP Then
+						If CanDeprovisionPackageForAllUsersAsync() Then
+							CleanupEngine.RemoveAppx1809("AMDRadeonSoftware")
+							CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-RSXCM")
+						Else
+							CleanupEngine.RemoveAppx("AMDRadeonSoftware")
+							CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-RSXCM")
+						End If
+					End If
 					If CanDeprovisionPackageForAllUsersAsync() Then
-						CleanupEngine.RemoveAppx1809("AMDRadeonSoftware")
-						CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-RSXCM")
+						CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-2.AMDLink")
 					Else
-						CleanupEngine.RemoveAppx("AMDRadeonSoftware")
-						CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-RSXCM")
+						CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-2.AMDLink")
 					End If
 				End If
-				If CanDeprovisionPackageForAllUsersAsync() Then
-					CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-2.AMDLink")
-				Else
-					CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-2.AMDLink")
-				End If
-			End If
 
-			'-----------------
-			'interface cleanup
-			'-----------------
+				'-----------------
+				'interface cleanup
+				'-----------------
 
 
 
-			CleanupEngine.Interfaces(reginterface)    '// add each line as String Array.
+				CleanupEngine.Interfaces(reginterface)    '// add each line as String Array.
 
-			Application.Log.AddMessage("Instance class cleanUP")
-			Try
-				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID", False)
-					If regkey IsNot Nothing Then
-						For Each child As String In regkey.GetSubKeyNames()
-							If IsNullOrWhitespace(child) = False Then
-								Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child, False)
-									If subregkey IsNot Nothing Then
-										Using subregkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child & "\Instance", False)
-											If subregkey2 IsNot Nothing Then
-												For Each child2 As String In subregkey2.GetSubKeyNames()
-													If IsNullOrWhitespace(child2) = False Then
-														Using superkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2)
-															If superkey IsNot Nothing Then
-																If Not IsNullOrWhitespace(superkey.GetValue("FriendlyName", String.Empty).ToString) Then
-																	wantedvalue2 = superkey.GetValue("FriendlyName", String.Empty).ToString
-																	If Not IsNullOrWhitespace(wantedvalue2) Then
-																		If wantedvalue2.ToLower.Contains("ati mpeg") Or
+				Application.Log.AddMessage("Instance class cleanUP")
+				Try
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID", False)
+						If regkey IsNot Nothing Then
+							For Each child As String In regkey.GetSubKeyNames()
+								If IsNullOrWhitespace(child) = False Then
+									Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child, False)
+										If subregkey IsNot Nothing Then
+											Using subregkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child & "\Instance", False)
+												If subregkey2 IsNot Nothing Then
+													For Each child2 As String In subregkey2.GetSubKeyNames()
+														If IsNullOrWhitespace(child2) = False Then
+															Using superkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2)
+																If superkey IsNot Nothing Then
+																	If Not IsNullOrWhitespace(superkey.GetValue("FriendlyName", String.Empty).ToString) Then
+																		wantedvalue2 = superkey.GetValue("FriendlyName", String.Empty).ToString
+																		If Not IsNullOrWhitespace(wantedvalue2) Then
+																			If wantedvalue2.ToLower.Contains("ati mpeg") Or
 																 wantedvalue2.ToLower.Contains("amd mjpeg") Or
 																 wantedvalue2.ToLower.Contains("ati ticker") Or
 																 wantedvalue2.ToLower.Contains("mmace softemu") Or
@@ -1028,57 +1029,11 @@ Namespace Display_Driver_Uninstaller
 																 wantedvalue2.ToLower.Contains("amd video") Or
 																 wantedvalue2.ToLower.Contains("mmace procamp") Or
 																 wantedvalue2.ToLower.Contains("ati video") Then
-																			Try
-																				Deletesubregkey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2)
-																			Catch ex As Exception
-																			End Try
-																		End If
-																	End If
-																End If
-															End If
-														End Using
-													End If
-												Next
-											End If
-										End Using
-									End If
-								End Using
-							End If
-						Next
-					End If
-				End Using
-			Catch ex As Exception
-				Application.Log.AddException(ex)
-			End Try
-
-			If IntPtr.Size = 8 Then
-				Try
-					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID", False)
-						If regkey IsNot Nothing Then
-							For Each child As String In regkey.GetSubKeyNames()
-								If IsNullOrWhitespace(child) = False Then
-									Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child, False)
-										If subregkey IsNot Nothing Then
-											Using subregkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance", False)
-												If subregkey2 IsNot Nothing Then
-													For Each child2 As String In subregkey2.GetSubKeyNames()
-														If IsNullOrWhitespace(child2) = False Then
-															Using superkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2)
-																If superkey IsNot Nothing Then
-																	If IsNullOrWhitespace(superkey.GetValue("FriendlyName", String.Empty).ToString) = False Then
-																		wantedvalue2 = superkey.GetValue("FriendlyName", String.Empty).ToString
-																		If wantedvalue2.ToLower.Contains("ati mpeg") Or
-																	wantedvalue2.ToLower.Contains("amd mjpeg") Or
-																	wantedvalue2.ToLower.Contains("ati ticker") Or
-																	wantedvalue2.ToLower.Contains("mmace softemu") Or
-																	wantedvalue2.ToLower.Contains("mmace deinterlace") Or
-																	wantedvalue2.ToLower.Contains("mmace procamp") Or
-																	wantedvalue2.ToLower.Contains("amd video") Or
-																	wantedvalue2.ToLower.Contains("ati video") Then
-																			Try
-																				Deletesubregkey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2)
-																			Catch ex As Exception
-																			End Try
+																				Try
+																					Deletesubregkey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2)
+																				Catch ex As Exception
+																				End Try
+																			End If
 																		End If
 																	End If
 																End If
@@ -1096,52 +1051,57 @@ Namespace Display_Driver_Uninstaller
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
-			End If
 
-			Application.Log.AddMessage("MediaFoundation cleanUP")
-			Try
-				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "MediaFoundation\Transforms", True)
-					If regkey IsNot Nothing Then
-						For Each child As String In regkey.GetSubKeyNames()
-							If IsNullOrWhitespace(child) Then Continue For
-
-							Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child)
-								If regkey2 IsNot Nothing Then
-									If IsNullOrWhitespace(regkey2.GetValue("", String.Empty).ToString) Then Continue For
-
-									If StrContainsAny(regkey2.GetValue("").ToString, True, "amd d3d11 hardware mft", "amd fast (dnd) decoder", "amd h.264 hardware mft encoder", "amd playback decoder mft") Then
-										Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories")
-											If regkey3 IsNot Nothing Then
-												For Each child2 As String In regkey3.GetSubKeyNames
-													If IsNullOrWhitespace(child2) Then Continue For
-													Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories\" & child2, True)
-														If regkey4 IsNot Nothing Then
-															Try
-																Deletesubregkey(regkey4, child)
-															Catch ex As Exception
-															End Try
-														End If
-													End Using
-												Next
+				If IntPtr.Size = 8 Then
+					Try
+						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID", False)
+							If regkey IsNot Nothing Then
+								For Each child As String In regkey.GetSubKeyNames()
+									If IsNullOrWhitespace(child) = False Then
+										Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child, False)
+											If subregkey IsNot Nothing Then
+												Using subregkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance", False)
+													If subregkey2 IsNot Nothing Then
+														For Each child2 As String In subregkey2.GetSubKeyNames()
+															If IsNullOrWhitespace(child2) = False Then
+																Using superkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2)
+																	If superkey IsNot Nothing Then
+																		If IsNullOrWhitespace(superkey.GetValue("FriendlyName", String.Empty).ToString) = False Then
+																			wantedvalue2 = superkey.GetValue("FriendlyName", String.Empty).ToString
+																			If wantedvalue2.ToLower.Contains("ati mpeg") Or
+																	wantedvalue2.ToLower.Contains("amd mjpeg") Or
+																	wantedvalue2.ToLower.Contains("ati ticker") Or
+																	wantedvalue2.ToLower.Contains("mmace softemu") Or
+																	wantedvalue2.ToLower.Contains("mmace deinterlace") Or
+																	wantedvalue2.ToLower.Contains("mmace procamp") Or
+																	wantedvalue2.ToLower.Contains("amd video") Or
+																	wantedvalue2.ToLower.Contains("ati video") Then
+																				Try
+																					Deletesubregkey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2)
+																				Catch ex As Exception
+																				End Try
+																			End If
+																		End If
+																	End If
+																End Using
+															End If
+														Next
+													End If
+												End Using
 											End If
 										End Using
-										Try
-											Deletesubregkey(regkey, child)
-										Catch ex As Exception
-										End Try
 									End If
-								End If
-							End Using
-						Next
-					End If
-				End Using
-			Catch ex As Exception
-				Application.Log.AddException(ex)
-			End Try
+								Next
+							End If
+						End Using
+					Catch ex As Exception
+						Application.Log.AddException(ex)
+					End Try
+				End If
 
-			If IntPtr.Size = 8 Then
+				Application.Log.AddMessage("MediaFoundation cleanUP")
 				Try
-					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\MediaFoundation\Transforms", True)
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "MediaFoundation\Transforms", True)
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
 								If IsNullOrWhitespace(child) Then Continue For
@@ -1179,15 +1139,54 @@ Namespace Display_Driver_Uninstaller
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
+
+				If IntPtr.Size = 8 Then
+					Try
+						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Wow6432Node\MediaFoundation\Transforms", True)
+							If regkey IsNot Nothing Then
+								For Each child As String In regkey.GetSubKeyNames()
+									If IsNullOrWhitespace(child) Then Continue For
+
+									Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child)
+										If regkey2 IsNot Nothing Then
+											If IsNullOrWhitespace(regkey2.GetValue("", String.Empty).ToString) Then Continue For
+
+											If StrContainsAny(regkey2.GetValue("").ToString, True, "amd d3d11 hardware mft", "amd fast (dnd) decoder", "amd h.264 hardware mft encoder", "amd playback decoder mft") Then
+												Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories")
+													If regkey3 IsNot Nothing Then
+														For Each child2 As String In regkey3.GetSubKeyNames
+															If IsNullOrWhitespace(child2) Then Continue For
+															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories\" & child2, True)
+																If regkey4 IsNot Nothing Then
+																	Try
+																		Deletesubregkey(regkey4, child)
+																	Catch ex As Exception
+																	End Try
+																End If
+															End Using
+														Next
+													End If
+												End Using
+												Try
+													Deletesubregkey(regkey, child)
+												Catch ex As Exception
+												End Try
+											End If
+										End If
+									End Using
+								Next
+							End If
+						End Using
+					Catch ex As Exception
+						Application.Log.AddException(ex)
+					End Try
+				End If
+
+				Application.Log.AddMessage("AppID and clsidleftover cleanUP")
+				'old dcom 
+
+				CLSIDCleanThread(clsidleftover)
 			End If
-
-			Application.Log.AddMessage("AppID and clsidleftover cleanUP")
-			'old dcom 
-
-			Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftover))
-
-			TaskList.Add(thread1)
-
 			Application.Log.AddMessage("Record CleanUP")
 
 			'--------------
@@ -2551,9 +2550,6 @@ Namespace Display_Driver_Uninstaller
 
 			'Killing Explorer.exe to help releasing file that were open.
 
-
-			Tasks.Task.WaitAll(TaskList.ToArray())
-
 			Application.Log.AddMessage("Killing Explorer.exe")
 			KillProcess("explorer")
 
@@ -3701,7 +3697,7 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Sub
 
-		Private Sub Cleannvidia(ByVal config As ThreadSettings)
+		Private Sub CleanNvidia(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
 			Dim TaskList = New List(Of Tasks.Task)()
 			Dim wantedvalue As String = Nothing
@@ -3723,91 +3719,94 @@ Namespace Display_Driver_Uninstaller
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
 
-			'-----------------
-			'Registry Cleaning
-			'-----------------
-			UpdateTextMethod(UpdateTextTranslated(5))
-			Application.Log.AddMessage("Starting reg cleanUP... May take a minute or two.")
+			If preclean Then
+
+				'-----------------
+				'Registry Cleaning
+				'-----------------
+				UpdateTextMethod(UpdateTextTranslated(5))
+				Application.Log.AddMessage("Starting reg cleanUP... May take a minute or two.")
 
 
-			'Deleting DCOM object /classroot
-			Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
+				'Deleting DCOM object /classroot
+				Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
 
 
-			CleanupEngine.ClassRoot(classroot, config)
+				CleanupEngine.ClassRoot(classroot, config)
 
-			If WindowsIdentity.GetCurrent().IsSystem Then
-				ImpersonateLoggedOnUser.ReleaseToken()
-			End If
-
-			'Removal of the (DCH) Nvidia control panel comming from the Window Store. (In progress...)
-			If _win10 AndAlso config.RemoveNVCP Then
-				If CanDeprovisionPackageForAllUsersAsync() Then
-					CleanupEngine.RemoveAppx1809("NVIDIAControlPanel")
-				Else
-					CleanupEngine.RemoveAppx("NVIDIAControlPanel")
+				If WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.ReleaseToken()
 				End If
-			End If
 
-			If Not WindowsIdentity.GetCurrent().IsSystem Then
-				ImpersonateLoggedOnUser.Taketoken()
-			End If
-
-			'for GFE removal only
-			If removegfe Then
-				Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftoverGFE))
-				TaskList.Add(thread1)
-			Else
-				Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftover))
-				TaskList.Add(thread1)
-			End If
-
-			Dim thread2 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(packages, config))
-			TaskList.Add(thread2)
-
-			If removenvbroadcast Then
-				Dim thread3 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(clsidleftoverNVB, config))
-				TaskList.Add(thread3)
-			End If
-
-			'------------------------------
-			'Clean the rebootneeded message
-			'------------------------------
-			Try
-
-				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE", True)
-					If regkey IsNot Nothing Then
-						For Each child As String In regkey.GetSubKeyNames()
-							If Not IsNullOrWhitespace(child) Then
-								If child.ToLower.Contains("nvidia_rebootneeded") Then
-									Try
-										Deletesubregkey(regkey, child)
-									Catch ex As Exception
-										Application.Log.AddException(ex)
-									End Try
-								End If
-							End If
-						Next
+				'Removal of the (DCH) Nvidia control panel comming from the Window Store. (In progress...)
+				If _win10 AndAlso config.RemoveNVCP Then
+					If CanDeprovisionPackageForAllUsersAsync() Then
+						CleanupEngine.RemoveAppx1809("NVIDIAControlPanel")
+					Else
+						CleanupEngine.RemoveAppx("NVIDIAControlPanel")
 					End If
-				End Using
-			Catch ex As Exception
-				Application.Log.AddException(ex)
-			End Try
+				End If
 
-			'-----------------
-			'interface cleanup
-			'-----------------
+				If Not WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.Taketoken()
+				End If
 
-			Tasks.Task.WaitAll(TaskList.ToArray())
+				'for GFE removal only
+				If removegfe Then
+					Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftoverGFE))
+					TaskList.Add(thread1)
+				Else
+					Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftover))
+					TaskList.Add(thread1)
+				End If
 
+				Dim thread2 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(packages, config))
+				TaskList.Add(thread2)
 
-			If removegfe Then 'When removing GFE only
-				CleanupEngine.Interfaces(reginterfaceGFE) '// add each line as String Array.
-			Else
-				CleanupEngine.Interfaces(reginterface)  '// add each line as String Array.
+				If removenvbroadcast Then
+					Dim thread3 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(clsidleftoverNVB, config))
+					TaskList.Add(thread3)
+				End If
+
+				'------------------------------
+				'Clean the rebootneeded message
+				'------------------------------
+				Try
+
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE", True)
+						If regkey IsNot Nothing Then
+							For Each child As String In regkey.GetSubKeyNames()
+								If Not IsNullOrWhitespace(child) Then
+									If child.ToLower.Contains("nvidia_rebootneeded") Then
+										Try
+											Deletesubregkey(regkey, child)
+										Catch ex As Exception
+											Application.Log.AddException(ex)
+										End Try
+									End If
+								End If
+							Next
+						End If
+					End Using
+				Catch ex As Exception
+					Application.Log.AddException(ex)
+				End Try
+
+				'-----------------
+				'interface cleanup
+				'-----------------
+
+				Tasks.Task.WaitAll(TaskList.ToArray())
+
+				If removegfe Then 'When removing GFE only
+					CleanupEngine.Interfaces(reginterfaceGFE) '// add each line as String Array.
+				Else
+					CleanupEngine.Interfaces(reginterface)  '// add each line as String Array.
+				End If
+
+				Application.Log.AddMessage("Finished dcom/clsid/appid/typelib/interface cleanup")
+
 			End If
-
-			Application.Log.AddMessage("Finished dcom/clsid/appid/typelib/interface cleanup")
 
 			'end of deleting dcom stuff
 			Application.Log.AddMessage("Pnplockdownfiles region cleanUP")
@@ -6950,7 +6949,7 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Sub CleanIntel(ByVal config As ThreadSettings)
+		Private Sub CleanIntel(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
 			Dim wantedvalue As String = Nothing
 			Dim packages As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packages.cfg")
@@ -6959,34 +6958,35 @@ Namespace Display_Driver_Uninstaller
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftover.cfg")
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
 
-			UpdateTextMethod(UpdateTextTranslated(5))
-
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
 
-			Application.Log.AddMessage("Cleaning registry")
+			If preclean Then
+				UpdateTextMethod(UpdateTextTranslated(5))
+				Application.Log.AddMessage("Cleaning registry")
 
-			'Removal of the (DCH) from the Window Store. (In progress...)
-			If _win10 AndAlso config.RemoveINTELCP Then
-				If CanDeprovisionPackageForAllUsersAsync() Then
-					CleanupEngine.RemoveAppx1809("IntelGraphicsControlPanel")
-					CleanupEngine.RemoveAppx1809("IntelGraphicsExperience")
-					CleanupEngine.RemoveAppx1809("IntelGraphicsCommandCenter")
-				Else
-					CleanupEngine.RemoveAppx("IntelGraphicsControlPanel")
-					CleanupEngine.RemoveAppx("IntelGraphicsExperience")
-					CleanupEngine.RemoveAppx("IntelGraphicsCommandCenter")
+				'Removal of the (DCH) from the Window Store. (In progress...)
+				If _win10 AndAlso config.RemoveINTELCP Then
+					If CanDeprovisionPackageForAllUsersAsync() Then
+						CleanupEngine.RemoveAppx1809("IntelGraphicsControlPanel")
+						CleanupEngine.RemoveAppx1809("IntelGraphicsExperience")
+						CleanupEngine.RemoveAppx1809("IntelGraphicsCommandCenter")
+					Else
+						CleanupEngine.RemoveAppx("IntelGraphicsControlPanel")
+						CleanupEngine.RemoveAppx("IntelGraphicsExperience")
+						CleanupEngine.RemoveAppx("IntelGraphicsCommandCenter")
+					End If
 				End If
+
+				CleanupEngine.Pnplockdownfiles(driverfiles) '// add each line as String Array.
+
+				CleanupEngine.ClassRoot(classroot, config) '// add each line as String Array.
+
+				CleanupEngine.Interfaces(reginterface) '// add each line as String Array.
+
+				CleanupEngine.Clsidleftover(clsidleftover) '// add each line as String Array.
 			End If
-
-			CleanupEngine.Pnplockdownfiles(driverfiles) '// add each line as String Array.
-
-			CleanupEngine.ClassRoot(classroot, config) '// add each line as String Array.
-
-			CleanupEngine.Interfaces(reginterface) '// add each line as String Array.
-
-			CleanupEngine.Clsidleftover(clsidleftover) '// add each line as String Array.
 
 			'--------------------------
 			'Power Settings CleanUP

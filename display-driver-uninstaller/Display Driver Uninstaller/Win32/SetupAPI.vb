@@ -1503,7 +1503,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 #Region "Functions"
 
-		Public Shared Function TEST_GetDevices(ByVal filter As String, ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeparents As Boolean) As List(Of Device)
+		Public Shared Function TEST_GetDevices(ByVal filter As String, ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeparents As Boolean, Optional ByVal driverDetails As Boolean = False) As List(Of Device)
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
 			Try
@@ -1651,7 +1651,7 @@ Namespace Display_Driver_Uninstaller.Win32
 										GetSiblings(dev)
 
 										If dev.SiblingDevices IsNot Nothing AndAlso dev.SiblingDevices.Length > 0 Then
-											UpdateDevicesByID(dev.SiblingDevices)
+											UpdateDevicesByID(dev.SiblingDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -1660,7 +1660,7 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetParents(dev)
 										If dev.ParentDevices IsNot Nothing AndAlso dev.ParentDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ParentDevices)
+											UpdateDevicesByID(dev.ParentDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -1669,12 +1669,12 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetChild(dev)
 										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ChildDevices)
+											UpdateDevicesByID(dev.ChildDevices, driverDetails)
 										End If
 									Next
 								End If
 
-								UpdateDevicesByID(Devices)
+								UpdateDevicesByID(Devices, driverDetails)
 							End If
 						End If
 					Finally
@@ -2020,7 +2020,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-		Public Shared Function GetDevicesByCHID(ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeParents As Boolean, ByVal includechilds As Boolean) As List(Of Device)  'Get devices by Compatible Hardware IDs
+		Public Shared Function GetDevicesByCHID(ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeParents As Boolean, ByVal includechilds As Boolean, Optional ByVal driverDetails As Boolean = False) As List(Of Device)  'Get devices by Compatible Hardware IDs
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
 			Try
@@ -2103,7 +2103,11 @@ Namespace Display_Driver_Uninstaller.Win32
 								}
 
 								GetDeviceDetails(infoSet, ptrDevInfo.Ptr, d, True)
-								GetDriverDetails(infoSet, ptrDevInfo.Ptr, d)
+
+								If driverDetails Then
+									GetDriverDetails(infoSet, ptrDevInfo.Ptr, d)
+								End If
+
 								GetDeviceStatus(ptrDevInfo.Ptr, d)
 
 								Devices.Add(d)
@@ -2118,7 +2122,7 @@ Namespace Display_Driver_Uninstaller.Win32
 										GetSiblings(dev)
 
 										If dev.SiblingDevices IsNot Nothing AndAlso dev.SiblingDevices.Length > 0 Then
-											UpdateDevicesByID(dev.SiblingDevices)
+											UpdateDevicesByID(dev.SiblingDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -2127,7 +2131,7 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetParents(dev)
 										If dev.ParentDevices IsNot Nothing AndAlso dev.ParentDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ParentDevices)
+											UpdateDevicesByID(dev.ParentDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -2136,12 +2140,12 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetChild(dev)
 										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ChildDevices)
+											UpdateDevicesByID(dev.ChildDevices, driverDetails)
 										End If
 									Next
 								End If
 
-								UpdateDevicesByID(Devices)
+								UpdateDevicesByID(Devices, driverDetails)
 							End If
 							Dim logEntry As LogEntry = Application.Log.CreateEntry()
 							logEntry.Message = String.Format("Devices found: {0}", Devices.Count.ToString())
@@ -2170,7 +2174,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 			Return Nothing
 		End Function
-		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False) As List(Of Device)
+		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False, Optional ByVal driverDetails As Boolean = False) As List(Of Device)
 			Try
 				If IsNullOrWhitespace(className) Then
 					Throw New ArgumentNullException("className")
@@ -2243,7 +2247,7 @@ Namespace Display_Driver_Uninstaller.Win32
 										GetSiblings(dev)
 
 										If dev.SiblingDevices IsNot Nothing AndAlso dev.SiblingDevices.Length > 0 Then
-											UpdateDevicesByID(dev.SiblingDevices)
+											UpdateDevicesByID(dev.SiblingDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -2252,7 +2256,7 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetParents(dev)
 										If dev.ParentDevices IsNot Nothing AndAlso dev.ParentDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ParentDevices)
+											UpdateDevicesByID(dev.ParentDevices, driverDetails)
 										End If
 									Next
 								End If
@@ -2261,12 +2265,12 @@ Namespace Display_Driver_Uninstaller.Win32
 									For Each dev As Device In Devices
 										GetChild(dev)
 										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ChildDevices)
+											UpdateDevicesByID(dev.ChildDevices, driverDetails)
 										End If
 									Next
 								End If
 
-								UpdateDevicesByID(Devices)
+								UpdateDevicesByID(Devices, driverDetails)
 							End If
 
 							Dim logEntry As LogEntry = Application.Log.CreateEntry()
@@ -2296,7 +2300,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Function
 
-		' REVERSED FOR CLEANING FROM CODE
+		' RESERVED FOR CLEANING FROM CODE
 		Public Shared Sub UninstallDevice(ByVal device As Device)
 			Try
 				If device Is Nothing Then
@@ -2630,9 +2634,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-
-
-		Private Shared Sub UpdateDevicesByID(ByVal devList As IEnumerable(Of Device))
+		Private Shared Sub UpdateDevicesByID(ByVal devList As IEnumerable(Of Device), ByVal driverDetails As Boolean)
 			Try
 				Dim nullGuid As Guid = Guid.Empty
 				Dim device As Device = Nothing
@@ -2678,18 +2680,19 @@ Namespace Display_Driver_Uninstaller.Win32
 							For Each sDev As Device In devList
 								If sDev.devInst = devInst Then
 									GetDeviceDetails(infoSet, ptrDevInfo.Ptr, sDev, False)
-									GetDriverDetails(infoSet, ptrDevInfo.Ptr, sDev)
-									GetDeviceStatus(ptrDevInfo.Ptr, sDev)
 
+									If driverDetails Then
+										GetDriverDetails(infoSet, ptrDevInfo.Ptr, sDev)
+									End If
+
+									GetDeviceStatus(ptrDevInfo.Ptr, sDev)
 									devInst = 0UI
 									Continue While
 								End If
 							Next
 						End While
 					Finally
-						If ptrDevInfo IsNot Nothing Then
-							ptrDevInfo.Dispose()
-						End If
+						ptrDevInfo?.Dispose()
 					End Try
 				End Using
 			Catch ex As Exception
@@ -3013,9 +3016,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				device.OemInfs = oemInfs.ToArray()
 				device.DriverInfo = drvInfos.ToArray()
 			Finally
-				If ptrDrvInfoData IsNot Nothing Then
-					ptrDrvInfoData.Dispose()
-				End If
+				ptrDrvInfoData?.Dispose()
 			End Try
 		End Sub
 
@@ -3120,6 +3121,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Sub
 
 		Private Shared Sub GetParents(ByVal device As Device)
+			Application.Log.AddMessage("Debug - GetParents start")
 			Try
 				Dim result As UInt32
 				Dim devInstParent As UInt32 = 0UI
@@ -3150,6 +3152,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Catch ex As Exception
 				Application.Log.AddException(ex, "Getting device's parents has failed!")
 			End Try
+			Application.Log.AddMessage("Debug - GetParents end")
 		End Sub
 
 		Private Shared Sub GetChild(ByVal device As Device)

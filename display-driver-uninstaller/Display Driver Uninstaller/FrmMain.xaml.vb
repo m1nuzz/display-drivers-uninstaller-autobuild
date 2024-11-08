@@ -530,10 +530,18 @@ Namespace Display_Driver_Uninstaller
 		End Sub
 
 		Private Sub FrmMain_Closing(sender As System.Object, e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
+
 			Try
 				If CleaningTask IsNot Nothing AndAlso Not CleaningTask.IsCompleted Then
-					e.Cancel = True
 					Application.Log.SaveToFile()
+					Select Case MessageBox.Show("If DDU hasn't progressed since 5 minutes and you think it is stuck, you can click *Yes* If not then at your own risk of corruption.", "Warning, DDU is still executing ! Are you sure you want to close ? ", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation)
+						Case MessageBoxResult.Yes
+
+						Case MessageBoxResult.No
+							e.Cancel = True
+						Case MessageBoxResult.Cancel
+							e.Cancel = True
+					End Select
 					Exit Sub
 				End If
 			Catch ex As Exception
@@ -621,13 +629,6 @@ Namespace Display_Driver_Uninstaller
 				End If
 
 				EnableControls(True)
-
-				If Not config.Silent And Not config.Restart And Not config.Shutdown Then
-					If MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
-						CloseDDU()
-						Exit Sub
-					End If
-				End If
 
 				If config.Restart Then
 
@@ -770,7 +771,7 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Sub StartThread(ByVal config As ThreadSettings)
+		Private Async Sub StartThread(ByVal config As ThreadSettings)
 			Try
 				'If System.Diagnostics.Debugger.IsAttached Then          'TODO: remove when tested
 				Dim logEntry As New LogEntry() With {.Message = "Used settings for cleaning!"}
@@ -790,6 +791,15 @@ Namespace Display_Driver_Uninstaller
 
 
 				CleaningTask.Start()
+
+				Await CleaningTask
+
+				If Not config.Silent And Not config.Restart And Not config.Shutdown Then
+					If MessageBox.Show(Application.Current.MainWindow, Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
+						CloseDDU()
+						Exit Sub
+					End If
+				End If
 
 			Catch ex As Exception
 				CleaningTask = Nothing
