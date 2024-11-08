@@ -3121,7 +3121,6 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Sub
 
 		Private Shared Sub GetParents(ByVal device As Device)
-			Application.Log.AddMessage("Debug - GetParents start")
 			Try
 				Dim result As UInt32
 				Dim devInstParent As UInt32 = 0UI
@@ -3152,7 +3151,6 @@ Namespace Display_Driver_Uninstaller.Win32
 			Catch ex As Exception
 				Application.Log.AddException(ex, "Getting device's parents has failed!")
 			End Try
-			Application.Log.AddMessage("Debug - GetParents end")
 		End Sub
 
 		Private Shared Sub GetChild(ByVal device As Device)
