@@ -179,7 +179,7 @@ Namespace Display_Driver_Uninstaller
 					UpdateTextMethod(UpdateTextTranslated(24))
 					Application.Log.AddMessage("SetupAPI: Removing Audio controller associated to the GPU(s).")
 					Dim AudioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True)
-					If AudioDevices.Count > 0 Then
+					If AudioDevices IsNot Nothing AndAlso AudioDevices.Count > 0 Then
 						For Each AudioDevice As SetupAPI.Device In AudioDevices
 							If AudioDevice IsNot Nothing Then
 								'Removing Audio endpoints
@@ -205,7 +205,7 @@ Namespace Display_Driver_Uninstaller
 								If _win10 Then
 									Application.Log.AddMessage("SetupAPI: Removing the SoftwareComponent associated to the GPU(s) Audio controler.")
 									Dim SoftwareComponents As List(Of SetupAPI.Device) = SetupAPI.GetDevices("SoftwareComponent", Nothing, False, True)
-									If SoftwareComponents.Count > 0 Then
+									If SoftwareComponents IsNot Nothing AndAlso SoftwareComponents.Count > 0 Then
 										For Each SoftwareComponent As SetupAPI.Device In SoftwareComponents
 											If SoftwareComponent IsNot Nothing Then
 												For Each Parent As SetupAPI.Device In SoftwareComponent.ParentDevices
@@ -233,7 +233,7 @@ Namespace Display_Driver_Uninstaller
 									For Each Parent As SetupAPI.Device In AudioDevice.ParentDevices
 										If Parent IsNot Nothing Then 'TODO : Parent.ChildDevices.Length < 1
 											Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", Parent.DeviceID, False, True, True)
-											If audiobusList.Count > 0 Then
+											If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
 												For Each audiobus As SetupAPI.Device In audiobusList
 													If audiobus IsNot Nothing AndAlso (audiobus.ChildDevices Is Nothing OrElse audiobus.ChildDevices.Length < 2) Then
 														SetupAPI.UninstallDevice(audiobus) 'Removing the Audio bus.
@@ -423,7 +423,7 @@ Namespace Display_Driver_Uninstaller
 					Dim GPUs As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID(VendCHIDGPU, False, False, False)
 					If GPUs IsNot Nothing AndAlso GPUs.Count > 0 Then
 						For Each GPU As SetupAPI.Device In GPUs
-							If GPU IsNot Nothing Then
+							If GPU IsNot Nothing AndAlso Not IsNullOrWhitespace(GPU.DeviceID) Then
 								If _win10 Then
 									Application.Log.AddMessage("Executing SetupAPI: Remove SoftwareComponent connected to the GPU.")
 									Dim SoftwareComponents As List(Of SetupAPI.Device) = SetupAPI.GetDevices("SoftwareComponent", Nothing, False, True)
@@ -6227,6 +6227,7 @@ Namespace Display_Driver_Uninstaller
 						If (StrContainsAny(child, True, "drs") AndAlso Not config.KeepNVCPopt) Or
 						StrContainsAny(child, True, "nv_cache", "umdlogs", "nvtopps", "GameSessionTelemetry") Or
 					 (child.ToLower.Contains("geforce experience") AndAlso config.RemoveGFE) Or
+					 (child.ToLower.Contains("nvnode") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("nvab") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("gfexperience") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("netservice") AndAlso config.RemoveGFE) Or
