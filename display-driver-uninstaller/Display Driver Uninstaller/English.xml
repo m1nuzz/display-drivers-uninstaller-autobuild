@@ -302,9 +302,9 @@
 		</lblVulkan>
 		<lblPreventWinUpdate>
 			<Text>Prevent downloads of drivers from "Windows update" when "Windows" search for a driver for a device.</Text>
-			<Tooltip>In easy term, this option will denies "Windows/Device Manager" to check for driver update on "Windows Update". 
-               Note: This doesn't prevent "Windows Update" to download/install new drivers. 
-               Note2: It is also *HIGHLY* recommended to revert this change after you have finished using DDU and re-installed your GPU driver or you may have problem with other device installation.</Tooltip>
+			<Tooltip>In easy terms, this option will deny "Windows/Device Manager" from checking for a driver update on "Windows Update". 
+               Note: This doesn't prevent "Windows Update" from downloading/installing new drivers. 
+               Note2: It is also *HIGHLY* recommended to revert this change after you have finished using DDU and re-installed your GPU driver or else you may have a problem with other device installations.</Tooltip>
 		</lblPreventWinUpdate>
 		<lblRememberLastChoice>
 			<Text>Remember last selected GPU</Text>	
