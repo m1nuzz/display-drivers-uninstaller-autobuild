@@ -305,7 +305,10 @@
       <Tooltip>I enkla termer, detta val förhindrar "Windows/Enhetshanteraren" att söka efter drivrutinsuppdateringar i "Windows Uppdatering". 
                Notering: Detta förhindrar inte "Windows Uppdatering" att ladda ner/installera nya drivrutiner. 
                Notering2: Det är också rekommenderat att ändra denna ändring efter du har avslutat DDU och återinstallerat din GPU drivrutin eller du får problem med andra enhetsinstallationer.</Tooltip>
-     </lblPreventWinUpdate>
+        </lblPreventWinUpdate>
+		<lblRememberLastChoice>
+			<Text>Kom ihåg sist valda GPU</Text>	
+		</lblRememberLastChoice>
   </frmOptions>
 
 	<frmLaunch Text="Launch option">
@@ -426,6 +429,7 @@
 				-Eduardo Macias
 				-Peter Le
 				-Kater Willschie
+				-Duke Hanson
 				
 			</Text>
 		</lblPatron>
@@ -501,7 +505,7 @@ Tack till Helge Klein (http://helgeklein.com/setacl/) : för tillståndet att an
 		<Translator>
 			<User>Hans Eriksson</User>
 			<Details>hanseriksson980@gmail.com</Details>
-			<LastUpdate>19/10/2024</LastUpdate>
+			<LastUpdate>11/11/2024</LastUpdate>
 		</Translator>
 	</LanguageTranslators>
 
