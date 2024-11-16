@@ -2,6 +2,7 @@
 Imports System.IO
 Imports System.Security.Principal
 Imports System.Threading
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox
 Imports Display_Driver_Uninstaller.Win32
 Imports Microsoft.Win32
 Imports WinForm = System.Windows.Forms
@@ -23,11 +24,77 @@ Namespace Display_Driver_Uninstaller
 			Dim VendCHIDGPU As String = ""
 			Dim vendidexpected As String = ""
 			Dim VendidSC As String() = Nothing
+			Dim audioHWIDs As String() = Nothing
 
 			Select Case config.SelectedGPU
-				Case GPUVendor.Nvidia : vendidexpected = "VEN_10DE" : VendCHIDGPU = "VEN_10DE&CC_03" : VendidSC = {"VEN_10DE"}
-				Case GPUVendor.AMD : vendidexpected = "VEN_1002" : VendCHIDGPU = "VEN_1002&CC_03" : VendidSC = {"VEN_1002"}
-				Case GPUVendor.Intel : vendidexpected = "VEN_8086" : VendCHIDGPU = "VEN_8086&CC_03" : VendidSC = {"VEN8086_MSDK", "VEN8086_GFXUI"}
+				Case GPUVendor.Nvidia
+					vendidexpected = "VEN_10DE"
+					VendCHIDGPU = "VEN_10DE&CC_03"
+					VendidSC = {"VEN_10DE"}
+					audioHWIDs = {
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0071",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0072",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_007D",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0080",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0081",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0082",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0083",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0084",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0010",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0011",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0012",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0014",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0015",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0016",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0018",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_001C",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0040",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0041",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0042",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0044",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0051",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0060",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0070",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0090",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0091",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0092",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0093",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0094",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0095",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0097",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_0099",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_009A",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_009C",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_009D",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_009E",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_009F",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A0",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A2",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A3",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A4",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A5",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A6",
+	"HDAUDIO\FUNC_01&VEN_10DE&DEV_00A7"}
+
+				Case GPUVendor.AMD
+					vendidexpected = "VEN_1002"
+					VendCHIDGPU = "VEN_1002&CC_03"
+					VendidSC = {"VEN_1002"}
+
+				Case GPUVendor.Intel
+					vendidexpected = "VEN_8086"
+					VendCHIDGPU = "VEN_8086&CC_03"
+					VendidSC = {"VEN8086_MSDK", "VEN8086_GFXUI"}
+					audioHWIDs = {"HDAUDIO\FUNC_01&VEN_8086&DEV_2819",
+  "INTELAUDIO\FUNC_01&VEN_8086&DEV_2819",
+  "HDAUDIO\FUNC_01&VEN_8086&DEV_2816&SUBSYS_80860101",
+  "HDAUDIO\FUNC_01&VEN_8086&DEV_2815",
+  "INTELAUDIO\FUNC_01&VEN_8086&DEV_2815",
+  "HDAUDIO\FUNC_01&VEN_8086&DEV_2812",
+  "INTELAUDIO\FUNC_01&VEN_8086&DEV_2812",
+  "HDAUDIO\FUNC_01&VEN_8086&DEV_281B",
+  "INTELAUDIO\FUNC_01&VEN_8086&DEV_281B"}
+
 				Case GPUVendor.None : vendidexpected = "NONE"
 			End Select
 
@@ -178,26 +245,27 @@ Namespace Display_Driver_Uninstaller
 				Try
 					UpdateTextMethod(UpdateTextTranslated(24))
 					Application.Log.AddMessage("SetupAPI: Removing Audio controller associated to the GPU(s).")
-					Dim AudioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True)
-					If AudioDevices IsNot Nothing AndAlso AudioDevices.Count > 0 Then
-						For Each AudioDevice As SetupAPI.Device In AudioDevices
-							If AudioDevice IsNot Nothing Then
+					Dim audioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True)
+					If audioDevices IsNot Nothing AndAlso audioDevices.Count > 0 Then
+						For Each audioDevice As SetupAPI.Device In audioDevices
+							If audioDevice IsNot Nothing AndAlso Not IsNullOrWhitespace(audioDevice.DeviceID) Then
+								If Not StrContainsAny(audioDevice.DeviceID, True, audioHWIDs) Then Continue For
 								'Removing Audio endpoints
 								Application.Log.AddMessage("SetupAPI: Removing Audio Endpoint associated to the GPU(s) Audio controller.")
-								Dim Audioendpoints As List(Of SetupAPI.Device) = SetupAPI.GetDevices("audioendpoint", Nothing, False, True)
-								If Audioendpoints.Count > 0 Then
-									For Each Audioendpoint As SetupAPI.Device In Audioendpoints
-										If Audioendpoint IsNot Nothing Then
-											For Each Parent As SetupAPI.Device In Audioendpoint.ParentDevices
-												If Parent IsNot Nothing AndAlso Not IsNullOrWhitespace(Parent.DeviceID) Then
-													If StrContainsAny(Parent.DeviceID, True, AudioDevice.DeviceID) Then
-														SetupAPI.UninstallDevice(Audioendpoint) 'Removing the audioenpoint associated with the device we are trying to remove.
+								Dim audioEndPoints As List(Of SetupAPI.Device) = SetupAPI.GetDevices("audioendpoint", Nothing, False, True)
+								If audioEndPoints.Count > 0 Then
+									For Each audioEndPoint As SetupAPI.Device In audioEndPoints
+										If audioEndPoint IsNot Nothing Then
+											For Each parent As SetupAPI.Device In audioEndPoint.ParentDevices
+												If parent IsNot Nothing AndAlso Not IsNullOrWhitespace(parent.DeviceID) Then
+													If StrContainsAny(parent.DeviceID, True, audioDevice.DeviceID) Then
+														SetupAPI.UninstallDevice(audioEndPoint) 'Removing the audioenpoint associated with the device we are trying to remove.
 													End If
 												End If
 											Next
 										End If
 									Next
-									Audioendpoints.Clear()
+									audioEndPoints.Clear()
 								End If
 								Application.Log.AddMessage("SetupAPI: Removal of Audio Endpoint(s) associated to the GPU(s) Audio controller completed.")
 
@@ -210,7 +278,7 @@ Namespace Display_Driver_Uninstaller
 											If SoftwareComponent IsNot Nothing Then
 												For Each Parent As SetupAPI.Device In SoftwareComponent.ParentDevices
 													If Parent IsNot Nothing AndAlso Not IsNullOrWhitespace(Parent.DeviceID) Then
-														If StrContainsAny(Parent.DeviceID, True, AudioDevice.DeviceID) Then
+														If StrContainsAny(Parent.DeviceID, True, audioDevice.DeviceID) Then
 															SetupAPI.UninstallDevice(SoftwareComponent)
 														End If
 													End If
@@ -224,13 +292,13 @@ Namespace Display_Driver_Uninstaller
 
 								Application.Log.AddMessage("SetupAPI: Removing the Audio controller associated to the GPU(s).")
 
-								SetupAPI.UninstallDevice(AudioDevice) 'Removing the audio card
+								SetupAPI.UninstallDevice(audioDevice) 'Removing the audio card
 
 								Application.Log.AddMessage("SetupAPI: Removal of the Audio controller associated to the GPU(s) completed.")
 
 								If config.RemoveAudioBus Then
 									Application.Log.AddMessage("SetupAPI: Removing the AudioBus associated to the GPU(s) Audio controler.")
-									For Each Parent As SetupAPI.Device In AudioDevice.ParentDevices
+									For Each Parent As SetupAPI.Device In audioDevice.ParentDevices
 										If Parent IsNot Nothing Then 'TODO : Parent.ChildDevices.Length < 1
 											Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", Parent.DeviceID, False, True, True)
 											If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
@@ -247,7 +315,7 @@ Namespace Display_Driver_Uninstaller
 							End If
 						Next
 
-						AudioDevices.Clear()
+						audioDevices.Clear()
 					End If
 					UpdateTextMethod(UpdateTextTranslated(25))
 					Application.Log.AddMessage("SetupAPI: Remove Audio controler Complete.")
@@ -6088,6 +6156,7 @@ Namespace Display_Driver_Uninstaller
 							 (child.ToLower.Contains("gfnruntimesdk") AndAlso config.RemoveGFE) Or
 							 (child.ToLower.Contains("frameviewsdk") AndAlso config.RemoveGFE) Or
 							 (child.ToLower.Contains("nvidia app") AndAlso config.RemoveGFE) Or
+							 (child.ToLower.Contains("shared store") AndAlso config.RemoveGFE) Or
 							 (child.ToLower.Contains("nvidia overlay") AndAlso config.RemoveGFE) Or
 							 (child.ToLower.Contains("shield apps") AndAlso config.RemoveGFE) Then
 
