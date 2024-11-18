@@ -2029,6 +2029,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim lowerfilters(0) As String
 				Dim upperfilters(0) As String
 				Dim friendlyname As String
+				Dim service As String
 				Dim desc As String = Nothing
 				Dim className As String = Nothing
 				Dim match As Boolean = False
@@ -2070,6 +2071,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							lowerfilters = Nothing
 							upperfilters = Nothing
 							friendlyname = Nothing
+							service = Nothing
 
 							If Not String.IsNullOrEmpty(text) Then
 								hardwareIds = GetMultiStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.COMPATIBLEIDS)
@@ -2099,7 +2101,8 @@ Namespace Display_Driver_Uninstaller.Win32
 								 .HardwareIDs = hardwareIds,
 								 .LowerFilters = lowerfilters,
 								 .UpperFilters = lowerfilters,
-								 .FriendlyName = friendlyname
+								 .FriendlyName = friendlyname,
+								 .Service = service
 								}
 
 								GetDeviceDetails(infoSet, ptrDevInfo.Ptr, d, True)
@@ -2379,6 +2382,7 @@ Namespace Display_Driver_Uninstaller.Win32
 						logStatus.Add("Description", If(IsNullOrWhitespace(device.Description), "<empty>", device.Description))
 						logStatus.Add("FriendlyName", If(IsNullOrWhitespace(device.FriendlyName), "<empty>", device.FriendlyName))
 						logStatus.Add("DeviceID", device.DeviceID)
+						logStatus.Add("Service", device.Service)
 						logStatus.Add("DevInst", device.devInst.ToString())
 						logStatus.Add("HardwareID", String.Join(CRLF, device.HardwareIDs))
 						logStatus.Add(KvP.Empty)
@@ -2814,6 +2818,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				.ClassGuid = GetStringProperty(infoSet, ptrDevInfo, SPDRP.CLASSGUID)
 				.Description = GetStringProperty(infoSet, ptrDevInfo, SPDRP.DEVICEDESC)
 				.FriendlyName = GetStringProperty(infoSet, ptrDevInfo, SPDRP.FRIENDLYNAME)
+				.Service = GetStringProperty(infoSet, ptrDevInfo, SPDRP.SERVICE)
 				.HardwareIDs = GetMultiStringProperty(infoSet, ptrDevInfo, SPDRP.HARDWAREID)
 				.CompatibleIDs = GetMultiStringProperty(infoSet, ptrDevInfo, SPDRP.COMPATIBLEIDS)
 				.LowerFilters = GetMultiStringProperty(infoSet, ptrDevInfo, SPDRP.LOWERFILTERS)
@@ -3292,6 +3297,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Private _lowerfilters As String()
 			Private _upperfilters As String()
 			Private _friendlyname As String
+			Private _service As String
 			Private _compatibleIDs As String()
 			Private _description As String
 			Private _classGuid As String
@@ -3366,6 +3372,14 @@ Namespace Display_Driver_Uninstaller.Win32
 				End Get
 				Friend Set(value As String)
 					_friendlyname = value
+				End Set
+			End Property
+			Public Property Service As String
+				Get
+					Return _service
+				End Get
+				Friend Set(value As String)
+					_service = value
 				End Set
 			End Property
 			Public Property CompatibleIDs As String()
