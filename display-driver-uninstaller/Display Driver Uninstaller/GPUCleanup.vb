@@ -140,16 +140,13 @@ Namespace Display_Driver_Uninstaller
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
 
-						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
-							'Service is not present
-						Else
-							Try
-								ServiceInstaller.Uninstall(service)
-							Catch ex As Exception
-								Application.Log.AddException(ex)
-							End Try
+						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 
-						End If
+						Try
+							ServiceInstaller.Uninstall(service)
+						Catch ex As Exception
+							Application.Log.AddException(ex)
+						End Try
 					Next
 
 					'Fix a possible permission problem when removing the driver via SetupAPI
