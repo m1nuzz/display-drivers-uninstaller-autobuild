@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME            "Display Driver Uninstaller"
-!define PRODUCT_VERSION         "18.0.8.5"
+!define PRODUCT_VERSION         "18.0.8.6"
 
 !define PRODUCT_PUBLISHER       "Wagnardsoft"
 !define PRODUCT_WEB_SITE        "https://www.wagnardsoft.com"
@@ -137,7 +137,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription"    "${PRODUCT_DESCRIPTIO
 VIAddVersionKey /LANG=${LANG_ENGLISH} "InternalName"       "${PRODUCT_NAME}"
 
 Section "MainSection" SEC01
-  SetShellVarContext current
+  SetShellVarContext all
   SetOutPath "$INSTDIR"
   SetOverwrite try
   File "${SOURCE_PATH}\Display Driver Uninstaller.exe"
@@ -265,6 +265,7 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
+  SetShellVarContext all
   ; Resolve the language strings before creating shortcuts
   StrCpy $0 $(STR_01) ; "Web site"
   StrCpy $1 $(STR_02) ; "Uninstall"
