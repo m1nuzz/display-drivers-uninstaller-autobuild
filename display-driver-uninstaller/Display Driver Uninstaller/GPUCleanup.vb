@@ -208,7 +208,7 @@ Namespace Display_Driver_Uninstaller
 									RemoveDeviceAndChildren(audioDevice.ChildDevices.ToList())
 								End If
 
-								Application.Log.AddMessage("SetupAPI: Removal if the childrens associated to the GPU(s) Audio controller completed.")
+								Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the GPU(s) Audio controller completed.")
 
 								Application.Log.AddMessage("SetupAPI: Removing the Audio controller associated to the GPU(s).")
 
@@ -216,8 +216,8 @@ Namespace Display_Driver_Uninstaller
 
 								Application.Log.AddMessage("SetupAPI: Removal of the Audio controller associated to the GPU(s) completed.")
 
-								If config.RemoveAudioBus Then
-									Application.Log.AddMessage("SetupAPI: Removing the AudioBus associated to the GPU(s) Audio controler.")
+								If Not (config.SelectedGPU = GPUVendor.AMD AndAlso Not config.RemoveAudioBus) Then
+									Application.Log.AddMessage("SetupAPI: Removing the AudioBus associated to the GPU(s) Audio media.")
 									For Each Parent As SetupAPI.Device In audioDevice.ParentDevices
 										If Parent IsNot Nothing AndAlso Not IsNullOrWhitespace(Parent.DeviceID) Then 'TODO : Parent.ChildDevices.Length < 1
 											Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", Parent.DeviceID, False, False, False)
