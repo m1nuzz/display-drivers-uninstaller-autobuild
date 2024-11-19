@@ -34,6 +34,8 @@ Namespace Display_Driver_Uninstaller.Win32
 				Application.Log.AddException(ex)
 			End Try
 
+			GetServiceStatus(serviceName)
+
 			'Verify that the service was indeed removed via registry.
 			Using regkey As Microsoft.Win32.RegistryKey = MyRegistry.OpenSubKey(Microsoft.Win32.Registry.LocalMachine, "SYSTEM\CurrentControlSet\Services\" & serviceName, False)
 				If regkey IsNot Nothing Then
