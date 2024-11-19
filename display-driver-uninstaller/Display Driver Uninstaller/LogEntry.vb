@@ -211,6 +211,7 @@ Namespace Display_Driver_Uninstaller
 				Add("Description", If(Not IsNullOrWhitespace(d.Description), d.Description, "-"))
 				Add("FriendlyName", If(Not IsNullOrWhitespace(d.FriendlyName), d.FriendlyName, "-"))
 				Add("ClassName", If(Not IsNullOrWhitespace(d.ClassName), d.ClassName, "-"))
+				Add("Service", If(Not IsNullOrWhitespace(d.Service), d.Service, "-"))
 				Add(KvP.Empty)
 				Add("DeviceID", If(Not IsNullOrWhitespace(d.DeviceID), d.DeviceID, "-"))
 				Add("DevInst", d.devInst.ToString())
