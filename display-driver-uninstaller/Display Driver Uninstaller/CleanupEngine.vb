@@ -32,7 +32,7 @@ Namespace Display_Driver_Uninstaller
 							If regkey IsNot Nothing Then
 								For Each childs As String In regkey.GetSubKeyNames
 									If IsNullOrWhitespace(childs) Then Continue For
-									Deletesubregkey(regkey, childs)
+									Deletesubregkey(regkey, childs, throwOnMissingSubKey)
 								Next
 							End If
 						End Using
@@ -45,7 +45,7 @@ Namespace Display_Driver_Uninstaller
 								Dim path As String = StrReplace(regkeypath.Name, "HKEY_LOCAL_MACHINE", "").ToString()
 								Using PnpRegkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM" + path + "\" + child)
 									If PnpRegkey IsNot Nothing Then
-										Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM" + path + "\" + child)
+										Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM" + path + "\" + child, throwOnMissingSubKey)
 									End If
 								End Using
 
@@ -54,7 +54,7 @@ Namespace Display_Driver_Uninstaller
 
 								Using PnpRegkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR" + path + "\" + child)
 									If PnpRegkey IsNot Nothing Then
-										Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR" + path + "\" + child)
+										Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR" + path + "\" + child, throwOnMissingSubKey)
 									End If
 								End Using
 
@@ -1671,13 +1671,23 @@ Namespace Display_Driver_Uninstaller
 						If (config.RemoveAMDKMPFD = False Or config.NotPresentAMDKMPFD = False) AndAlso StrContainsAny(service, True, "amdkmpfd") Then Continue For
 						Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, service, False)
 							If regkey2 IsNot Nothing Then
+
 								If WindowsIdentity.GetCurrent().IsSystem Then
 									ImpersonateLoggedOnUser.ReleaseToken()
 								End If
 
 								If ServiceInstaller.GetServiceStatus(service) = Nothing Then
-									'Service is not present
-									Deletesubregkey(regkey, service)
+									'Service is not present, but there is residual information on the registry service section for that service.
+
+									If Not WindowsIdentity.GetCurrent().IsSystem Then
+										ImpersonateLoggedOnUser.Taketoken()
+									End If
+
+									Try
+										Deletesubregkey(regkey, service, False)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
 								Else
 									Try
 										ServiceInstaller.Uninstall(service)
