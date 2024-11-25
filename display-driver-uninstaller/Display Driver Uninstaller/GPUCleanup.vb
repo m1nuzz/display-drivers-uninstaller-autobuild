@@ -403,6 +403,23 @@ Namespace Display_Driver_Uninstaller
 				' Removing the videocard
 				' ----------------------
 
+				'	SetupAPI.EnableDevice(GPU, False)
+				If config.SelectedGPU = GPUVendor.AMD Then
+					CleanAmd(config, True) 'needed since 24h2 it seems
+				End If
+
+				If config.SelectedGPU = GPUVendor.Nvidia Then
+					CleanNvidia(config, True) 'needed since 24h2 it seems
+				End If
+
+				If config.SelectedGPU = GPUVendor.Intel Then
+					CleanIntel(config, True) 'needed since 24h2 it seems
+				End If
+
+				If WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.ReleaseToken()
+				End If
+
 				Try
 					Application.Log.AddMessage("Executing SetupAPI: Remove GPU(s).")
 					Dim GPUs As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID(VendCHIDGPU, False, False, True)
@@ -417,19 +434,6 @@ Namespace Display_Driver_Uninstaller
 								End If
 
 								Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the GPU(s) completed.")
-
-								'	SetupAPI.EnableDevice(GPU, False)
-								If config.SelectedGPU = GPUVendor.AMD Then
-									CleanAmd(config, True) 'needed since 24h2 it seems
-								End If
-
-								If config.SelectedGPU = GPUVendor.Nvidia Then
-									CleanNvidia(config, True) 'needed since 24h2 it seems
-								End If
-
-								If config.SelectedGPU = GPUVendor.Intel Then
-									CleanIntel(config, True) 'needed since 24h2 it seems
-								End If
 
 								SetupAPI.UninstallDevice(GPU) 'Then we remove the GPU itself.
 							End If
