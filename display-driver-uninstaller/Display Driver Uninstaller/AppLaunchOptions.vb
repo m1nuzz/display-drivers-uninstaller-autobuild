@@ -38,6 +38,7 @@ Namespace Display_Driver_Uninstaller
 		Public Property RemoveNVCP As Boolean = False
 		Public Property KeepNVCPopt As Boolean = False
 		Public Property RemoveINTELCP As Boolean = False
+		Public Property RemoveINTELIGS As Boolean = False
 		Public Property RemoveAMDCP As Boolean = False
 		Public Property RemoveVulkan As Boolean = False
 		Public Property NoSetupAPI As Boolean = False

@@ -181,7 +181,9 @@ Namespace Display_Driver_Uninstaller
 						End If
 					Next
 
-					KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing")
+					If config.RemoveINTELIGS Then
+						KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing", "intelgraphicssoftware")
+					End If
 
 			End Select
 
@@ -598,8 +600,27 @@ Namespace Display_Driver_Uninstaller
 						"PCI\VEN_8086&DEV_4FA4",
 						"PCI\VEN_8086&DEV_4FA0",
 						"PCI\VEN_8086&DEV_4FA1",
+						"PCI\VEN_8086&DEV_E2FF",
+						"PCI\VEN_8086&DEV_E2F0",
+						"PCI\VEN_8086&DEV_E2F1",
 						"CT_28bb0e51-b4b0-4509-9e51-78d48daae82b",
 						"VIDEO\INTC_HECI_2"}
+
+					Dim igcc As String() =
+						{"VEN8086_IGCC"}
+
+					Dim intelACX As String() =
+						{"VEN_8086&DEV_2812",
+						"VEN_8086&DEV_2815",
+						"VEN_8086&DEV_2818",
+						"VEN_8086&DEV_2816",
+						"VEN_8086&DEV_2814",
+						"VEN_8086&DEV_2819",
+						"VEN_8086&DEV_281C",
+						"VEN_8086&DEV_281D",
+						"VEN_8086&DEV_281E",
+						"VEN_8086&DEV_281F"
+						}
 
 					Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("SoftwareComponent", Nothing, False)
 					Try
@@ -609,8 +630,45 @@ Namespace Display_Driver_Uninstaller
 									SetupAPI.UninstallDevice(d)
 									Continue For
 								End If
+
 								If d IsNot Nothing AndAlso StrContainsAny(d.FriendlyName, True, "Intel(R) Graphics firmware update service", "Intel GFX Firmware Update Service") Then
 									SetupAPI.UninstallDevice(d)
+									Continue For
+								End If
+
+								If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
+									If d.HasHardwareID Then   'Workaround for a bug report we got.
+										For Each hardwareid As String In d.HardwareIDs
+											If IsNullOrWhitespace(hardwareid) Then Continue For
+											If StrContainsAny(hardwareid, True, igcc) Then
+												SetupAPI.UninstallDevice(d)
+												Exit For
+											End If
+										Next
+									End If
+								End If
+							Next
+							found.Clear()
+						End If
+					Catch ex As Exception
+						Application.Log.AddException(ex)
+					End Try
+
+					'remove left over audio
+					found = SetupAPI.GetDevices("media", vendidexpected, False)
+					Try
+						If found IsNot Nothing AndAlso found.Count > 0 Then
+							For Each d As SetupAPI.Device In found
+								If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
+									If d.HasHardwareID Then   'Workaround for a bug report we got.
+										For Each hardwareid As String In d.HardwareIDs
+											If IsNullOrWhitespace(hardwareid) Then Continue For
+											If StrContainsAny(hardwareid, True, intelACX) Then
+												SetupAPI.UninstallDevice(d)
+												Exit For
+											End If
+										Next
+									End If
 								End If
 							Next
 							found.Clear()
@@ -628,7 +686,7 @@ Namespace Display_Driver_Uninstaller
 								If d.HasHardwareID Then   'Workaround for a bug report we got.
 									For Each hardwareid As String In d.HardwareIDs
 										If IsNullOrWhitespace(hardwareid) Then Continue For
-										If StrContainsAny(hardwareid, True, "root\iwdbus", "VIDEO\INTC_CTA", "VIDEO\INTC_I2C") Then
+										If StrContainsAny(hardwareid, True, "root\iwdbus", "VIDEO\INTC_CTA", "VIDEO\INTC_I2C", "VIDEO\INTC_PMT") Then
 											SetupAPI.UninstallDevice(d)
 											Exit For
 										End If
@@ -675,6 +733,7 @@ Namespace Display_Driver_Uninstaller
 						found.Clear()
 					End If
 					Application.Log.AddMessage("SetupAPI: Intel(R) Graphics System Controller Auxiliary Firmware Interface Complete .")
+
 				End If
 
 				Application.Log.AddMessage("SetupAPI: Remove Audio/HDMI Complete")
@@ -1523,30 +1582,40 @@ Namespace Display_Driver_Uninstaller
 										For Each child As String In regkey.GetSubKeyNames()
 											If IsNullOrWhitespace(child) Then Continue For
 											If child.ToLower.Contains("aceeventlog") Then
-												Deletesubregkey(regkey, child)
+												Try
+													Deletesubregkey(regkey, child)
+													Continue For
+												Catch ex As Exception
+													Application.Log.AddException(ex)
+												End Try
 											End If
 										Next
 
-
 										Try
-											Deletesubregkey(regkey, "Application\ATIeRecord")
+											Deletesubregkey(regkey, "Application\ATIeRecord", False)
+											Continue For
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 
 										Try
-											Deletesubregkey(regkey, "System\amdkmdag")
+											Deletesubregkey(regkey, "System\amdkmdag", False)
+											Continue For
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 
 										Try
-											Deletesubregkey(regkey, "System\amdkmdap")
+											Deletesubregkey(regkey, "System\amdkmdap", False)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									End If
 								End Using
 								Try
-									Deletesubregkey(Registry.LocalMachine, "SYSTEM\" & child2 & "\Services\Atierecord")
+									Deletesubregkey(Registry.LocalMachine, "SYSTEM\" & child2 & "\Services\Atierecord", False)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						Next
@@ -1567,9 +1636,11 @@ Namespace Display_Driver_Uninstaller
 						For Each child As String In regkey.GetSubKeyNames()
 							If IsNullOrWhitespace(child) Then Continue For
 							If child.Contains("ACE") Then
-
-								Deletesubregkey(regkey, child)
-
+								Try
+									Deletesubregkey(regkey, child)
+								Catch ex As Exception
+									Application.Log.AddException(ex)
+								End Try
 							End If
 						Next
 					End If
@@ -5066,7 +5137,11 @@ Namespace Display_Driver_Uninstaller
 									 child.ToLower.StartsWith("nvwmi") Or
 									 child.ToLower.StartsWith("nvlddmkm") Or
 									 child.ToLower.StartsWith("nview") Then
-											Deletesubregkey(regkey, child)
+											Try
+												Deletesubregkey(regkey, child)
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
 										End If
 									Next
 								End If
@@ -6911,9 +6986,11 @@ Namespace Display_Driver_Uninstaller
 			Dim CleanupEngine As New CleanupEngine
 			Dim wantedvalue As String = Nothing
 			Dim packages As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packages.cfg")
+			Dim packagesigs As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesigs.cfg")
 			Dim classroot As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\classroot.cfg")
 			Dim reginterface As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\interface.cfg")
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftover.cfg")
+			Dim clsidleftoverigs As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftoverigs.cfg")
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
 
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -6944,7 +7021,13 @@ Namespace Display_Driver_Uninstaller
 				CleanupEngine.Interfaces(reginterface) '// add each line as String Array.
 
 				CleanupEngine.Clsidleftover(clsidleftover) '// add each line as String Array.
+
+				If config.RemoveINTELIGS Then
+					CleanupEngine.Clsidleftover(clsidleftoverigs) '// add each line as String Array.
+				End If
+
 				Return
+
 			End If
 
 			'--------------------------
@@ -7011,7 +7094,8 @@ Namespace Display_Driver_Uninstaller
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
 							If IsNullOrWhitespace(child) = False Then
-								If StrContainsAny(child, True, "display", "igd", "gfx", "mediasdk", "opencl", "intel wireless display", "kmd", "mdf", "Intel Arc Control", "xesdk") Then
+								If StrContainsAny(child, True, "display", "igd", "gfx", "mediasdk", "opencl", "intel wireless display", "kmd", "mdf", "xesdk") OrElse
+									(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel Arc Control")) Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
@@ -7045,7 +7129,7 @@ Namespace Display_Driver_Uninstaller
 							If regkey IsNot Nothing Then
 								For Each child As String In regkey.GetSubKeyNames()
 									If IsNullOrWhitespace(child) = False Then
-										If StrContainsAny(child, True, "display", "IGN") Then
+										If StrContainsAny(child, True, "display", "IGN") OrElse (config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "IntelGraphicsSoftware", "presentmon")) Then
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
@@ -7104,25 +7188,34 @@ Namespace Display_Driver_Uninstaller
 					Application.Log.AddException(ex)
 				End Try
 
-				Try
-					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Run", True)
-						If regkey IsNot Nothing Then
-							If regkey.GetValue("Intel® Arc™ Control") IsNot Nothing Then
-								Try
-									Deletevalue(regkey, "Intel® Arc™ Control")
-								Catch ex As Exception
-								End Try
+				If config.RemoveINTELIGS Then
+					Try
+						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Run", True)
+							If regkey IsNot Nothing Then
+								If regkey.GetValue("Intel® Arc™ Control") IsNot Nothing Then
+									Try
+										Deletevalue(regkey, "Intel® Arc™ Control")
+									Catch ex As Exception
+									End Try
+								End If
+
+								If regkey.GetValue("Intel® Graphics Software") IsNot Nothing Then
+									Try
+										Deletevalue(regkey, "Intel® Graphics Software")
+									Catch ex As Exception
+									End Try
+								End If
 							End If
-						End If
-					End Using
-				Catch ex As Exception
-					Application.Log.AddException(ex)
-				End Try
+						End Using
+					Catch ex As Exception
+						Application.Log.AddException(ex)
+					End Try
+				End If
 
 			End If
 
 
-			Try
+				Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Microsoft\Windows\CurrentVersion\Run", True)
 					If regkey IsNot Nothing Then
 						If regkey.GetValue("IgfxTray") IsNot Nothing Then
@@ -7177,7 +7270,7 @@ Namespace Display_Driver_Uninstaller
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
 							If IsNullOrWhitespace(child) Then Continue For
-							If StrContainsAny(child, True, "Intel® Arc™ Control", "Intel Arc Control") Then
+							If config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel® Arc™ Control", "Intel Arc Control") Then
 
 								Deletesubregkey(regkey, child)
 
@@ -7191,13 +7284,16 @@ Namespace Display_Driver_Uninstaller
 
 			CleanupEngine.Installer(packages, config)
 
+			If config.RemoveINTELIGS Then
+				CleanupEngine.Installer(packagesigs, config)
+			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 			"Software\Microsoft\Windows\CurrentVersion\Uninstall", True)
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
 							If IsNullOrWhitespace(child) Then Continue For
-
 
 							Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Microsoft\Windows\CurrentVersion\Uninstall\" & child)
 
@@ -7223,7 +7319,7 @@ Namespace Display_Driver_Uninstaller
 
 										If IsNullOrWhitespace(wantedvalue) Then Continue For
 
-										If StrContainsAny(wantedvalue, True, packages) Then
+										If StrContainsAny(wantedvalue, True, packages) OrElse (config.RemoveINTELIGS AndAlso StrContainsAny(wantedvalue, True, packagesigs)) Then
 											Try
 												If Not (config.RemoveVulkan = False AndAlso StrContainsAny(wantedvalue, True, "vulkan")) Then
 													Deletesubregkey(regkey, child)
@@ -7232,7 +7328,7 @@ Namespace Display_Driver_Uninstaller
 														Delete(config.Paths.Roaming + "Package Cache\" + child)
 													End If
 													If ((Not IsNullOrWhitespace(InstallSource)) AndAlso Directory.Exists(InstallSource)) Then
-														Delete(InstallSource)
+														'Delete(InstallSource)
 													End If
 												End If
 											Catch ex As Exception
@@ -7276,7 +7372,7 @@ Namespace Display_Driver_Uninstaller
 
 												Dim InstallSource = subregkey.GetValue("InstallSource", String.Empty).ToString.TrimEnd(CChar("\"))
 												If IsNullOrWhitespace(wantedvalue) Then Continue For
-												If StrContainsAny(wantedvalue, True, packages) Then
+												If StrContainsAny(wantedvalue, True, packages) OrElse (config.RemoveINTELIGS AndAlso StrContainsAny(wantedvalue, True, packagesigs)) Then
 													Try
 														If Not (config.RemoveVulkan = False AndAlso StrContainsAny(wantedvalue, True, "vulkan")) Then
 															Deletesubregkey(regkey, child)
@@ -7285,7 +7381,7 @@ Namespace Display_Driver_Uninstaller
 																Delete(config.Paths.Roaming + "Package Cache\" + child)
 															End If
 															If ((Not IsNullOrWhitespace(InstallSource)) AndAlso Directory.Exists(InstallSource)) Then
-																Delete(InstallSource)
+																'Delete(InstallSource)
 															End If
 														End If
 													Catch ex As Exception
@@ -7304,21 +7400,37 @@ Namespace Display_Driver_Uninstaller
 				End Try
 			End If
 
+			If config.RemoveINTELIGS Then
+				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", True)
+					If regkey IsNot Nothing Then
+						For Each child As String In regkey.GetValueNames()
+							If IsNullOrWhitespace(child) Then Continue For
+							If StrContainsAny(child, True, "Intel® Arc™ Control", "Intel® Graphics Software") Then
+								Try
+									Deletevalue(regkey, child)
+								Catch ex As Exception
+									Application.Log.AddException(ex)
+								End Try
+							End If
+						Next
+					End If
+				End Using
 
-			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", True)
-				If regkey IsNot Nothing Then
-					For Each child As String In regkey.GetValueNames()
-						If IsNullOrWhitespace(child) Then Continue For
-						If StrContainsAny(child, True, "Intel® Arc™ Control") Then
-							Try
-								Deletevalue(regkey, child)
-							Catch ex As Exception
-								Application.Log.AddException(ex)
-							End Try
-						End If
-					Next
-				End If
-			End Using
+				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32", True)
+					If regkey IsNot Nothing Then
+						For Each child As String In regkey.GetValueNames()
+							If IsNullOrWhitespace(child) Then Continue For
+							If StrContainsAny(child, True, "Intel® Arc™ Control", "Intel® Graphics Software") Then
+								Try
+									Deletevalue(regkey, child)
+								Catch ex As Exception
+									Application.Log.AddException(ex)
+								End Try
+							End If
+						Next
+					End If
+				End Using
+			End If
 
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\Cpls", True)
@@ -7402,6 +7514,88 @@ Namespace Display_Driver_Uninstaller
 				End Try
 			End If
 
+			'-----------------------
+			'remove event view stuff
+			'-----------------------
+			Application.Log.AddMessage("Remove eventviewer stuff")
+
+			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
+				If subregkey IsNot Nothing Then
+					For Each child2 As String In subregkey.GetSubKeyNames()
+						If IsNullOrWhitespace(child2) Then Continue For
+
+						If child2.ToLower.Contains("controlset") Then
+							Using regkey As RegistryKey = MyRegistry.OpenSubKey(subregkey, child2 & "\Services\eventlog\Application", True)
+								If regkey IsNot Nothing Then
+									For Each child As String In regkey.GetSubKeyNames()
+										If IsNullOrWhitespace(child) Then Continue For
+
+										If config.RemoveINTELIGS AndAlso child.ToLower.StartsWith("intel graphics software service") Then
+											Try
+												Deletesubregkey(regkey, child)
+												Continue For
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
+
+										If child.ToLower.Equals("igcc") OrElse
+											child.ToLower.Equals("intel-gfx-firmware-update-service") OrElse
+											child.ToLower.Equals("oneapp_igcc") Then
+											Try
+												Deletesubregkey(regkey, child)
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
+									Next
+								End If
+							End Using
+						End If
+					Next
+				End If
+			End Using
+
+			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
+				If subregkey IsNot Nothing Then
+					For Each child2 As String In subregkey.GetSubKeyNames()
+						If IsNullOrWhitespace(child2) Then Continue For
+
+						If child2.ToLower.Contains("controlset") Then
+							Using regkey As RegistryKey = MyRegistry.OpenSubKey(subregkey, child2 & "\Services\eventlog", True)
+								If regkey IsNot Nothing Then
+									For Each child As String In regkey.GetSubKeyNames()
+										If IsNullOrWhitespace(child) Then Continue For
+
+										If config.RemoveINTELIGS AndAlso child.ToLower.StartsWith("intel graphics software") Then
+											Try
+												Deletesubregkey(regkey, child)
+												Continue For
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
+
+										If child.ToLower.Equals("oneapp_igcc") Then
+											Try
+												Deletesubregkey(regkey, child)
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
+									Next
+								End If
+							End Using
+						End If
+					Next
+				End If
+			End Using
+
+			Application.Log.AddMessage("End Remove eventviewer stuff")
+			'---------------------------
+			'end remove event view stuff
+			'---------------------------
+
 			UpdateTextMethod(UpdateTextTranslated(6))
 			Application.Log.AddMessage("Killing Explorer.exe")
 
@@ -7416,13 +7610,17 @@ Namespace Display_Driver_Uninstaller
 		Private Sub CleanIntelServiceProcess(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			Dim services As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\services.cfg")
-
+			Dim servicesIGS As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\servicesigs.cfg")
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
 
 			Application.Log.AddMessage("Cleaning Process/Services...")
 			CleanupEngine.Cleanserviceprocess(services, config) '// add each line as String Array.
+
+			If config.RemoveINTELIGS Then
+				CleanupEngine.Cleanserviceprocess(servicesIGS, config)
+			End If
 
 			KillProcess("IGFXEM")
 			Application.Log.AddMessage("Process/Services CleanUP Complete")
@@ -7463,7 +7661,8 @@ Namespace Display_Driver_Uninstaller
 			If _fileIo.ExistsDir(filePath) Then
 				For Each child As String In _fileIo.GetDirectories(filePath)
 					If IsNullOrWhitespace(child) = False Then
-						If StrContainsAny(child, True, "Media SDK", "Media Resource", "Intel Arc Control", "ACMirageCache", "Intel(R) Arc Software & Drivers", "PrebuiltShaderBinaries") Then
+						If StrContainsAny(child, True, "Media SDK", "Media Resource", "ACMirageCache", "Intel(R) Arc Software & Drivers", "PrebuiltShaderBinaries") OrElse
+							(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel Graphics Software", "Intel Arc Control")) Then
 							Delete(child)
 						End If
 					End If
@@ -7525,52 +7724,54 @@ Namespace Display_Driver_Uninstaller
 				End If
 			End If
 
-			filePath = Environment.GetFolderPath _
+			If config.RemoveINTELIGS Then
+				filePath = Environment.GetFolderPath _
 	(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs"
-			Try
+				Try
 
-				For Each child As String In _fileIo.GetFiles(filePath)
-					If IsNullOrWhitespace(child) Then Continue For
-					If StrContainsAny(child, True, "Intel Arc Control") Then
-						Delete(child)
-					End If
-				Next
-			Catch ex As Exception
-				Application.Log.AddException(ex)
-			End Try
-
-			filePath = Environment.GetFolderPath _
-	(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Intel"
-			If _fileIo.ExistsDir(filePath) Then
-				For Each child As String In _fileIo.GetDirectories(filePath)
-					If IsNullOrWhitespace(child) Then Continue For
-					If StrContainsAny(child, True, "Intel Arc Control") Then
-						Delete(child)
-					End If
-				Next
-				If _fileIo.CountDirectories(filePath) = 0 Then
-					Delete(filePath)
-				Else
-					For Each data As String In _fileIo.GetDirectories(filePath)
-						If IsNullOrWhitespace(data) Then Continue For
-						Application.Log.AddWarningMessage("Remaining folders found " + " : " + filePath + "\ --> " + data)
+					For Each child As String In _fileIo.GetFiles(filePath)
+						If IsNullOrWhitespace(child) Then Continue For
+						If StrContainsAny(child, True, "Intel Arc Control") Then
+							Delete(child)
+						End If
 					Next
-				End If
-			End If
+				Catch ex As Exception
+					Application.Log.AddException(ex)
+				End Try
 
-			filePath = Environment.GetFolderPath _
-	(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Startup"
-			Try
-
-				For Each child As String In _fileIo.GetFiles(filePath)
-					If IsNullOrWhitespace(child) Then Continue For
-					If StrContainsAny(child, True, "Intel Arc Control") Then
-						Delete(child)
+				filePath = Environment.GetFolderPath _
+		(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Intel"
+				If _fileIo.ExistsDir(filePath) Then
+					For Each child As String In _fileIo.GetDirectories(filePath)
+						If IsNullOrWhitespace(child) Then Continue For
+						If StrContainsAny(child, True, "Intel Arc Control", "Intel Graphics Software") Then
+							Delete(child)
+						End If
+					Next
+					If _fileIo.CountDirectories(filePath) = 0 Then
+						Delete(filePath)
+					Else
+						For Each data As String In _fileIo.GetDirectories(filePath)
+							If IsNullOrWhitespace(data) Then Continue For
+							Application.Log.AddWarningMessage("Remaining folders found " + " : " + filePath + "\ --> " + data)
+						Next
 					End If
-				Next
-			Catch ex As Exception
-				Application.Log.AddException(ex)
-			End Try
+				End If
+
+				filePath = Environment.GetFolderPath _
+		(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Startup"
+				Try
+
+					For Each child As String In _fileIo.GetFiles(filePath)
+						If IsNullOrWhitespace(child) Then Continue For
+						If StrContainsAny(child, True, "Intel Arc Control") Then
+							Delete(child)
+						End If
+					Next
+				Catch ex As Exception
+					Application.Log.AddException(ex)
+				End Try
+			End If
 
 			For Each filepaths As String In _fileIo.GetDirectories(config.Paths.UserPath)
 				If IsNullOrWhitespace(filepaths) Then Continue For
@@ -7580,10 +7781,13 @@ Namespace Display_Driver_Uninstaller
 						Delete(child)
 					End If
 				Next
+
 				filePath = filepaths + "\AppData\LocalLow\Intel"
+
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\Intel"  'need check in the future.
 				End If
+
 				If _fileIo.ExistsDir(filePath) Then
 					Try
 						For Each child As String In _fileIo.GetDirectories(filePath)
@@ -7617,7 +7821,8 @@ Namespace Display_Driver_Uninstaller
 					Try
 						For Each child As String In _fileIo.GetDirectories(filePath)
 							If IsNullOrWhitespace(child) = False Then
-								If StrContainsAny(child, True, "gcc", "games", "cuipromotions", "ags", "ign") AndAlso config.RemoveINTELCP Then
+								If config.RemoveINTELCP AndAlso StrContainsAny(child, True, "gcc", "games", "cuipromotions", "ags", "ign") OrElse
+									(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "intelgraphicssoftware")) Then
 
 									Delete(child)
 

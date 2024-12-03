@@ -108,6 +108,7 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly m_keepNVCPopt As DependencyProperty = RegDP("KeepNVCPopt", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_remNVBROADCAST As DependencyProperty = RegDP("RemoveNVBROADCAST", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remINTELCP As DependencyProperty = RegDP("RemoveINTELCP", GetType(Boolean), GetType(AppSettings), True)
+		Private ReadOnly m_remINTELIGS As DependencyProperty = RegDP("RemoveINTELIGS", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remAMDCP As DependencyProperty = RegDP("RemoveAMDCP", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_removevulkan As DependencyProperty = RegDP("RemoveVulkan", GetType(Boolean), GetType(AppSettings), True)
 
@@ -367,6 +368,16 @@ Namespace Display_Driver_Uninstaller
 				SetValue(m_remINTELCP, value)
 			End Set
 		End Property
+
+		Public Property RemoveINTELIGS As Boolean
+			Get
+				Return CBool(GetValue(m_remINTELIGS))
+			End Get
+			Set(value As Boolean)
+				SetValue(m_remINTELIGS, value)
+			End Set
+		End Property
+
 		Public Property RemoveAMDCP As Boolean
 			Get
 				Return CBool(GetValue(m_remAMDCP))
@@ -622,7 +633,8 @@ Namespace Display_Driver_Uninstaller
 							.WriteElementString("RemoveNVBROADCAST", RemoveNVBROADCAST.ToString())
 							.WriteElementString("RemoveNVCP", RemoveNVCP.ToString())
 							.WriteElementString("RemoveINTELCP", RemoveINTELCP.ToString())
-							.WriteElementString("RemoveAMDCP", RemoveINTELCP.ToString())
+							.WriteElementString("RemoveINTELIGS", RemoveINTELIGS.ToString())
+							.WriteElementString("RemoveAMDCP", RemoveAMDCP.ToString())
 							.WriteElementString("UseRoamingConfig", UseRoamingConfig.ToString())
 							.WriteElementString("CheckUpdates", CheckUpdates.ToString())
 							.WriteElementString("CreateRestorePoint", CreateRestorePoint.ToString())
@@ -778,8 +790,11 @@ Namespace Display_Driver_Uninstaller
 								Case "removeintelcp"
 									RemoveINTELCP = Boolean.Parse(KvP.Value)
 
+								Case "removeinteligs"
+									RemoveINTELIGS = Boolean.Parse(KvP.Value)
+
 								Case "removeamdcp"
-									RemoveINTELCP = Boolean.Parse(KvP.Value)
+									RemoveAMDCP = Boolean.Parse(KvP.Value)
 
 								Case "useroamingconfig"
 									UseRoamingConfig = Boolean.Parse(KvP.Value)

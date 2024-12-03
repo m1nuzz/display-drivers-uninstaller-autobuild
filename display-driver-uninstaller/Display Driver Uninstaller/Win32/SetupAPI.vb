@@ -110,6 +110,12 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Enum
 
 		<Flags()>
+		Private Enum DiUninstallDriverFlags As UInteger
+			DIURFLAG_NO_REMOVE_INF = &H1UI
+			DIURFLAG_FORCE_REMOVE_INF = &H2UI
+		End Enum
+
+		<Flags()>
 		Private Enum DIGCF As UInteger
 			''' <summary>Return only the device that is associated with the system default device interface,
 			''' if one is set, for the specified device interface classes.</summary>
@@ -1373,6 +1379,14 @@ Namespace Display_Driver_Uninstaller.Win32
 
 #Region "P/Invoke SetupAPI"
 
+		<DllImport("kernel32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
+		Public Shared Function LoadLibrary(lpLibFileName As String) As IntPtr
+		End Function
+
+		<DllImport("kernel32.dll", SetLastError:=True)>
+		Public Shared Function GetProcAddress(hModule As IntPtr, lpProcName As String) As IntPtr
+		End Function
+
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiClassGuidsFromName(
    <[In]()> ByVal ClassName As String,
@@ -1499,9 +1513,29 @@ Namespace Display_Driver_Uninstaller.Win32
    <[Out](), [Optional](), MarshalAs(UnmanagedType.Bool)> ByRef bRebootRequired As Boolean) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
+		<DllImport("newdev.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
+		Private Shared Function DiUninstallDriver(
+	<[In]()> ByVal hwndParent As IntPtr,
+	<[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal InfPath As String,
+	<[In]()> ByVal Flags As UInt32,
+	<Out()> ByRef NeedReboot As Boolean
+) As <MarshalAs(UnmanagedType.Bool)> Boolean
+		End Function
+
 #End Region
 
 #Region "Functions"
+
+		Public Shared Function MethodExists(libraryName As String, methodName As String) As Boolean
+			Dim libraryPtr As IntPtr = LoadLibrary(libraryName)
+
+			If libraryPtr <> IntPtr.Zero Then
+				Dim procPtr As IntPtr = GetProcAddress(libraryPtr, methodName)
+				Return procPtr <> IntPtr.Zero
+			End If
+
+			Return False
+		End Function
 
 		Public Shared Function TEST_GetDevices(ByVal filter As String, ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeparents As Boolean, Optional ByVal driverDetails As Boolean = False) As List(Of Device)
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
@@ -2409,7 +2443,7 @@ Namespace Display_Driver_Uninstaller.Win32
 									ptrDevInfo.Dispose()
 								End If
 
-								RemoveInf(inf, True)
+								RemoveInf(inf, False)
 							Next
 						End If
 						Application.Log.Add(logStatus)
@@ -2456,24 +2490,54 @@ Namespace Display_Driver_Uninstaller.Win32
 					File.SetAttributes(oem.FileName, attrs And Not FileAttributes.ReadOnly)
 				End If
 
-				If SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
-					logInfs.Message &= CRLF & ">> Success!"
-				Else
-					Dim errcode As UInt32 = GetLastWin32ErrorU()
+				' First attempt DiUninstallDriver
+				If force AndAlso MethodExists("newdev.dll", "DiUninstallDriverW") Then
+					Dim needReboot As Boolean = False
 
-					If errcode = Errors.INF_IN_USE Then
-						logInfs.Message &= CRLF & ">> Cancelled! Inf is used by device!"
-					ElseIf errcode = Errors.INF_NOT_OEM Then
+					If DiUninstallDriver(IntPtr.Zero, oem.FileName, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF, needReboot) Then
+						logInfs.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver."
+					Else
+						Dim errCode As UInt32 = GetLastWin32ErrorU()
+
+						If errCode = Errors.INF_IN_USE Then
+							logInfs.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver)."
+						Else
+							logInfs.Message &= CRLF & ">> Failed to uninstall driver using DiUninstallDriver."
+						End If
+
+						logInfs.AddException(New Win32Exception(GetInt32(errCode)), False)
+
+						If errCode = Errors.INF_IN_USE Then
+							logInfs.Type = LogType.Warning
+						End If
+					End If
+				ElseIf force Then
+					' If force is True but method is not found, log the appropriate message.
+					logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
+				Else
+					' If force is False, mention that force is not applicable.
+					logInfs.Message &= CRLF & ">> Force option is False, so DiUninstallDriver is not applicable."
+				End If
+
+				' Fallback to SetupUninstallOEMInf
+				If Not SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
+					Dim errCode As UInt32 = GetLastWin32ErrorU()
+
+					If errCode = Errors.INF_IN_USE Then
+						logInfs.Message &= CRLF & ">> Cancelled! INF is used by device (SetupUninstallOEMInf)."
+					ElseIf errCode = Errors.INF_NOT_OEM Then
 						logInfs.Message &= CRLF & ">> Cancelled! The specified file is not an installed OEM INF!"
 					Else
-						logInfs.Message &= CRLF & ">> Failed!"
+						logInfs.Message &= CRLF & ">> Failed to uninstall using SetupUninstallOEMInf."
 					End If
 
-					logInfs.AddException(New Win32Exception(GetInt32(errcode)), False)
+					logInfs.AddException(New Win32Exception(GetInt32(errCode)), False)
 
-					If errcode = Errors.INF_IN_USE OrElse errcode = Errors.INF_NOT_OEM Then
+					If errCode = Errors.INF_IN_USE OrElse errCode = Errors.INF_NOT_OEM Then
 						logInfs.Type = LogType.Warning
 					End If
+				Else
+					logInfs.Message &= CRLF & ">> Success! Uninstalled using SetupUninstallOEMInf."
 				End If
 
 				Application.Log.Add(logInfs)
@@ -3687,6 +3751,9 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Class
 
 #End Region
+
+	End Class
+	Public Class NativeMethods
 
 	End Class
 

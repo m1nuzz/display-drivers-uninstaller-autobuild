@@ -30,12 +30,31 @@ Namespace Display_Driver_Uninstaller
 					process.Start()
 					process.WaitForExit()
 				End Using
-				' Auto-suppression du service après exécution
-				UninstallService()
-				StopService()
-				EventLog.WriteEntry("DDUSafeBootHandler", "Service Uninstalled", EventLogEntryType.Information)
+
+				EventLog.WriteEntry("DDUSafeBootHandler", "BCDEDIT completed. Stopping the service...", EventLogEntryType.Information)
+				Dim stopThread As New Thread(AddressOf StopService)
+				stopThread.Start()
 			Catch ex As Exception
 				EventLog.WriteEntry("DDUSafeBootHandler", ex.Message, EventLogEntryType.Error)
+			End Try
+		End Sub
+
+		Private Sub StopService()
+			' Wait for a short period before stopping the service, just to ensure everything is settled
+			Thread.Sleep(500)
+
+			' Stop the service
+			Me.Stop()
+		End Sub
+
+		Protected Overrides Sub OnStop()
+			' Clean up and uninstall the service
+			Try
+				' Uninstall the service
+				UninstallService()
+				EventLog.WriteEntry("DDUSafeBootHandler", "Service Uninstalled", EventLogEntryType.Information)
+			Catch ex As Exception
+				EventLog.WriteEntry("DDUSafeBootHandler", "Error uninstalling the service: " & ex.Message, EventLogEntryType.Error)
 			End Try
 		End Sub
 
@@ -53,25 +72,7 @@ Namespace Display_Driver_Uninstaller
 					process.WaitForExit()
 				End Using
 			Catch ex As Exception
-				EventLog.WriteEntry("DDUSafeBootHandler", "Erreur lors de la désinstallation: " & ex.Message, EventLogEntryType.Error)
-			End Try
-		End Sub
-
-		Private Sub StopService()
-			Try
-				Dim processInfo As New ProcessStartInfo("sc.exe", "stop DDUSafeBootHandler") With {
-				.UseShellExecute = True,
-				.CreateNoWindow = True,
-				.Verb = "runas"
-			}
-				Using process As New Process With {
-				.StartInfo = processInfo
-			}
-					process.Start()
-					process.WaitForExit()
-				End Using
-			Catch ex As Exception
-				EventLog.WriteEntry("DDUSafeBootHandler", "Erreur lors de la désinstallation: " & ex.Message, EventLogEntryType.Error)
+				EventLog.WriteEntry("DDUSafeBootHandler", "Error uninstalling the service: " & ex.Message, EventLogEntryType.Error)
 			End Try
 		End Sub
 	End Class

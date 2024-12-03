@@ -1661,7 +1661,10 @@ Namespace Display_Driver_Uninstaller
 		Public Sub Cleanserviceprocess(ByVal services As String(), config As ThreadSettings)
 			Dim ServiceInstaller As New ServiceInstaller
 			Dim objAuto As AutoResetEvent = New AutoResetEvent(False)
-			ImpersonateLoggedOnUser.Taketoken()
+
+			If Not WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.Taketoken()
+			End If
 
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Services", True)
 				If regkey IsNot Nothing Then
@@ -2975,7 +2978,7 @@ Namespace Display_Driver_Uninstaller
 							driverfiles = {"amdkmdag.sys", "amdxe.sys", "amdfendrmgr", "AtihdWT6.sys", "amdsafd.sys", "amdkmpfd", "amdocl32", "amdocl64", "AMDNoiseSuppression", "amdsdws.sys"}
 						Case GPUVendor.Intel
 							CurrentProvider = {"Intel"}
-							driverfiles = {"igdkmd64.sys", "IntcDAud.sys", "intelaud.sys", "iwdbus.sys", "GSCAuxDriverx64.sys", "TeeDriverGSCW8x64.sys", "MiniCtaDriver.sys", "IntcDAudD.sys", "IntelGraphicsAGS.exe", "CtaChildDriver.sys", "Intel_NF_I2C.sys"}
+							driverfiles = {"igdkmd64.sys", "IntcDAud.sys", "intelaud.sys", "iwdbus.sys", "GSCAuxDriverx64.sys", "TeeDriverGSCW8x64.sys", "MiniCtaDriver.sys", "IntcDAudD.sys", "IntelGraphicsAGS.exe", "CtaChildDriver.sys", "Intel_NF_I2C.sys", "PmtChildDriver.sys"}
 						Case GPUVendor.None
 							CurrentProvider = {"None"}
 							driverfiles = Nothing
@@ -3019,13 +3022,27 @@ Namespace Display_Driver_Uninstaller
 
 					If StrContainsAny(oem.Class, True, "display", "media", "extension", "softwarecomponent", "CTA Driver Devices", "system", "SoftwareDevice", "USB") Then
 						If Not ((Not config.RemoveNVBROADCAST AndAlso StrContainsAny(oem.Catalog, True, "nvrtxvad")) Or (Not config.RemoveGFE AndAlso StrContainsAny(oem.Catalog, True, "nvvad")) Or (Not config.RemoveGFE AndAlso StrContainsAny(oem.Catalog, True, "nvswcfilter")) Or ((Not config.RemoveAMDKMPFD Or Not config.NotPresentAMDKMPFD) AndAlso StrContainsAny(oem.Catalog, True, "amdkmpfd"))) Then
-							If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "extinf.cat", "HdBusExt.cat", "amdpcibridgeextension.cat", "igdlh.cat") Then
+							If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "extinf.cat", "amdpcibridgeextension.cat", "igdlh.cat") Then
 								SetupAPI.RemoveInf(oem, False)
 								Continue For
 							End If
 
 							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
 								If StrContainsAny(oem.Class, True, "softwarecomponent", "system") AndAlso StrContainsAny(oem.Catalog, True, "igdlh.cat", "Intel_NF_I2C.cat", "IntelGFXFwUpdate.cat", "HdBusExt.cat") Then
+									SetupAPI.RemoveInf(oem, False)
+									Continue For
+								End If
+							End If
+
+							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
+								If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "HdBusExt.cat") Then
+									SetupAPI.RemoveInf(oem, True)
+									Continue For
+								End If
+							End If
+
+							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
+								If StrContainsAny(oem.Class, True, "media") AndAlso StrContainsAny(oem.Catalog, True, "AcxDAC.cat") Then
 									SetupAPI.RemoveInf(oem, False)
 									Continue For
 								End If
