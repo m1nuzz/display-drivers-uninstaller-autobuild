@@ -194,7 +194,7 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			Await StartThread(config)
+			Await StartThreadAsync(config)
 		End Sub
 
 		Private Async Sub BtnClean_Click(sender As Object, e As RoutedEventArgs) Handles btnClean.Click
@@ -206,7 +206,7 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			Await StartThread(config)
+			Await StartThreadAsync(config)
 		End Sub
 
 		Private Async Sub BtnCleanShutdown_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanShutdown.Click
@@ -218,7 +218,7 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			Await StartThread(config)
+			Await StartThreadAsync(config)
 		End Sub
 
 		Private Sub BtnWuRestore_Click(sender As Object, e As EventArgs) Handles btnWuRestore.Click
@@ -482,7 +482,7 @@ Namespace Display_Driver_Uninstaller
 					'WorkTask = New Tasks.Task(Sub() ThreadTask(config))
 
 					'WorkTask.Start()
-					ThreadTask(config)
+					ThreadTaskAsync(config)
 				End If
 
 			Catch ex As Exception
@@ -652,7 +652,7 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Sub
 
-		Private Async Sub ThreadTask(ByVal config As ThreadSettings)
+		Private Async Sub ThreadTaskAsync(ByVal config As ThreadSettings)
 
 			Dim autoresetevent As New AutoResetEvent(False)
 
@@ -668,7 +668,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.AMD
 
-						Await StartThread(config, False)
+						Await StartThreadAsync(config, False)
 
 						CleaningTask = Nothing
 					End If
@@ -680,7 +680,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.Nvidia
 
-						Await StartThread(config, False)
+						Await StartThreadAsync(config, False)
 
 						CleaningTask = Nothing
 					End If
@@ -691,7 +691,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.Intel
 
-						Await StartThread(config, False)
+						Await StartThreadAsync(config, False)
 
 						CleaningTask = Nothing
 					End If
@@ -702,7 +702,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedGPU = GPUVendor.None
 						config.SelectedAUDIO = AudioVendor.Realtek
 
-						Await StartThread(config, False)
+						Await StartThreadAsync(config, False)
 
 						CleaningTask = Nothing
 					End If
@@ -713,7 +713,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedGPU = GPUVendor.None
 						config.SelectedAUDIO = AudioVendor.SoundBlaster
 
-						Await StartThread(config, False)
+						Await StartThreadAsync(config, False)
 					End If
 
 				End If
@@ -759,7 +759,7 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Async Function StartThread(ByVal config As ThreadSettings, Optional ByVal showMsgBox As Boolean = True) As Tasks.Task
+		Private Async Function StartThreadAsync(ByVal config As ThreadSettings, Optional ByVal showMsgBox As Boolean = True) As Tasks.Task
 			Try
 				'If System.Diagnostics.Debugger.IsAttached Then          'TODO: remove when tested
 				Dim logEntry As New LogEntry() With {.Message = "Used settings for cleaning!"}
@@ -775,12 +775,7 @@ Namespace Display_Driver_Uninstaller
 					Throw New ArgumentException("cleaningThread", "Thread already exists and is busy!")
 				End If
 
-				CleaningTask = New Tasks.Task(Sub() CleaningThread_Work(config))
-
-
-				CleaningTask.Start()
-
-				Await CleaningTask
+				Await Tasks.Task.Run(Sub() CleaningThread_Work(config))
 
 				If showMsgBox AndAlso (Not config.Silent And Not config.Restart And Not config.Shutdown) Then
 					If MessageBox.Show(Application.Current.MainWindow, Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
