@@ -185,7 +185,7 @@ Namespace Display_Driver_Uninstaller
 
 #Region "frmMain Controls"
 
-		Private Sub BtnCleanRestart_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanRestart.Click
+		Private Async Sub BtnCleanRestart_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanRestart.Click
 
 			Dim config As New ThreadSettings(False)
 			config.Shutdown = False
@@ -194,10 +194,10 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			StartThread(config)
+			Await StartThread(config)
 		End Sub
 
-		Private Sub BtnClean_Click(sender As Object, e As RoutedEventArgs) Handles btnClean.Click
+		Private Async Sub BtnClean_Click(sender As Object, e As RoutedEventArgs) Handles btnClean.Click
 
 			Dim config As New ThreadSettings(False)
 			config.Shutdown = False
@@ -206,10 +206,10 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			StartThread(config)
+			Await StartThread(config)
 		End Sub
 
-		Private Sub BtnCleanShutdown_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanShutdown.Click
+		Private Async Sub BtnCleanShutdown_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanShutdown.Click
 
 			Dim config As New ThreadSettings(False)
 			config.Shutdown = True
@@ -218,7 +218,7 @@ Namespace Display_Driver_Uninstaller
 			KillGPUStatsProcesses()
 
 			PreCleaning()
-			StartThread(config)
+			Await StartThread(config)
 		End Sub
 
 		Private Sub BtnWuRestore_Click(sender As Object, e As EventArgs) Handles btnWuRestore.Click
@@ -479,9 +479,10 @@ Namespace Display_Driver_Uninstaller
 				If Application.LaunchOptions.HasCleanArg Then
 					Dim config As New ThreadSettings(True)
 
-					WorkTask = New Tasks.Task(Sub() ThreadTask(config))
+					'WorkTask = New Tasks.Task(Sub() ThreadTask(config))
 
-					WorkTask.Start()
+					'WorkTask.Start()
+					ThreadTask(config)
 				End If
 
 			Catch ex As Exception
@@ -651,7 +652,7 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Sub
 
-		Private Sub ThreadTask(ByVal config As ThreadSettings)
+		Private Async Sub ThreadTask(ByVal config As ThreadSettings)
 
 			Dim autoresetevent As New AutoResetEvent(False)
 
@@ -667,11 +668,8 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.AMD
 
-						StartThread(config)
+						Await StartThread(config, False)
 
-						While Not CleaningTask.IsCompleted
-							autoresetevent.WaitOne(200)
-						End While
 						CleaningTask = Nothing
 					End If
 
@@ -682,11 +680,8 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.Nvidia
 
-						StartThread(config)
+						Await StartThread(config, False)
 
-						While Not CleaningTask.IsCompleted
-							autoresetevent.WaitOne(200)
-						End While
 						CleaningTask = Nothing
 					End If
 
@@ -696,11 +691,8 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedAUDIO = AudioVendor.None
 						config.SelectedGPU = GPUVendor.Intel
 
-						StartThread(config)
+						Await StartThread(config, False)
 
-						While Not CleaningTask.IsCompleted
-							autoresetevent.WaitOne(200)
-						End While
 						CleaningTask = Nothing
 					End If
 
@@ -710,11 +702,8 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedGPU = GPUVendor.None
 						config.SelectedAUDIO = AudioVendor.Realtek
 
-						StartThread(config)
+						Await StartThread(config, False)
 
-						While Not CleaningTask.IsCompleted
-							autoresetevent.WaitOne(200)
-						End While
 						CleaningTask = Nothing
 					End If
 
@@ -724,11 +713,7 @@ Namespace Display_Driver_Uninstaller
 						config.SelectedGPU = GPUVendor.None
 						config.SelectedAUDIO = AudioVendor.SoundBlaster
 
-						StartThread(config)
-
-						While Not CleaningTask.IsCompleted
-							autoresetevent.WaitOne(200)
-						End While
+						Await StartThread(config, False)
 					End If
 
 				End If
@@ -745,12 +730,15 @@ Namespace Display_Driver_Uninstaller
 
 				If config.Silent Then
 					CloseDDU()
-				Else
-					If MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
+					Exit Sub
+				End If
+
+				If Not config.Restart And Not config.Shutdown Then
+					If MessageBox.Show(Application.Current.MainWindow, Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
 						CloseDDU()
-						Exit Sub
 					End If
 				End If
+
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			Finally
@@ -771,7 +759,7 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Async Sub StartThread(ByVal config As ThreadSettings)
+		Private Async Function StartThread(ByVal config As ThreadSettings, Optional ByVal showMsgBox As Boolean = True) As Tasks.Task
 			Try
 				'If System.Diagnostics.Debugger.IsAttached Then          'TODO: remove when tested
 				Dim logEntry As New LogEntry() With {.Message = "Used settings for cleaning!"}
@@ -794,10 +782,10 @@ Namespace Display_Driver_Uninstaller
 
 				Await CleaningTask
 
-				If Not config.Silent And Not config.Restart And Not config.Shutdown Then
+				If showMsgBox AndAlso (Not config.Silent And Not config.Restart And Not config.Shutdown) Then
 					If MessageBox.Show(Application.Current.MainWindow, Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
 						CloseDDU()
-						Exit Sub
+						Return
 					End If
 				End If
 
@@ -805,7 +793,7 @@ Namespace Display_Driver_Uninstaller
 				CleaningTask = Nothing
 				Application.Log.AddException(ex, "Launching cleaning thread failed!")
 			End Try
-		End Sub
+		End Function
 
 #End Region
 
