@@ -17,7 +17,7 @@ Option Strict On
 
 Imports Microsoft.Win32
 Imports System.IO
-Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Security.Principal
 Imports System.Reflection
 Imports System.Text
@@ -27,8 +27,8 @@ Imports Display_Driver_Uninstaller.Win32
 Namespace Display_Driver_Uninstaller
 
 	Public Class FrmMain
-		Private Shared _cleaningTask As Tasks.Task = Nothing
-		Private Shared _workTask As Tasks.Task = Nothing
+		Private Shared _cleaningTask As Task = Nothing
+		Private Shared _workTask As Task = Nothing
 
 		Private Shared _isWindows8OrHigher As Boolean = Application.Settings.WinVersion > OSVersion.Win7
 		Private Shared _isWindows10 As Boolean = Application.Settings.WinVersion = OSVersion.Win10
@@ -44,19 +44,19 @@ Namespace Display_Driver_Uninstaller
 		Private _audioCleanup As New AUDIOCleanup
 		Private _enduro As Boolean = False
 
-		Friend Shared Property CleaningTask As Tasks.Task
+		Friend Shared Property CleaningTask As Task
 			Get
 				Return _cleaningTask
 			End Get
-			Set(value As Tasks.Task)
+			Set(value As Task)
 				_cleaningTask = value
 			End Set
 		End Property
-		Friend Shared Property WorkTask As Tasks.Task
+		Friend Shared Property WorkTask As Task
 			Get
 				Return _workTask
 			End Get
-			Set(value As Tasks.Task)
+			Set(value As Task)
 				_workTask = value
 			End Set
 		End Property
@@ -479,7 +479,7 @@ Namespace Display_Driver_Uninstaller
 				If Application.LaunchOptions.HasCleanArg Then
 					Dim config As New ThreadSettings(True)
 
-					'WorkTask = New Tasks.Task(Sub() ThreadTask(config))
+					'WorkTask = New Task(Sub() ThreadTask(config))
 
 					'WorkTask.Start()
 					ThreadTaskAsync(config)
@@ -654,8 +654,6 @@ Namespace Display_Driver_Uninstaller
 
 		Private Async Sub ThreadTaskAsync(ByVal config As ThreadSettings)
 
-			Dim autoresetevent As New AutoResetEvent(False)
-
 			Try
 				config.PreventClose = True
 
@@ -759,7 +757,7 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Private Async Function StartThreadAsync(ByVal config As ThreadSettings, Optional ByVal showMsgBox As Boolean = True) As Tasks.Task
+		Private Async Function StartThreadAsync(ByVal config As ThreadSettings, Optional ByVal showMsgBox As Boolean = True) As Task
 			Try
 				'If System.Diagnostics.Debugger.IsAttached Then          'TODO: remove when tested
 				Dim logEntry As New LogEntry() With {.Message = "Used settings for cleaning!"}
@@ -775,7 +773,7 @@ Namespace Display_Driver_Uninstaller
 					Throw New ArgumentException("cleaningThread", "Thread already exists and is busy!")
 				End If
 
-				Await Tasks.Task.Run(Sub() CleaningThread_Work(config))
+				Await Task.Run(Sub() CleaningThread_Work(config))
 
 				If showMsgBox AndAlso (Not config.Silent And Not config.Restart And Not config.Shutdown) Then
 					If MessageBox.Show(Application.Current.MainWindow, Languages.GetTranslation("frmMain", "Messages", "Text10"), config.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) = MessageBoxResult.Yes Then
@@ -1214,7 +1212,7 @@ Namespace Display_Driver_Uninstaller
 				Using sw As New StreamWriter(sfd.FileName, False, Encoding.UTF8)
 
 					Using tsc As New TaskSchedulerControl(New ThreadSettings(False))
-						For Each task As Task In tsc.GetAllTasks()
+						For Each task As SchedulerTask In tsc.GetAllTasks()
 
 							sw.WriteLine("Name:  ".PadLeft(14, " "c) & task.Name)
 							sw.WriteLine("Path:  ".PadLeft(14, " "c) & task.Path)

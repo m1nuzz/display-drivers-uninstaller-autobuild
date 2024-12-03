@@ -2732,42 +2732,42 @@ Namespace Display_Driver_Uninstaller
 		Public Sub Folderscleanup(ByVal driverfiles As String())
 			Dim winxp = FrmMain.IsWindowsXp
 
-			Dim TaskList = New List(Of Tasks.Task)()
+			Dim TaskList = New List(Of Task)()
 
-			'tasks.Add(Threading.Tasks.Task(Of Integer).Factory.StartNew(Sub() Threaddata1(Thread1Finished, Application.Paths.System32, driverfiles)))
+			'tasks.Add(Threading.Task(Of Integer).Factory.StartNew(Sub() Threaddata1(Thread1Finished, Application.Paths.System32, driverfiles)))
 
-			Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.System32, driverfiles))
+			Dim thread1 As Task = Task.Run(Sub() Threaddata1(Application.Paths.System32, driverfiles))
 
 			TaskList.Add(thread1)
 
-			Dim thread2 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.System32 & "drivers\", driverfiles))
+			Dim thread2 As Task = Task.Run(Sub() Threaddata1(Application.Paths.System32 & "drivers\", driverfiles))
 
 			TaskList.Add(thread2)
 
 			If winxp Then
 
-				Dim thread3 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.System32 & "drivers\dllcache\", driverfiles))
+				Dim thread3 As Task = Task.Run(Sub() Threaddata1(Application.Paths.System32 & "drivers\dllcache\", driverfiles))
 				TaskList.Add(thread3)
 
 			End If
 
-			Dim thread4 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.WinDir, driverfiles))
+			Dim thread4 As Task = Task.Run(Sub() Threaddata1(Application.Paths.WinDir, driverfiles))
 			TaskList.Add(thread4)
 
 			If IntPtr.Size = 8 Then
 
 
-				Dim thread8 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.SysWOW64, driverfiles))
+				Dim thread8 As Task = Task.Run(Sub() Threaddata1(Application.Paths.SysWOW64, driverfiles))
 				TaskList.Add(thread8)
 
-				Dim thread5 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1(Application.Paths.SysWOW64 & "Drivers\", driverfiles))
+				Dim thread5 As Task = Task.Run(Sub() Threaddata1(Application.Paths.SysWOW64 & "Drivers\", driverfiles))
 				TaskList.Add(thread5)
 			End If
 
-			Dim thread7 As Tasks.Task = Tasks.Task.Run(Sub() Threaddata1Prefetch(Application.Paths.WinDir & "Prefetch\", driverfiles))
+			Dim thread7 As Task = Task.Run(Sub() Threaddata1Prefetch(Application.Paths.WinDir & "Prefetch\", driverfiles))
 			TaskList.Add(thread7)
 
-			Tasks.Task.WaitAll(TaskList.ToArray())
+			Task.WaitAll(TaskList.ToArray())
 
 			'While Thread1Finished <> True Or Thread2Finished <> True Or Thread3Finished <> True Or Thread4Finished <> True Or Thread5Finished <> True Or Thread7Finished <> True Or Thread8Finished <> True
 			'	objAuto.WaitOne(500)

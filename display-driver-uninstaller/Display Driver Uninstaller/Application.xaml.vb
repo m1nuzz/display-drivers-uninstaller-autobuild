@@ -7,6 +7,7 @@ Imports System.Text
 Imports Display_Driver_Uninstaller.Win32
 Imports System.Security.Principal
 Imports Microsoft.Win32
+Imports System.Threading.Tasks
 
 Namespace Display_Driver_Uninstaller
 
@@ -261,11 +262,11 @@ Namespace Display_Driver_Uninstaller
 			Try
 				If FrmMain.WorkTask IsNot Nothing Then                    ' workThread running, cleaning in progress!
 					' Should take few milliseconds...	
-					If FrmMain.WorkTask.Status = Tasks.TaskStatus.Running Then Thread.Sleep(200)
-					If FrmMain.WorkTask.Status = Tasks.TaskStatus.Running Then Thread.Sleep(2000)
+					If FrmMain.WorkTask.Status = TaskStatus.Running Then Thread.Sleep(200)
+					If FrmMain.WorkTask.Status = TaskStatus.Running Then Thread.Sleep(2000)
 
 					' workThread still running!
-					If FrmMain.WorkTask.Status = Tasks.TaskStatus.Running Then
+					If FrmMain.WorkTask.Status = TaskStatus.Running Then
 						e.Cancel = True
 						Exit Sub
 					End If
@@ -693,7 +694,7 @@ Namespace Display_Driver_Uninstaller
 
 						If Settings.EnableSafeModeDialog Then
 							Dim bootOption As Integer = -1              '-1 = close, 0 = normal, 1 = SafeMode, 2 = SafeMode with network
-							Dim frmSafeBoot As New frmLaunch With {.DataContext = Data, .Topmost = True}
+							Dim frmSafeBoot As New FrmLaunch With {.DataContext = Data, .Topmost = True}
 
 
 							Dim launch As Boolean? = frmSafeBoot.ShowDialog()

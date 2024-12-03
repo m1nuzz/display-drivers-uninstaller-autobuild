@@ -57,8 +57,8 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-		Friend Function GetAllTasks() As List(Of Task)
-			Dim tasks As New List(Of Task)(100)
+		Friend Function GetAllTasks() As List(Of SchedulerTask)
+			Dim tasks As New List(Of SchedulerTask)(100)
 
 			Try
 				If _useV2 Then
@@ -186,7 +186,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 	End Class
 
-	Public MustInherit Class Task
+	Public MustInherit Class SchedulerTask
 		Public MustOverride ReadOnly Property Name As String
 		Public MustOverride ReadOnly Property Path As String
 		Public MustOverride ReadOnly Property State As TaskStates
@@ -219,7 +219,7 @@ Namespace Display_Driver_Uninstaller.Win32
 	End Class
 
 	Public Class TaskV2
-		Inherits Task
+		Inherits SchedulerTask
 
 		Private ReadOnly _taskFolder As Version2.ITaskFolder = Nothing
 		Private ReadOnly _task As Version2.IRegisteredTask = Nothing
@@ -319,7 +319,7 @@ Namespace Display_Driver_Uninstaller.Win32
 	End Class
 
 	Public Class TaskV1
-		Inherits Task
+		Inherits SchedulerTask
 
 		Private ReadOnly _taskScheduler As Version1.ITaskScheduler = Nothing
 		Private _task As Version1.ITask = Nothing

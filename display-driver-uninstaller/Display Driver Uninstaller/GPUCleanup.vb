@@ -3,6 +3,7 @@ Imports System.IO
 Imports System.Linq
 Imports System.Security.Principal
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Display_Driver_Uninstaller.Win32
 Imports Microsoft.Win32
 Imports WinForm = System.Windows.Forms
@@ -2592,7 +2593,7 @@ Namespace Display_Driver_Uninstaller
 			Dim driverfiles = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfiles.cfg")
 			Dim driverfilesKMPFD = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMPFD.cfg")
 			Dim driverfilesKMAFD = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMAFD.cfg")
-			Dim TaskList = New List(Of Tasks.Task)()
+			Dim TaskList = New List(Of Task)()
 
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
@@ -2633,19 +2634,19 @@ Namespace Display_Driver_Uninstaller
 			'Delete driver files
 			'delete OpenCL
 
-			Dim thread1 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(driverfiles))
+			Dim thread1 As Task = Task.Run(Sub() Threaddata1(driverfiles))
 
 			TaskList.Add(thread1)
 
 			Threaddata1(driverfiles)
 
 			If config.RemoveAMDKMPFD AndAlso config.NotPresentAMDKMPFD Then
-				Dim thread2 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(driverfilesKMPFD))
+				Dim thread2 As Task = Task.Run(Sub() Threaddata1(driverfilesKMPFD))
 				TaskList.Add(thread2)
 			End If
 
 			If config.RemoveAudioBus AndAlso FrmMain.DoNotRemoveAmdHdAudioBusFiles = False Then
-				Dim thread3 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(driverfilesKMAFD))
+				Dim thread3 As Task = Task.Run(Sub() Threaddata1(driverfilesKMAFD))
 				TaskList.Add(thread3)
 			End If
 
@@ -3402,7 +3403,7 @@ Namespace Display_Driver_Uninstaller
 				Next
 			End If
 
-			Tasks.Task.WaitAll(TaskList.ToArray())
+			Task.WaitAll(TaskList.ToArray())
 
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
@@ -3726,7 +3727,7 @@ Namespace Display_Driver_Uninstaller
 
 		Private Sub CleanNvidia(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
-			Dim TaskList = New List(Of Tasks.Task)()
+			Dim TaskList = New List(Of Task)()
 			Dim wantedvalue As String = Nothing
 			Dim wantedvalue2 As String = Nothing
 			Dim removegfe As Boolean = config.RemoveGFE
@@ -3780,18 +3781,18 @@ Namespace Display_Driver_Uninstaller
 
 				'for GFE removal only
 				If removegfe Then
-					Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftoverGFE))
+					Dim thread1 As Task = Task.Run(Sub() CLSIDCleanThread(clsidleftoverGFE))
 					TaskList.Add(thread1)
 				Else
-					Dim thread1 As Tasks.Task = Tasks.Task.Run(Sub() CLSIDCleanThread(clsidleftover))
+					Dim thread1 As Task = Task.Run(Sub() CLSIDCleanThread(clsidleftover))
 					TaskList.Add(thread1)
 				End If
 
-				Dim thread2 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(packages, config))
+				Dim thread2 As Task = Task.Run(Sub() InstallerCleanThread(packages, config))
 				TaskList.Add(thread2)
 
 				If removenvbroadcast Then
-					Dim thread3 As Tasks.Task = Tasks.Task.Run(Sub() InstallerCleanThread(clsidleftoverNVB, config))
+					Dim thread3 As Task = Task.Run(Sub() InstallerCleanThread(clsidleftoverNVB, config))
 					TaskList.Add(thread3)
 				End If
 
@@ -3823,7 +3824,7 @@ Namespace Display_Driver_Uninstaller
 				'interface cleanup
 				'-----------------
 
-				Tasks.Task.WaitAll(TaskList.ToArray())
+				Task.WaitAll(TaskList.ToArray())
 
 				If removegfe Then 'When removing GFE only
 					CleanupEngine.Interfaces(reginterfaceGFE) '// add each line as String Array.
@@ -5762,23 +5763,23 @@ Namespace Display_Driver_Uninstaller
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\driverfiles.cfg")
 			Dim gfedriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\gfedriverfiles.cfg")
 			Dim nvbdriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\nvbdriverfiles.cfg")
-			Dim TaskList = New List(Of Tasks.Task)()
+			Dim TaskList = New List(Of Task)()
 
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
 
-			Dim thread1 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(driverfiles))
+			Dim thread1 As Task = Task.Run(Sub() Threaddata1(driverfiles))
 
 			TaskList.Add(thread1)
 
 			If config.RemoveGFE Then
-				Dim thread2 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(gfedriverfiles))
+				Dim thread2 As Task = Task.Run(Sub() Threaddata1(gfedriverfiles))
 				TaskList.Add(thread2)
 			End If
 
 			If config.RemoveNVBROADCAST Then
-				Dim thread3 As Tasks.Task = Threading.Tasks.Task.Run(Sub() Threaddata1(nvbdriverfiles))
+				Dim thread3 As Task = Task.Run(Sub() Threaddata1(nvbdriverfiles))
 				TaskList.Add(thread3)
 			End If
 
@@ -6974,7 +6975,7 @@ Namespace Display_Driver_Uninstaller
 				Application.Log.AddException(ex)
 			End Try
 
-			Tasks.Task.WaitAll(TaskList.ToArray())
+			Task.WaitAll(TaskList.ToArray())
 
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
@@ -7215,7 +7216,7 @@ Namespace Display_Driver_Uninstaller
 			End If
 
 
-				Try
+			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Microsoft\Windows\CurrentVersion\Run", True)
 					If regkey IsNot Nothing Then
 						If regkey.GetValue("IgfxTray") IsNot Nothing Then
