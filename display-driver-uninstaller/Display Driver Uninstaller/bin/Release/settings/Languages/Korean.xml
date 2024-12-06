@@ -286,6 +286,9 @@
 		<lblRemINTELCP>
 			<Text>(DCH 드라이버) Microsoft Store에서 설치된 Intel 제어판 제거</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>Intel Arc Control / Intel 그래픽 소프트웨어 제거</Text>
+		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH 드라이버) Microsoft Store에서 설치된 AMD 제어판 제거</Text>
 		</lblRemAMDCP>
@@ -300,12 +303,15 @@
 			<Text>Vulkan 런타임 제거</Text>
 			<Tooltip>Vulkan API를 사용할 수 있는 두 개의 서로 다른 GPU가 있는 경우에는 권장되지 않습니다.</Tooltip>
 		</lblVulkan>
-    <lblPreventWinUpdate>
-      <Text>"Windows"에서 장치의 드라이버를 검색할 때 "Windows 업데이트"에서 드라이버 다운로드를 방지합니다.</Text>
-      <Tooltip>쉽게 말해 이 옵션은 "Windows/장치 관리자"가 "Windows Update"에서 드라이버 업데이트를 확인할 수 없도록 합니다.
+		<lblPreventWinUpdate>
+			<Text>"Windows"에서 장치의 드라이버를 검색할 때 "Windows 업데이트"에서 드라이버 다운로드를 방지합니다.</Text>
+			<Tooltip>쉽게 말해 이 옵션은 "Windows/장치 관리자"가 "Windows Update"에서 드라이버 업데이트를 확인할 수 없도록 합니다.
                참고: 이렇게 해도 "Windows Update"에서 새 드라이버를 다운로드/설치할 수 없습니다. 
                참고 2: DDU 사용을 마치고 GPU 드라이버를 다시 설치한 후 또는 다른 장치 설치에 문제가 있는 경우 이 변경 사항을 되돌리는 것이 *강력합니다*.</Tooltip>
-     </lblPreventWinUpdate>
+		</lblPreventWinUpdate>
+		<lblRememberLastChoice>
+			<Text>마지막으로 선택한 GPU 기억</Text>	
+		</lblRememberLastChoice>
   </frmOptions>
 
 	<frmLaunch Text="실행 옵션">
@@ -423,6 +429,10 @@
 				-Matti Metsikko
 				-mikalonia - mika
 				-ChaosDMNS
+				-Eduardo Macias
+				-Peter Le
+				-Kater Willschie
+				-Duke Hanson
 				
 			</Text>
 		</lblPatron>
@@ -431,7 +441,7 @@
 	<Misc>
 		<About>
 			<Text>
-				Display Driver Uninstaller(DDU) / 디스플레이 (GPU) 드라이버용 클리너입니다. (NVIDIA/AMD)
+				Display Driver Uninstaller (DDU) / 디스플레이 (GPU) 드라이버용 클리너입니다. (NVIDIA/AMD)
 
 				장치 관리자에서 디스플레이/GPU 드라이버를 제거하고 NVIDIA/AMD에서 서비스를 제거하면서 
 				Windows 드라이버 저장소에서 현재 및 모든 선행 드라이버를 제거합니다.
@@ -498,12 +508,12 @@
 		<Translator>
 			<User>VenusGirl💋</User>
 			<Details>https://venusgirls.tistory.com/</Details>
-			<LastUpdate>2023년 5월 14일</LastUpdate>
+			<LastUpdate>2021년 4월 3일</LastUpdate>
 		</Translator>
 
 		<Translator2>
 			<User>비너스걸❤️</User>
-			<LastUpdate>2023년 5월 14일</LastUpdate>
+			<LastUpdate>2016년 5월 31일</LastUpdate>
 		</Translator2>
 	</LanguageTranslators>
 
