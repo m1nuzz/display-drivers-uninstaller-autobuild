@@ -286,6 +286,9 @@
 		<lblRemINTELCP>
 			<Text>(DCH-drivrutin) Ta bort INTEL Kontrollpanel installerad från Microsoft Store</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>Ta bort Intel Arc Control / Intel Graphics Software</Text>
+		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH-drivrutin) Ta bort AMD Kontrollpanel installerad från Microsoft Store</Text>
 		</lblRemAMDCP>
@@ -505,7 +508,7 @@ Tack till Helge Klein (http://helgeklein.com/setacl/) : för tillståndet att an
 		<Translator>
 			<User>Hans Eriksson</User>
 			<Details>hanseriksson980@gmail.com</Details>
-			<LastUpdate>11/11/2024</LastUpdate>
+			<LastUpdate>08/12/2024</LastUpdate>
 		</Translator>
 	</LanguageTranslators>
 
