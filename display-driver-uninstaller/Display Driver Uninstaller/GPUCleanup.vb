@@ -778,7 +778,11 @@ Namespace Display_Driver_Uninstaller
 												If StrContainsAny(LowerFilter, True, "amdkmpfd") Then
 													Application.Log.AddMessage("Executing SetupAPI: update AMDKMPFD system device to Windows default started")
 													If _win10 Then
-														SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
+														If SetupAPI.MethodExists("newdev.dll", "DiUninstallDriverW") Then
+															SetupAPI.UninstallDevice(d)
+														Else
+															SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
+														End If
 													Else
 														SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\machine.inf", True)
 													End If

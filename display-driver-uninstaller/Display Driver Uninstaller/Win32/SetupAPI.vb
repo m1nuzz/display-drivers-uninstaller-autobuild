@@ -2419,6 +2419,17 @@ Namespace Display_Driver_Uninstaller.Win32
 						logStatus.Add("Service", device.Service)
 						logStatus.Add("DevInst", device.devInst.ToString())
 						logStatus.Add("HardwareID", String.Join(CRLF, device.HardwareIDs))
+						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
+							Dim oems(device.OemInfs.Length - 1) As String
+							Dim p As Int32 = 0
+
+							For Each oem As Inf In device.OemInfs
+								oems(p) = oem.FileName
+								p += 1
+							Next
+
+							logStatus.Add("OemInfs", String.Join(Environment.NewLine, oems))
+						End If
 						logStatus.Add(KvP.Empty)
 
 						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
@@ -2446,14 +2457,14 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim needReboot As Boolean = False
 
 				If DiUninstallDriver(IntPtr.Zero, oem.FileName, DiUninstallDriverFlags.DIURFLAG_DEFAULT, needReboot) Then
-					logStatus.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver."
+					logStatus.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver. " + oem.FileName
 				Else
 					errCode = GetLastWin32ErrorU()
 
 					If errCode = Errors.INF_IN_USE Then
-						logStatus.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver)."
+						logStatus.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver). " + oem.FileName
 					Else
-						logStatus.Message &= CRLF & ">> Failed to uninstall driver using DiUninstallDriver."
+						logStatus.Message &= CRLF & ">> Failed to uninstall driver using DiUninstallDriver. " + oem.FileName
 					End If
 
 					logStatus.AddException(New Win32Exception(GetInt32(errCode)), False)
