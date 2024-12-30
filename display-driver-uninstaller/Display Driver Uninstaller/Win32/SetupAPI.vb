@@ -111,8 +111,8 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<Flags()>
 		Private Enum DiUninstallDriverFlags As UInteger
-			DIURFLAG_NO_REMOVE_INF = &H1UI
-			DIURFLAG_FORCE_REMOVE_INF = &H2UI
+			DIURFLAG_DEFAULT = 0   ' Default behavior: removes both the driver and INF file
+			DIURFLAG_NO_REMOVE_INF = &H1UI  ' Prevents removal of the INF file
 		End Enum
 
 		<Flags()>
@@ -2421,36 +2421,19 @@ Namespace Display_Driver_Uninstaller.Win32
 						logStatus.Add("HardwareID", String.Join(CRLF, device.HardwareIDs))
 						logStatus.Add(KvP.Empty)
 
-						If SetupDiCallClassInstaller(DIF.REMOVE, infoSet, ptrDevInfo.Ptr) Then
-							device.RebootRequired = RebootRequired(infoSet, ptrDevInfo.Ptr, device)
-
-							logStatus.Add("RebootRequired", If(device.RebootRequired, "Yes", "No"))
-
-							logStatus.Message &= CRLF & ">> Device successfully uninstalled!"
-						Else
-							logStatus.Message &= CRLF & ">> Device uninstalling failed!"
-							logStatus.Add(KvP.Empty)
-							logStatus.AddException(New Win32Exception(), False)
-						End If
-
 						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
 							For Each inf As Inf In device.OemInfs
 								If Not inf.FileExists Then
 									Continue For
 								End If
 
-								If ptrDevInfo IsNot Nothing Then
-									ptrDevInfo.Dispose()
-								End If
+								RemoveDevice(device, errCode, infoSet, ptrDevInfo, logStatus, inf)
 
-								RemoveInf(inf, False)
 							Next
 						End If
 						Application.Log.Add(logStatus)
 					Finally
-						If ptrDevInfo IsNot Nothing Then
-							ptrDevInfo.Dispose()
-						End If
+						ptrDevInfo?.Dispose()
 					End Try
 				End Using
 			Catch ex As Exception
@@ -2458,8 +2441,51 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
+		Private Shared Sub RemoveDevice(ByRef device As Device, ByRef errCode As UInteger, infoSet As SafeDeviceHandle, ptrDevInfo As StructPtr, ByRef logStatus As LogEntry, ByRef oem As Inf)
+			If MethodExists("newdev.dll", "DiUninstallDriverW") Then
+				Dim needReboot As Boolean = False
+
+				If DiUninstallDriver(IntPtr.Zero, oem.FileName, DiUninstallDriverFlags.DIURFLAG_DEFAULT, needReboot) Then
+					logStatus.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver."
+				Else
+					errCode = GetLastWin32ErrorU()
+
+					If errCode = Errors.INF_IN_USE Then
+						logStatus.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver)."
+					Else
+						logStatus.Message &= CRLF & ">> Failed to uninstall driver using DiUninstallDriver."
+					End If
+
+					logStatus.AddException(New Win32Exception(GetInt32(errCode)), False)
+
+					If errCode = Errors.INF_IN_USE Then
+						logStatus.Type = LogType.Warning
+					End If
+				End If
+				Return
+			End If
+
+			If SetupDiCallClassInstaller(DIF.REMOVE, infoSet, ptrDevInfo.Ptr) Then
+				device.RebootRequired = RebootRequired(infoSet, ptrDevInfo.Ptr, device)
+
+				logStatus.Add("RebootRequired", If(device.RebootRequired, "Yes", "No"))
+
+				logStatus.Message &= CRLF & ">> Device successfully uninstalled!"
+			Else
+				logStatus.Message &= CRLF & ">> Device uninstalling failed!"
+				logStatus.Add(KvP.Empty)
+				logStatus.AddException(New Win32Exception(), False)
+			End If
+
+			RemoveInf(oem, False)
+
+		End Sub
+
 		' RESERVED FOR CLEANING FROM CODE
 		Public Shared Sub RemoveInf(ByVal oem As Inf, ByVal force As Boolean)
+
+			Dim logInfs As LogEntry = Application.Log.CreateEntry()
+
 			Try
 				If oem Is Nothing Then
 					Throw New ArgumentNullException("oem", "Cancelling removal of Inf file. Oem is nothing!")
@@ -2474,7 +2500,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				End If
 
 				Dim infName As String = Path.GetFileName(oem.FileName)
-				Dim logInfs As LogEntry = Application.Log.CreateEntry()
+
 
 				logInfs.Message = "Uninstalling OEM Inf:  " & infName
 				logInfs.Add("File", oem.FileName)
@@ -2491,10 +2517,10 @@ Namespace Display_Driver_Uninstaller.Win32
 				End If
 
 				' First attempt DiUninstallDriver
-				If force AndAlso MethodExists("newdev.dll", "DiUninstallDriverW") Then
+				If MethodExists("newdev.dll", "DiUninstallDriverW") Then
 					Dim needReboot As Boolean = False
 
-					If DiUninstallDriver(IntPtr.Zero, oem.FileName, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF, needReboot) Then
+					If DiUninstallDriver(IntPtr.Zero, oem.FileName, If(force, DiUninstallDriverFlags.DIURFLAG_DEFAULT, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF), needReboot) Then
 						logInfs.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver."
 					Else
 						Dim errCode As UInt32 = GetLastWin32ErrorU()
@@ -2511,13 +2537,10 @@ Namespace Display_Driver_Uninstaller.Win32
 							logInfs.Type = LogType.Warning
 						End If
 					End If
-				ElseIf force Then
-					' If force is True but method is not found, log the appropriate message.
-					logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
-				Else
-					' If force is False, mention that force is not applicable.
-					logInfs.Message &= CRLF & ">> Force option is False, so DiUninstallDriver is not applicable."
+					Return
 				End If
+
+				logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
 
 				' Fallback to SetupUninstallOEMInf
 				If Not SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
@@ -2540,9 +2563,10 @@ Namespace Display_Driver_Uninstaller.Win32
 					logInfs.Message &= CRLF & ">> Success! Uninstalled using SetupUninstallOEMInf."
 				End If
 
-				Application.Log.Add(logInfs)
 			Catch ex As Exception
 				Application.Log.AddWarning(ex)
+			Finally
+				Application.Log.Add(logInfs)
 			End Try
 		End Sub
 
