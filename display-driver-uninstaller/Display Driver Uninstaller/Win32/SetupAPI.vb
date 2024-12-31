@@ -2495,6 +2495,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		' RESERVED FOR CLEANING FROM CODE
 		Public Shared Sub RemoveInf(ByVal oem As Inf, ByVal force As Boolean)
 
+			Dim methodexit As Boolean = False
 			Dim logInfs As LogEntry = Application.Log.CreateEntry()
 
 			Try
@@ -2529,6 +2530,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 				' First attempt DiUninstallDriver
 				If MethodExists("newdev.dll", "DiUninstallDriverW") Then
+					methodexit = True
 					Dim needReboot As Boolean = False
 
 					If DiUninstallDriver(IntPtr.Zero, oem.FileName, If(force, DiUninstallDriverFlags.DIURFLAG_DEFAULT, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF), needReboot) Then
@@ -2548,10 +2550,10 @@ Namespace Display_Driver_Uninstaller.Win32
 							logInfs.Type = LogType.Warning
 						End If
 					End If
-					Return
+					If (force) Then Return
 				End If
 
-				logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
+				If (Not methodexit) Then logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
 
 				' Fallback to SetupUninstallOEMInf
 				If Not SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
