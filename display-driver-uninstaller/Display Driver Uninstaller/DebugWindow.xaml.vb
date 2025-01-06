@@ -318,8 +318,8 @@ Namespace Display_Driver_Uninstaller
 			If device.LowerFilters IsNot Nothing AndAlso device.LowerFilters.Length > 0 Then
 				sb.AppendLine("LowerFilters:")
 
-				For Each cid As String In device.LowerFilters
-					sb.AppendLine(vbTab + cid)
+				For Each lowerFilter As String In device.LowerFilters
+					sb.AppendLine(vbTab + lowerFilter)
 				Next
 
 				sb.AppendLine(String.Empty)

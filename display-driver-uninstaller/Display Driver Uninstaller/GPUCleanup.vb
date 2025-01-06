@@ -3590,11 +3590,15 @@ Namespace Display_Driver_Uninstaller
 						If StrContainsAny(d.HardwareIDs(0), True, "VEN_8086") Then
 							If d.UpperFilters IsNot Nothing AndAlso d.UpperFilters.Length > 0 AndAlso StrContainsAny(String.Join(",", d.UpperFilters), True, "nvpciflt", "nvkflt") Then
 								Application.Log.AddMessage("Upper filter found on device : " + d.Description)
-								If d.OemInfs.Length > 0 AndAlso (Not IsNullOrWhitespace(d.OemInfs(0).ToString)) AndAlso _fileIo.ExistsFile(d.OemInfs(0).ToString) Then
+								If d.OemInfs IsNot Nothing AndAlso d.OemInfs.Length > 0 AndAlso (Not IsNullOrWhitespace(d.OemInfs(0).ToString)) AndAlso _fileIo.ExistsFile(d.OemInfs(0).ToString) Then
 									SetupAPI.UpdateDeviceInf(d, d.OemInfs(0).ToString, True)
 								Else
 									If win10 Then
-										SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
+										If SetupAPI.MethodExists("newdev.dll", "DiUninstallDriverW") Then
+											SetupAPI.UninstallDevice(d)
+										Else
+											SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
+										End If
 									Else
 										SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\machine.inf", True)
 									End If
