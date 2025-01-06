@@ -2430,6 +2430,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 							logStatus.Add("OemInfs", String.Join(Environment.NewLine, oems))
 						End If
+						logStatus.Add("IsPresent", device.IsPresent.ToString)
 						logStatus.Add(KvP.Empty)
 
 						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
@@ -2952,6 +2953,9 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim result As UInt32 = CM_Get_DevNode_Status(pulStatus, pulProblemNumber, device.devInst, 0UI)
 
 			If result = CR.SUCCESS Then
+
+				device.IsPresent = (pulStatus And DN.DRIVER_LOADED) = DN.DRIVER_LOADED
+
 				If (pulStatus And DN.HAS_PROBLEM) <> DN.HAS_PROBLEM Then
 					pulProblemNumber = 0UI
 				End If
@@ -2965,6 +2969,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 				device.DevProblemStr = "CR_NO_SUCH_DEVINST (Device doesn't exist)"
 				device.DevStatusStr = New String() {device.DevProblemStr}
+				device.IsPresent = False
 
 			Else
 				Throw New Win32Exception()
@@ -3394,6 +3399,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Friend devDetails As Boolean = False
 
 			Private _hasHardwareID As Boolean = False
+			Private _isPresent As Boolean = False
 			Private _hardwareIDs As String()
 			Private _lowerfilters As String()
 			Private _upperfilters As String()
@@ -3430,6 +3436,14 @@ Namespace Display_Driver_Uninstaller.Win32
 				Get
 					Return _hasHardwareID
 				End Get
+			End Property
+			Public Property IsPresent As Boolean
+				Get
+					Return _isPresent
+				End Get
+				Friend Set(value As Boolean)
+					_isPresent = value
+				End Set
 			End Property
 			Public ReadOnly Property DevInstID As UInt32
 				Get
