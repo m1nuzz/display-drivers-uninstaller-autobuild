@@ -10,6 +10,7 @@ Imports System.Runtime.ConstrainedExecution
 
 Imports Microsoft.Win32
 Imports Microsoft.Win32.SafeHandles
+Imports System.Security.Principal
 
 Namespace Display_Driver_Uninstaller.Win32
 
@@ -1504,6 +1505,13 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In]()> ByVal Reserved As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
+		<DllImport("setupapi.dll", SetLastError:=True, CharSet:=CharSet.Auto)>
+		Private Shared Function SetupDiGetSelectedDriver(
+	ByVal DeviceInfoSet As SafeDeviceHandle,
+	ByVal DeviceInfoData As IntPtr,
+	ByRef DriverInfoData As SP_DRVINFO_DATA_X64) As Boolean
+		End Function
+
 		<DllImport("newdev.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function UpdateDriverForPlugAndPlayDevices(
    <[In](), [Optional]()> ByVal hwndParent As IntPtr,
@@ -2211,6 +2219,165 @@ Namespace Display_Driver_Uninstaller.Win32
 
 			Return Nothing
 		End Function
+
+		Public Shared Function GetDevicesByHID(ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeParents As Boolean, ByVal includechilds As Boolean, Optional ByVal driverDetails As Boolean = False) As List(Of Device)  'Get devices by Compatible Hardware IDs
+			Dim Devices As List(Of Device) = New List(Of Device)(500)
+
+			Try
+				Dim nullGuid As Guid = Guid.Empty
+				Dim hardwareIds(0) As String
+				Dim lowerfilters(0) As String
+				Dim upperfilters(0) As String
+				Dim friendlyname As String
+				Dim service As String
+				Dim desc As String = Nothing
+				Dim className As String = Nothing
+				Dim match As Boolean = False
+
+				Dim errCode As UInt32 = 0UI
+				Dim devInst As UInt32 = 0UI
+
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+					If infoSet.IsInvalid Then
+						Throw New Win32Exception()
+					End If
+
+					Dim ptrDevInfo As StructPtr = Nothing
+					Try
+						If Is64 Then
+							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X64() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X64)))})
+						Else
+							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
+						End If
+
+						Dim i As UInt32 = 0UI
+
+						While True
+							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
+								errCode = GetLastWin32ErrorU()
+
+								If errCode = Errors.NO_MORE_ITEMS Then
+									Exit While
+								Else
+									Throw New Win32Exception(GetInt32(errCode))
+								End If
+							End If
+
+							i += 1UI
+							match = False
+							desc = Nothing
+							className = Nothing
+							hardwareIds = Nothing
+							lowerfilters = Nothing
+							upperfilters = Nothing
+							friendlyname = Nothing
+							service = Nothing
+
+							If Not String.IsNullOrEmpty(text) Then
+								hardwareIds = GetMultiStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.HARDWAREID)
+								If hardwareIds IsNot Nothing Then
+									For Each hdID As String In hardwareIds
+										If hdID.IndexOf(text, StringComparison.OrdinalIgnoreCase) <> -1 Then
+											match = True
+										End If
+									Next
+								End If
+							Else
+								match = True
+							End If
+
+							If match Then
+								If Is64 Then
+									devInst = DirectCast(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X64)), SP_DEVINFO_DATA_X64).DevInst
+								Else
+									devInst = DirectCast(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X86)), SP_DEVINFO_DATA_X86).DevInst
+								End If
+
+								Dim d As Device = New Device() With
+								{
+								 .devInst = devInst,
+								 .Description = desc,
+								 .ClassName = className,
+								 .HardwareIDs = hardwareIds,
+								 .LowerFilters = lowerfilters,
+								 .UpperFilters = lowerfilters,
+								 .FriendlyName = friendlyname,
+								 .Service = service
+								}
+
+								GetDeviceDetails(infoSet, ptrDevInfo.Ptr, d, True)
+
+								If driverDetails Then
+									GetDriverDetails(infoSet, ptrDevInfo.Ptr, d)
+								End If
+
+								GetDeviceStatus(ptrDevInfo.Ptr, d)
+
+								Devices.Add(d)
+							End If
+
+						End While
+
+						If Devices IsNot Nothing Then
+							If Devices.Count > 0 Then
+								If includeSiblings Then
+									For Each dev As Device In Devices
+										GetSiblings(dev)
+
+										If dev.SiblingDevices IsNot Nothing AndAlso dev.SiblingDevices.Length > 0 Then
+											UpdateDevicesByID(dev.SiblingDevices, driverDetails)
+										End If
+									Next
+								End If
+
+								If includeParents Then
+									For Each dev As Device In Devices
+										GetParents(dev)
+										If dev.ParentDevices IsNot Nothing AndAlso dev.ParentDevices.Length > 0 Then
+											UpdateDevicesByID(dev.ParentDevices, driverDetails)
+										End If
+									Next
+								End If
+
+								If includechilds Then
+									For Each dev As Device In Devices
+										GetChild(dev)
+										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
+											UpdateDevicesByID(dev.ChildDevices, driverDetails)
+										End If
+									Next
+								End If
+
+								UpdateDevicesByID(Devices, driverDetails)
+							End If
+							Dim logEntry As LogEntry = Application.Log.CreateEntry()
+							logEntry.Message = String.Format("Devices found: {0}", Devices.Count.ToString())
+							logEntry.Add("-> vendorID", If(IsNullOrWhitespace(text), "<empty>", text))
+							logEntry.Add("-> includeSiblings", includeSiblings.ToString())
+
+							If Devices.Count > 0 Then
+								logEntry.Add(KvP.Empty)
+								logEntry.AddDevices(False, Devices.ToArray())
+							End If
+
+							Application.Log.Add(logEntry)
+						End If
+
+						Return Devices
+					Finally
+						If ptrDevInfo IsNot Nothing Then
+							ptrDevInfo.Dispose()
+						End If
+					End Try
+				End Using
+
+			Catch ex As Exception
+				ShowException(ex)
+			End Try
+
+			Return Nothing
+		End Function
+
 		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False, Optional ByVal driverDetails As Boolean = False) As List(Of Device)
 			Try
 				If IsNullOrWhitespace(className) Then
@@ -2339,6 +2506,11 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		' RESERVED FOR CLEANING FROM CODE
 		Public Shared Sub UninstallDevice(ByVal device As Device)
+
+			If WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.ReleaseToken()
+			End If
+
 			Try
 				If device Is Nothing Then
 					Application.Log.AddWarningMessage("Cancelling! Empty device!")
@@ -2433,16 +2605,30 @@ Namespace Display_Driver_Uninstaller.Win32
 						logStatus.Add("IsPresent", device.IsPresent.ToString)
 						logStatus.Add(KvP.Empty)
 
+						If SetupDiCallClassInstaller(DIF.REMOVE, infoSet, ptrDevInfo.Ptr) Then
+							device.RebootRequired = RebootRequired(infoSet, ptrDevInfo.Ptr, device)
+
+							logStatus.Add("RebootRequired", If(device.RebootRequired, "Yes", "No"))
+
+							logStatus.Message &= CRLF & ">> Device successfully uninstalled! (SetupDiCallClassInstaller)"
+						Else
+							logStatus.Message &= CRLF & ">> Device uninstalling failed! (SetupDiCallClassInstaller)"
+							logStatus.Add(KvP.Empty)
+							logStatus.AddException(New Win32Exception(), False)
+						End If
+
 						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
 							For Each inf As Inf In device.OemInfs
 								If Not inf.FileExists Then
 									Continue For
 								End If
 
-								RemoveDevice(device, errCode, infoSet, ptrDevInfo, logStatus, inf)
+								ptrDevInfo?.Dispose()
 
+								RemoveInf(inf, False, True)
 							Next
 						End If
+
 						Application.Log.Add(logStatus)
 					Finally
 						ptrDevInfo?.Dispose()
@@ -2453,50 +2639,10 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-		Private Shared Sub RemoveDevice(ByRef device As Device, ByRef errCode As UInteger, infoSet As SafeDeviceHandle, ptrDevInfo As StructPtr, ByRef logStatus As LogEntry, ByRef oem As Inf)
-			If MethodExists("newdev.dll", "DiUninstallDriverW") Then
-				Dim needReboot As Boolean = False
-
-				If DiUninstallDriver(IntPtr.Zero, oem.FileName, DiUninstallDriverFlags.DIURFLAG_DEFAULT, needReboot) Then
-					logStatus.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver. " + oem.FileName
-				Else
-					errCode = GetLastWin32ErrorU()
-
-					If errCode = Errors.INF_IN_USE Then
-						logStatus.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver). " + oem.FileName
-					Else
-						logStatus.Message &= CRLF & ">> Failed to uninstall driver using DiUninstallDriver. " + oem.FileName
-					End If
-
-					logStatus.AddException(New Win32Exception(GetInt32(errCode)), False)
-
-					If errCode = Errors.INF_IN_USE Then
-						logStatus.Type = LogType.Warning
-					End If
-				End If
-				Return
-			End If
-
-			If SetupDiCallClassInstaller(DIF.REMOVE, infoSet, ptrDevInfo.Ptr) Then
-				device.RebootRequired = RebootRequired(infoSet, ptrDevInfo.Ptr, device)
-
-				logStatus.Add("RebootRequired", If(device.RebootRequired, "Yes", "No"))
-
-				logStatus.Message &= CRLF & ">> Device successfully uninstalled!"
-			Else
-				logStatus.Message &= CRLF & ">> Device uninstalling failed!"
-				logStatus.Add(KvP.Empty)
-				logStatus.AddException(New Win32Exception(), False)
-			End If
-
-			RemoveInf(oem, False)
-
-		End Sub
-
 		' RESERVED FOR CLEANING FROM CODE
-		Public Shared Sub RemoveInf(ByVal oem As Inf, ByVal force As Boolean)
+		Public Shared Sub RemoveInf(ByVal oem As Inf, ByVal force As Boolean, Optional ByVal OnlySetupUninstallOEMInf As Boolean = False)
 
-			Dim methodexit As Boolean = False
+			Dim methodexist As Boolean = False
 			Dim logInfs As LogEntry = Application.Log.CreateEntry()
 
 			Try
@@ -2514,7 +2660,6 @@ Namespace Display_Driver_Uninstaller.Win32
 
 				Dim infName As String = Path.GetFileName(oem.FileName)
 
-
 				logInfs.Message = "Uninstalling OEM Inf:  " & infName
 				logInfs.Add("File", oem.FileName)
 				logInfs.Add("  Provider", oem.Provider)
@@ -2530,8 +2675,8 @@ Namespace Display_Driver_Uninstaller.Win32
 				End If
 
 				' First attempt DiUninstallDriver
-				If MethodExists("newdev.dll", "DiUninstallDriverW") Then
-					methodexit = True
+				If Not OnlySetupUninstallOEMInf AndAlso MethodExists("newdev.dll", "DiUninstallDriverW") Then
+					methodexist = True
 					Dim needReboot As Boolean = False
 
 					If DiUninstallDriver(IntPtr.Zero, oem.FileName, If(force, DiUninstallDriverFlags.DIURFLAG_DEFAULT, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF), needReboot) Then
@@ -2554,7 +2699,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					If (force) Then Return
 				End If
 
-				If (Not methodexit) Then logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
+				If (Not OnlySetupUninstallOEMInf AndAlso Not methodexist) Then logInfs.Message &= CRLF & ">> DiUninstallDriver method not found. Falling back to SetupUninstallOEMInf."
 
 				' Fallback to SetupUninstallOEMInf
 				If Not SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
@@ -2990,6 +3135,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim oemInfs As List(Of Inf) = New List(Of Inf)(5)
 			Dim drvInfo As DriverInfo
 			Dim drvInfos As New List(Of DriverInfo)(5)
+			Dim driverKeyName As String = Nothing
 
 			Dim i As UInt32 = 0UI
 			Dim bytes(0) As Byte
@@ -3010,6 +3156,28 @@ Namespace Display_Driver_Uninstaller.Win32
 				Else
 					ptrDrvInfoData = New StructPtr(New SP_DRVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(typeDrvInfo))})
 				End If
+
+				' First call to get required buffer size
+				SetupDiGetDeviceRegistryProperty(infoSet, ptrDevInfo, SPDRP.DRIVER, Nothing, Nothing, 0, reqSize)
+
+				If reqSize > 0 Then
+					Dim buffer(CInt(reqSize - 1)) As Byte
+					If SetupDiGetDeviceRegistryProperty(infoSet, ptrDevInfo, SPDRP.DRIVER, Nothing, buffer, reqSize, Nothing) Then
+						driverKeyName = Encoding.Unicode.GetString(buffer).TrimEnd(CChar(vbNullChar))
+					End If
+				End If
+
+				' Get the INF file for the current driver
+				Dim currentInfName As String = Nothing
+				If Not String.IsNullOrEmpty(driverKeyName) Then
+					Using driverKey As RegistryKey = Registry.LocalMachine.OpenSubKey($"SYSTEM\CurrentControlSet\Control\Class\{driverKeyName}")
+						If driverKey IsNot Nothing Then
+							currentInfName = DirectCast(driverKey.GetValue("InfPath", String.Empty), String)
+						End If
+					End Using
+				End If
+
+				device.ActiveOemInf = currentInfName
 
 				While True
 					If Not SetupDiEnumDriverInfo(infoSet, ptrDevInfo, SPDIT.COMPATDRIVER, i, ptrDrvInfoData.Ptr) Then
@@ -3431,6 +3599,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Private _devStatus As UInt32
 
 			Private _oemInfs As Inf()
+			Private _activeOemInf As String = Nothing
 
 			Public ReadOnly Property HasHardwareID As Boolean
 				Get
@@ -3701,6 +3870,15 @@ Namespace Display_Driver_Uninstaller.Win32
 				End Get
 				Friend Set(value As Inf())
 					_oemInfs = value
+				End Set
+			End Property
+
+			Public Property ActiveOemInf As String
+				Get
+					Return _activeOemInf
+				End Get
+				Friend Set(value As String)
+					_activeOemInf = value
 				End Set
 			End Property
 

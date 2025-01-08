@@ -190,6 +190,52 @@ Namespace Display_Driver_Uninstaller
 
 			If (Not Application.LaunchOptions.NoSetupAPI) Then
 
+				If config.SelectedGPU = GPUVendor.AMD AndAlso config.RemoveAMDKMPFD AndAlso (config.Restart OrElse config.Shutdown) Then
+					Try
+						UpdateTextMethod("Start - Check for AMDKMPFD system device.")
+						Application.Log.AddMessage("Executing SetupAPI: check AMDKMPFD system device started")
+						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", "0a0", False)
+						If found IsNot Nothing AndAlso found.Count > 0 Then
+							For Each d As SetupAPI.Device In found
+								If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
+									If StrContainsAny(d.HardwareIDs(0), True, "DEV_0A08", "DEV_0A03") Then
+										If d.LowerFilters IsNot Nothing AndAlso d.LowerFilters.Length > 0 Then
+											For Each LowerFilter In d.LowerFilters
+												If IsNullOrWhitespace(LowerFilter) Then Continue For
+												If StrContainsAny(LowerFilter, True, "amdkmpfd") Then
+													Application.Log.AddMessage("Executing SetupAPI: update AMDKMPFD system device to Windows default started")
+													SetupAPI.UninstallDevice(d)
+													SetupAPI.ReScanDevices()
+													Exit For
+												End If
+											Next
+										End If
+									End If
+								End If
+							Next
+							found.Clear()
+						End If
+						UpdateTextMethod("End - Check for AMDKMPFD system device.")
+						Application.Log.AddMessage("SetupAPI: Check AMDKMPFD system device Complete .")
+					Catch ex As Exception
+						Application.Log.AddException(ex)
+						'MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text6"), config.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error)
+					End Try
+
+					UpdateTextMethod(UpdateTextTranslated(28))
+
+
+					'We now try to remove the service AMDKMPFD if its lowerfilter is not found
+
+					If Not Checkamdkmpfd() Then
+						config.NotPresentAMDKMPFD = True
+						UpdateTextMethod("Start - Check for AMDKMPFD service.")
+						CleanupEngine.Cleanserviceprocess({"amdkmpfd"}, config)
+						UpdateTextMethod("End - Check for AMDKMPFD service.")
+					End If
+
+				End If
+
 				'------------------------------------------------------------------------------------
 				' Removing the Audio associated with the GPU + AudioEndpoint+SoftwareComponent(DCH)--
 				'------------------------------------------------------------------------------------
@@ -541,7 +587,7 @@ Namespace Display_Driver_Uninstaller
 						If config.RemoveNVBROADCAST Then
 							' NVIDIA Broadcast(Wave Extensible) (WDM) Removal
 							Application.Log.AddMessage("Executing SetupAPI: Remove NVIDIA Broadcast Audio Device (Wave Extensible) (WDM).")
-							found = SetupAPI.GetDevices("media", Nothing, False)
+							found = SetupAPI.GetDevicesByHID("USB\VID_0956&PID_9001", False, False, False)
 							If found IsNot Nothing AndAlso found.Count > 0 Then
 								For Each d As SetupAPI.Device In found
 									If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
@@ -558,7 +604,7 @@ Namespace Display_Driver_Uninstaller
 						If config.RemoveGFE Then
 							' NVIDIA Virtual Audio Device (Wave Extensible) (WDM) Removal
 							Application.Log.AddMessage("Executing SetupAPI: Remove NVIDIA Virtual Audio Device (Wave Extensible) (WDM).")
-							found = SetupAPI.GetDevices("media", Nothing, False)
+							found = SetupAPI.GetDevicesByHID("USB\VID_0955&PID_9000", False, False, False)
 							If found IsNot Nothing AndAlso found.Count > 0 Then
 								For Each d As SetupAPI.Device In found
 									If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
@@ -573,7 +619,7 @@ Namespace Display_Driver_Uninstaller
 
 							' NVIDIA NvModuleTracker Device Removal
 							Application.Log.AddMessage("Executing SetupAPI: Remove NVIDIA NvModuleTracker Device.")
-							found = SetupAPI.GetDevices("NvModuleTracker", Nothing, False)
+							found = SetupAPI.GetDevicesByHID("ROOT\NVMODULETRACKER", False, False, False)
 							If found IsNot Nothing AndAlso found.Count > 0 Then
 								For Each d As SetupAPI.Device In found
 									If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
@@ -763,58 +809,6 @@ Namespace Display_Driver_Uninstaller
 					Application.Log.AddMessage("SetupAPI: Remove Monitor(s) Complete .")
 				End If
 
-				If config.SelectedGPU = GPUVendor.AMD AndAlso config.RemoveAMDKMPFD AndAlso (config.Restart OrElse config.Shutdown) Then
-					Try
-						UpdateTextMethod("Start - Check for AMDKMPFD system device.")
-						Application.Log.AddMessage("Executing SetupAPI: check AMDKMPFD system device started")
-						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", "0a0", False)
-						If found IsNot Nothing AndAlso found.Count > 0 Then
-							For Each d As SetupAPI.Device In found
-								If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
-									If StrContainsAny(d.HardwareIDs(0), True, "DEV_0A08", "DEV_0A03") Then
-										If d.LowerFilters IsNot Nothing AndAlso d.LowerFilters.Length > 0 Then
-											For Each LowerFilter In d.LowerFilters
-												If IsNullOrWhitespace(LowerFilter) Then Continue For
-												If StrContainsAny(LowerFilter, True, "amdkmpfd") Then
-													Application.Log.AddMessage("Executing SetupAPI: update AMDKMPFD system device to Windows default started")
-													If _win10 Then
-														If SetupAPI.MethodExists("newdev.dll", "DiUninstallDriverW") Then
-															SetupAPI.UninstallDevice(d)
-														Else
-															SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
-														End If
-													Else
-														SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\machine.inf", True)
-													End If
-													Exit For
-												End If
-											Next
-										End If
-									End If
-								End If
-							Next
-							found.Clear()
-						End If
-						UpdateTextMethod("End - Check for AMDKMPFD system device.")
-						Application.Log.AddMessage("SetupAPI: Check AMDKMPFD system device Complete .")
-					Catch ex As Exception
-						Application.Log.AddException(ex)
-						'MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text6"), config.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error)
-					End Try
-
-					UpdateTextMethod(UpdateTextTranslated(28))
-
-
-					'We now try to remove the service AMDKMPFD if its lowerfilter is not found
-
-					If Not Checkamdkmpfd() Then
-						config.NotPresentAMDKMPFD = True
-						UpdateTextMethod("Start - Check for AMDKMPFD service.")
-						CleanupEngine.Cleanserviceprocess({"amdkmpfd"}, config)
-						UpdateTextMethod("End - Check for AMDKMPFD service.")
-					End If
-
-				End If
 			End If
 
 			If config.SelectedGPU = GPUVendor.AMD Then
