@@ -403,7 +403,8 @@ Namespace Display_Driver_Uninstaller
 				If config.SelectedGPU = GPUVendor.Nvidia AndAlso config.RemoveGFE Then
 					Try
 						Application.Log.AddMessage("Executing SetupAPI: Remove NVVHCI.")
-						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", Nothing, False)
+
+						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByHID("ROOT\NVVHCI", False, False, False)
 						If found IsNot Nothing AndAlso found.Count > 0 Then
 
 							For Each d As SetupAPI.Device In found
