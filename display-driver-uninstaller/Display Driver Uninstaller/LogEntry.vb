@@ -305,6 +305,13 @@ Namespace Display_Driver_Uninstaller
 
 				Values.Add(KvP.Empty)
 
+				If d.ExtendedInfs IsNot Nothing AndAlso d.ExtendedInfs.Length > 0 Then
+					Add("Extended Infs", String.Join(Environment.NewLine, d.ExtendedInfs))
+				Else : Add("Extended Infs", "<empty>")
+				End If
+
+				Values.Add(KvP.Empty)
+
 				If extendedDetails Then
 					If d.DriverInfo IsNot Nothing AndAlso d.DriverInfo.Length > 0 Then
 						Add("Driver Details")

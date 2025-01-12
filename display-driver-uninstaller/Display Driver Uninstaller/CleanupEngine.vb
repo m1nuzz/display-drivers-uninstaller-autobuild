@@ -3034,9 +3034,40 @@ Namespace Display_Driver_Uninstaller
 								End If
 							End If
 
+							'When forcing the removal of an extension it is better to disabled the devices that are associated with them before removing the inf.
+
 							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
 								If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "HdBusExt.cat") Then
-									SetupAPI.RemoveInf(oem, True)
+									'For some special cases, we need to disable the device before removing the inf.
+									Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID("PCI\VEN_8086&CC_040", False, False, False, True)
+									If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
+										Dim disabledAudiobusList As List(Of SetupAPI.Device) = Nothing
+										For Each audiobus As SetupAPI.Device In audiobusList
+											If audiobus IsNot Nothing AndAlso audiobus.IsPresent AndAlso audiobus.ExtendedInfs IsNot Nothing AndAlso
+												audiobus.ExtendedInfs.Length > 0 AndAlso Not IsNullOrWhitespace(audiobus.Service) Then
+												If StrContainsAny(audiobus.Service, True, "HDAudBus", "IntcAudioBus") Then
+													SetupAPI.EnableDevice(audiobus, False) 'Removing the Audio bus.
+													disabledAudiobusList.Add(audiobus)
+												End If
+											End If
+										Next
+
+										SetupAPI.RemoveInf(oem, True)
+
+										If disabledAudiobusList IsNot Nothing AndAlso disabledAudiobusList.Count > 0 Then
+											For Each disabledAudiobus As SetupAPI.Device In disabledAudiobusList
+												SetupAPI.EnableDevice(disabledAudiobus, True)
+											Next
+										End If
+									End If
+
+									For Each audiobus As SetupAPI.Device In audiobusList
+										If audiobus IsNot Nothing AndAlso audiobus.IsPresent AndAlso Not IsNullOrWhitespace(audiobus.Service) Then
+											If StrContainsAny(audiobus.Service, True, "HDAudBus", "IntcAudioBus") Then
+												SetupAPI.EnableDevice(audiobus, True) 'Removing the Audio bus.
+											End If
+										End If
+									Next
 									Continue For
 								End If
 							End If
@@ -3073,6 +3104,7 @@ Namespace Display_Driver_Uninstaller
 
 			Application.Log.AddMessage("Driver Store CleanUP Complete.")
 		End Sub
+
 		Public Sub Fixregistrydriverstore(ByVal config As ThreadSettings)
 			Dim win8higher As Boolean = FrmMain.IsWindows8OrHigher
 			Dim FileIO As New FileIO
@@ -3197,7 +3229,6 @@ Namespace Display_Driver_Uninstaller
 			End If
 
 		End Sub
-
 
 		Private Sub UpdateTextMethod(ByVal strMessage As String)
 			FrmMain.UpdateTextMethod(strMessage)
