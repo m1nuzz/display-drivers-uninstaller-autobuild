@@ -29,10 +29,11 @@ Namespace Display_Driver_Uninstaller
 				Dim newestVersionStr As String = Nothing
 
 				Using client As New HttpClient()
+					client.DefaultRequestHeaders.UserAgent.ParseAdd("DDU/1.0 (Display Driver Uninstaller)")
 					' Set the timeout for the HttpClient to 5000 milliseconds (5 seconds)
 					client.Timeout = TimeSpan.FromMilliseconds(5000)
 					Try
-						Dim response As HttpResponseMessage = client.GetAsync(Url).GetAwaiter().GetResult()
+						Dim response As HttpResponseMessage = client.GetAsync(url).GetAwaiter().GetResult()
 						response.EnsureSuccessStatusCode() ' Throws an exception if the request is not successful
 
 						newestVersionStr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()

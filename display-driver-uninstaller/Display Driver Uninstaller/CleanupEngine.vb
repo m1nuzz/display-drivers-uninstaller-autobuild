@@ -3034,7 +3034,7 @@ Namespace Display_Driver_Uninstaller
 								End If
 							End If
 
-							'When forcing the removal of an extension it is better to disabled the devices that are associated with them before removing the inf.
+							'When forcing the removal of an extension it is better to disable the devices that are associated with them before removing the inf.
 
 							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
 								If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "HdBusExt.cat") Then
