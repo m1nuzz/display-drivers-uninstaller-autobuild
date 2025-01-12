@@ -38,7 +38,7 @@ Namespace Display_Driver_Uninstaller
 		Public Sub New(ByVal separator As String, ByVal value As String)
 			Me.Key = Nothing
 			Me.Value = value
-			Me.Separator = Separator
+			Me.Separator = separator
 		End Sub
 	End Class
 
@@ -249,8 +249,10 @@ Namespace Display_Driver_Uninstaller
 					Add("CompatibleIDs", String.Join(Environment.NewLine, d.CompatibleIDs))
 				Else : Add("CompatibleIDs", "<empty>")
 				End If
-
 				Values.Add(KvP.Empty)
+
+				Add("IsPresent", d.IsPresent.ToString)
+				Add(KvP.Empty)
 
 				Add("DevProblem", If(Not IsNullOrWhitespace(d.DevProblemStr), d.DevProblemStr, "-"))
 

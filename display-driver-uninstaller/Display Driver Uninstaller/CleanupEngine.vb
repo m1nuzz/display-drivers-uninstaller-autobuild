@@ -3041,7 +3041,7 @@ Namespace Display_Driver_Uninstaller
 									'For some special cases, we need to disable the device before removing the inf.
 									Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID("PCI\VEN_8086&CC_040", False, False, False, True)
 									If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
-										Dim disabledAudiobusList As List(Of SetupAPI.Device) = Nothing
+										Dim disabledAudiobusList As New List(Of SetupAPI.Device)
 										For Each audiobus As SetupAPI.Device In audiobusList
 											If audiobus IsNot Nothing AndAlso audiobus.IsPresent AndAlso audiobus.ExtendedInfs IsNot Nothing AndAlso
 												audiobus.ExtendedInfs.Length > 0 AndAlso Not IsNullOrWhitespace(audiobus.Service) Then

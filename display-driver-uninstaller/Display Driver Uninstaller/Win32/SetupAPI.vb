@@ -2555,13 +2555,6 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return
 				End If
 
-				Dim logEntry As LogEntry = Application.Log.CreateEntry()
-				logEntry.Message = String.Concat("Beginning of uninstalling device:", CRLF, ">> ", If(device.FriendlyName, device.Description))
-
-				logEntry.AddDevices(True, device)
-
-				Application.Log.Add(logEntry)
-
 				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim found As Boolean = False
@@ -2611,6 +2604,13 @@ Namespace Display_Driver_Uninstaller.Win32
 							End If
 						End While
 
+						Dim logEntry As LogEntry = Application.Log.CreateEntry()
+						logEntry.Message = String.Concat("Beginning of uninstalling device:", CRLF, ">> ", If(device.FriendlyName, device.Description))
+
+						logEntry.AddDevices(True, device)
+
+						Application.Log.Add(logEntry)
+
 						If Not found Then
 							Application.Log.AddWarningMessage("Device uninstalling cancelled. Device not found!")
 							Return
@@ -2635,8 +2635,6 @@ Namespace Display_Driver_Uninstaller.Win32
 
 							logStatus.Add("OemInfs", String.Join(CRLF, oems))
 						End If
-						logStatus.Add("IsPresent", device.IsPresent.ToString)
-						logStatus.Add(KvP.Empty)
 
 						If SetupDiCallClassInstaller(DIF.REMOVE, infoSet, ptrDevInfo.Ptr) Then
 							device.RebootRequired = RebootRequired(infoSet, ptrDevInfo.Ptr, device)
@@ -3173,8 +3171,6 @@ Namespace Display_Driver_Uninstaller.Win32
 
 			If result = CR.SUCCESS Then
 
-				device.IsPresent = (pulStatus And DN.DRIVER_LOADED) = DN.DRIVER_LOADED
-
 				If (pulStatus And DN.HAS_PROBLEM) <> DN.HAS_PROBLEM Then
 					pulProblemNumber = 0UI
 				End If
@@ -3658,7 +3654,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Friend devDetails As Boolean = False
 
 			Private _hasHardwareID As Boolean = False
-			Private _isPresent As Boolean = False
+			Private _isPresent As Boolean = True
 			Private _hardwareIDs As String()
 			Private _lowerfilters As String()
 			Private _upperfilters As String()
