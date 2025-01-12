@@ -3060,14 +3060,6 @@ Namespace Display_Driver_Uninstaller
 											Next
 										End If
 									End If
-
-									For Each audiobus As SetupAPI.Device In audiobusList
-										If audiobus IsNot Nothing AndAlso audiobus.IsPresent AndAlso Not IsNullOrWhitespace(audiobus.Service) Then
-											If StrContainsAny(audiobus.Service, True, "HDAudBus", "IntcAudioBus") Then
-												SetupAPI.EnableDevice(audiobus, True) 'Removing the Audio bus.
-											End If
-										End If
-									Next
 									Continue For
 								End If
 							End If
