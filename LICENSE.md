@@ -1,6 +1,6 @@
 End-User License Agreement ("Agreement")
 
-Last updated: January 13, 2023
+Last updated: January 15, 2025
 
 Please read this End-User License Agreement ("Agreement") carefully before clicking the "I Agree" button, downloading or using Display Driver Uninstaller (DDU) ("Application").
 By clicking the "I Agree" button, downloading or using the Application, you are agreeing to be bound by the terms and conditions of this Agreement.
