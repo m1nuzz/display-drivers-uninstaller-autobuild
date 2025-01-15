@@ -14,12 +14,19 @@ Wagnardsoft grants you a revocable, non-exclusive, non-transferable, limited lic
 
 Restrictions
 
-Display Driver Uninstaller (DDU) can be only distributed electronically through https://www.wagnardsoft.com . Distribution through other websites or in any other form without permission of Wagnardsoft is prohibited.
+Distribution of Display Driver Uninstaller (DDU) is primarily authorized through electronic downloads from the official website https://www.wagnardsoft.com.
+
+Personal sharing, such as copying the Application onto USB drives or similar media for non-commercial purposes, is permitted. However, any form of public hosting, redistribution, or sharing of the Application on other websites, services, or platforms is prohibited without prior written permission from Wagnardsoft. Unauthorized online distribution or hosting violates this Agreement and may result in the revocation of the license.
 
 You agree not to, and you will not permit others to:
 
 license, sell, rent, lease, assign, host, disclose or otherwise commercially exploit the Application,
 remove, alter or obscure any proprietary notice (including any notice of copyright or trademark) of Wagnardsoft or its affiliates, partners, suppliers or the licensors of the Application.
+
+Misrepresentation and Branding:
+
+Display Driver Uninstaller (DDU) is the sole property of Wagnardsoft. Any misrepresentation of ownership, authorship, or branding of the Application is prohibited. This includes, but is not limited to, presenting the Application as being developed, owned, or maintained by any party other than Wagnardsoft.
+Use of the Application’s name, logos, or branding materials in any way that implies false association or authorship is strictly prohibited.
 
 Your Suggestions
 
