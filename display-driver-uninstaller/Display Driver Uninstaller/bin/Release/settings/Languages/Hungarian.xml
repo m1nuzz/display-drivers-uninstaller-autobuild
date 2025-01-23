@@ -52,7 +52,7 @@
 			</Text>
 		</btnWuRestore>
 		<lblWinVersion>
-			<Text>Észlelt Windows verzió</Text>
+			<Text>Operációs rendszer és verziója:</Text>
 		</lblWinVersion>
 		<lblDonate>
 			<Text>*** Tetszik a DDU? Gondold át egy esetleges támogatás lehetőségét, sokat segítene a fejlesztés jövőjén. ***</Text>
@@ -61,7 +61,7 @@
 			<Text>Napló</Text>
 		</lblLog>
 		<lblSelectedGPU>
-			<Text>Válassz grafikus illesztőprogramot</Text>
+			<Text>Kiválasztott grafikus illesztőprogram</Text>
 		</lblSelectedGPU>
 		<lblLanguage>
 			<Text>Kiválasztott nyelv</Text>
@@ -116,7 +116,7 @@
 			<Text>A Guru3d AMD fórumok meglátogatása</Text>
 		</VisitGuru3DAMDMenuItem>
 		<VisitGeforceMenuItem>
-			<Text>A Geforce fórumok meglátogatása</Text>
+			<Text>A GeForce fórumok meglátogatása</Text>
 		</VisitGeforceMenuItem>
 
 		<Messages>
@@ -165,12 +165,12 @@
 		<UpdateLog>
 			<Text1>Illesztőprogram tároló tisztítás végrehajtása (OEM lépés törlése)...</Text1>
 			<Text2>Könyvtár törlése</Text2>
-			<Text3>Ismert kulcsok törlése... egy-két percig eltarthat.</Text3>
+			<Text3>Ismert reg-kulcsok törlése... egy-két percig eltarthat.</Text3>
 			<Text4>UpdatusUser felhasználói fiókok törlése, ha léteznek.</Text4>
 			<Text5>Könyvtár törlése</Text5>
 			<Text6>Rendszerleíró tisztítás indítása</Text6>
 			<Text7>Rendszerleíró tisztítás befejezve</Text7>
-			<Text8>nVidia Optimus UpperFilter eltávolításának indítása, ha megtalálható.</Text8>
+			<Text8>NVIDIA Optimus UpperFilter eltávolítása, ha megtalálható.</Text8>
 			<Text9>Új eszköz keresése...</Text9>
 			<Text10>Tiszta eltávolítás kész!</Text10>
 			<Text11>DDU verzió</Text11>
@@ -180,10 +180,10 @@
 			<Text15>Észlelt illesztőprogram verzió(k)</Text15>
 			<Text16>INF</Text16>
 			<Text17>INF szekció</Text17>
-			<Text18>GPU nincs megfelelően telepítve</Text18>
-			<Text19>Néhány különleges könyvtár törlése, beletelhet némi időbe...</Text19>
-			<Text20>Takarítás elindult...</Text20>
-			<Text21>Eltávolítás</Text21>
+			<Text18>A GPU nincs megfelelően telepítve</Text18>
+			<Text19>Néhány különleges könyvtár törlése beletelhet némi időbe...</Text19>
+			<Text20>Tisztítás elindítva...</Text20>
+			<Text21>Eltávolítás folyamatban</Text21>
 			<Text22>illesztőprogram</Text22>
 			<Text23>SetupAPI eltávolítás végrehajtása, kérlek várj (néhány percbe beletelhet)</Text23>
 			<Text24>GPU(k) eltávolítva az Eszközkezelőből.</Text24>
@@ -231,7 +231,7 @@
 			<Text>Általános beállítások</Text>
 		</lblGeneral>
 		<lblRemNvidiaDirs>
-			<Text>"C:\nVidia" illesztőprogram mappák eltávolítása</Text>
+			<Text>"C:\NVIDIA" illesztőprogram mappák eltávolítása</Text>
 		</lblRemNvidiaDirs>
 		<lblSaveLogs>
 			<Text>Naplófájlok mentése az indítási útvonalra. (Erőse ajánlott)</Text>
@@ -258,7 +258,7 @@
 			<Text>AMDKMPFD illesztőprogram/szűrő eltávolítása (az AMD chipset illesztőprogramok biztonsági mentése ajánlott)</Text>
 		</lblRemAMDKMPFD>
 		<lblShowSafeModeMsg>
-			<Text>Csökkentett mód üzenet megjelenítése indításkor</Text>
+			<Text>Csökkentett mód dialógusablak megjelenítése indításkor</Text>
 			<Tooltip>Nem ajánlott, ha még sohasem indítottad el a számítógépedet csökkentett üzemmódban, hogy kipróbáld működik-e. Ezzel a beállítással "boot loop"-ba kerülhetsz, fekete képernyőt okozhat és egyebeket.</Tooltip>
 		</lblShowSafeModeMsg>
 		<lblUseRoamingCfg>
@@ -286,6 +286,9 @@
 		<lblRemINTELCP>
 			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített INTEL Vezérlőpult eltávolítása</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>Intel Arc vezérlőpult / Intel Grafikus Szoftver eltávolítása</Text>
+		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített AMD Vezérlőpult eltávolítása</Text>
 		</lblRemAMDCP>
@@ -297,7 +300,7 @@
 			</Tooltip>
 		</lblRemCrimsonCache>
 		<lblVulkan>
-			<Text>Vulkan meghajtóprogramok eltávolítása</Text>
+			<Text>Vulkan meghajtók eltávolítása</Text>
 			<Tooltip>Abban az esetben nem ajánlott, ha kettő darab GPU-val rendelkezel, melyek Vulkan API képesek.</Tooltip>
 		</lblVulkan>
 	<lblPreventWinUpdate>
@@ -306,6 +309,9 @@
 				Megjegyzés: Ez nem akadályozza meg, hogy a "Windows Update" letöltse/telepítse az új illesztőprogramokat.
 				Megjegyzés2: Szintén *ERŐSEN* ajánlott visszaállítani ezt a beállítás, miután végeztél a DDU használatával és újratelepítetted a GPU-illesztőprogramot, különben probléma adódhat más eszközök telepítése során</Tooltip>
 	</lblPreventWinUpdate>
+			<lblRememberLastChoice>
+			<Text>Utolsó kiválsztott GPU megjegyzése</Text>	
+		</lblRememberLastChoice>
 	</frmOptions>
 
 	<frmLaunch Text="Indítás beállításai">
@@ -336,7 +342,7 @@
 		<lblWinPasswordWarn>
 			<Text>
 				Fontos megjegyzés a Windows 8/8.1/10/11 felhasználóknak:
-				A Windows "JELSZAVADRA" szükség lesz! (A PIN kód NEM működik a csökkentett módban)
+				Szükség lehet a Windows "JELSZAVADRA"! (A PIN kód NEM működik a csökkentett módban)
 				Azonnal lépj ki nem tudod a jelszavadat vagy elvesztetted azt!
 			</Text>
 		</lblWinPasswordWarn>
@@ -425,6 +431,8 @@
 				-ChaosDMNS
 				-Eduardo Macias
 				-Peter Le
+				-Kater Willschie
+				-Duke Hanson
 				
 			</Text>
 		</lblPatron>
@@ -469,16 +477,16 @@
 
 				Logók: juanchacin
 
-				Hatalmas köszönet Jackalitonak egy ajándék AMD 7850-ért!
+				Hatalmas köszönet Jackalitónak egy ajándék AMD 7850-ért!
 
 				Köszönet Helge Kleinnek (http://helgeklein.com/setacl/): amiért engedélyezte a programja használatát DDU "SetAcl"-lel
 
-				Hatalmas köszönet tesztelésükért: Gamer1291 (optimus), Octopuss (Amd Enduro) , nedooo` (időt szánt a hibakeresésre)
+				Hatalmas köszönet a tesztelésért: Gamer1291 (optimus), Octopuss (Amd Enduro) , nedooo` (időt szánt a hibakeresésre)
 				Extraordinary (hibajavítást tesztelt)
 
-				Köszönet mindenkinek, aki veszélybe sodorta a rendszerét (különleges köszönet Dellon132-nek)
+				Köszönet mindazoknak, akik kockára tették a rendszerüket (külön köszönet Dellon132-nek)
 
-				*A DDU, és fejlesztői semmilyen formában nem állnak kapcsolatban a Driver Sweeperrel, vagy annak fejlesztőivel.
+				*A DDU, valamint annak fejlesztői semmilyen formában nem állnak kapcsolatban a Driver Sweeperrel, vagy annak fejlesztőivel.
 			</Text>
 		</About>
 
@@ -500,7 +508,7 @@
 		<Translator>
 			<User>istvanszabo890629</User>
 			<Details>istvanszabo890629@gmail.com</Details>
-			<LastUpdate>22/03/2023</LastUpdate>
+			<LastUpdate>23/01/2025</LastUpdate>
 		</Translator>
 
 		<Translator2>
