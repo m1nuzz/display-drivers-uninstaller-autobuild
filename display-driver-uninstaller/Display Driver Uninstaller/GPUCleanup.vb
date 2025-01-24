@@ -104,16 +104,15 @@ Namespace Display_Driver_Uninstaller
 						For Each service As String In gfeservices
 							If IsNullOrWhitespace(service) Then Continue For
 
-							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
-								'Service is not present
-							Else
-								Try
-									ServiceInstaller.Uninstall(service)
-								Catch ex As Exception
-									Application.Log.AddException(ex)
-								End Try
+							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+							'Service is not present
 
-							End If
+							Try
+								ServiceInstaller.Uninstall(service)
+							Catch ex As Exception
+								Application.Log.AddException(ex)
+							End Try
+
 						Next
 
 					End If
@@ -124,16 +123,14 @@ Namespace Display_Driver_Uninstaller
 						For Each service As String In nvbservices
 							If IsNullOrWhitespace(service) Then Continue For
 
-							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
-								'Service is not present
-							Else
-								Try
-									ServiceInstaller.Uninstall(service)
-								Catch ex As Exception
-									Application.Log.AddException(ex)
-								End Try
+							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+							'Service is not present
 
-							End If
+							Try
+								ServiceInstaller.Uninstall(service)
+							Catch ex As Exception
+								Application.Log.AddException(ex)
+							End Try
 						Next
 
 					End If
@@ -167,24 +164,37 @@ Namespace Display_Driver_Uninstaller
 
 					Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\services.cfg")
 
-					For Each service As String In services
-						If IsNullOrWhitespace(service) Then Continue For
+					If config.RemoveINTELIGS Then
 
-						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
+						Dim igsServices As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\servicesigs.cfg")
+
+						For Each service As String In igsServices
+							If IsNullOrWhitespace(service) Then Continue For
+
+							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 							'Service is not present
-						Else
+
 							Try
 								ServiceInstaller.Uninstall(service)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
-
-						End If
-					Next
-
-					If config.RemoveINTELIGS Then
+						Next
 						KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing", "intelgraphicssoftware")
 					End If
+
+					For Each service As String In services
+						If IsNullOrWhitespace(service) Then Continue For
+
+						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+						'Service is not present
+
+						Try
+							ServiceInstaller.Uninstall(service)
+						Catch ex As Exception
+							Application.Log.AddException(ex)
+						End Try
+					Next
 
 			End Select
 
@@ -869,6 +879,7 @@ Namespace Display_Driver_Uninstaller
 				For Each process As Process In Process.GetProcessesByName(processName)
 					Try
 						process.Kill()
+						Application.Log.AddMessage(String.Concat("Killed process: ", processName))
 					Catch ex As Exception
 						Application.Log.AddExceptionWithValues(ex, "@KillProcess()", String.Concat("ProcessName: ", processName))
 					End Try

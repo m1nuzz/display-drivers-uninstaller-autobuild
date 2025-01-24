@@ -30,8 +30,9 @@ Namespace Display_Driver_Uninstaller.Win32
 			serviceInstallerObj.ServiceName = serviceName
 			Try
 				serviceInstallerObj.Uninstall(Nothing)
+				Application.Log.AddMessage("Service : " & serviceName & " removed.")
 			Catch ex As Win32Exception
-				Application.Log.AddException(ex)
+				Application.Log.AddException(ex, serviceName)
 			End Try
 
 			GetServiceStatus(serviceName)
@@ -41,7 +42,9 @@ Namespace Display_Driver_Uninstaller.Win32
 				If regkey IsNot Nothing Then
 
 					Application.Log.AddWarningMessage("Failed to remove the service : " & serviceName)
-				Else
+
+					Return
+
 					Application.Log.AddMessage("Service : " & serviceName & " removed.")
 				End If
 			End Using

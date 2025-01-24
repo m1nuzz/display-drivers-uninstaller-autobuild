@@ -1,6 +1,7 @@
 ﻿Imports System.Threading
 Imports Display_Driver_Uninstaller.Win32
 Imports System.Net.Http
+Imports System.Reflection
 
 Namespace Display_Driver_Uninstaller
 
@@ -29,7 +30,9 @@ Namespace Display_Driver_Uninstaller
 				Dim newestVersionStr As String = Nothing
 
 				Using client As New HttpClient()
-					client.DefaultRequestHeaders.UserAgent.ParseAdd("DDU/1.0 (Display Driver Uninstaller)")
+					Dim version = If(Assembly.GetExecutingAssembly().GetName().Version?.ToString(), "1.0.0.0")
+
+					client.DefaultRequestHeaders.UserAgent.ParseAdd($"DDU/{version} (Display Driver Uninstaller)")
 					' Set the timeout for the HttpClient to 5000 milliseconds (5 seconds)
 					client.Timeout = TimeSpan.FromMilliseconds(5000)
 					Try
