@@ -2,17 +2,19 @@
 Imports Display_Driver_Uninstaller.Win32
 Imports System.Net.Http
 Imports System.Reflection
+Imports System.Threading.Tasks
 
 Namespace Display_Driver_Uninstaller
 
 	Public Class CheckUpdate
 
-		Private Sub CheckUpdatesThread(ByVal currentVersion As Version, ByVal CheckUpdate As Boolean)
+		Private Shared _alreadyChecked As Boolean = False
+
+		Private Async Function CheckUpdatesThreadAsync(ByVal currentVersion As Version, ByVal checkUpdate As Boolean) As Task
 			Dim status As UpdateStatus = UpdateStatus.NotChecked
 
 			Try
-
-				If CheckUpdate = False Then
+				If Not checkUpdate Then
 					status = UpdateStatus.NotAllowed
 					Return
 				End If
@@ -24,6 +26,8 @@ Namespace Display_Driver_Uninstaller
 					End If
 				Catch ex As Exception
 					Application.Log.AddWarning(ex)
+					status = UpdateStatus.Error
+					Return
 				End Try
 
 				Dim url As String = "https://www.wagnardsoft.com/DDU/currentversion2.txt"
@@ -33,13 +37,12 @@ Namespace Display_Driver_Uninstaller
 					Dim version = If(Assembly.GetExecutingAssembly().GetName().Version?.ToString(), "1.0.0.0")
 
 					client.DefaultRequestHeaders.UserAgent.ParseAdd($"DDU/{version} (Display Driver Uninstaller)")
-					' Set the timeout for the HttpClient to 5000 milliseconds (5 seconds)
-					client.Timeout = TimeSpan.FromMilliseconds(5000)
+					client.Timeout = TimeSpan.FromMilliseconds(5000) ' Set timeout to 5 seconds
 					Try
-						Dim response As HttpResponseMessage = client.GetAsync(url).GetAwaiter().GetResult()
+						Dim response As HttpResponseMessage = Await client.GetAsync(url)
 						response.EnsureSuccessStatusCode() ' Throws an exception if the request is not successful
 
-						newestVersionStr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+						newestVersionStr = Await response.Content.ReadAsStringAsync()
 					Catch ex As Exception
 						' Handle the error appropriately
 						status = UpdateStatus.Error
@@ -48,23 +51,18 @@ Namespace Display_Driver_Uninstaller
 					End Try
 				End Using
 
-				'Dim response As System.Net.WebResponse = Nothing
-				'Dim request As System.Net.WebRequest = System.Net.HttpWebRequest.Create("https://www.wagnardsoft.com/DDU/currentversion2.txt")
-				'request.Timeout = 5000
-
-
 				Dim newestVersion As Integer
-				Dim applicationversion As Integer
+				Dim applicationVersion As Integer
 
 				If IsNullOrWhitespace(newestVersionStr) OrElse
-			   Not Int32.TryParse(newestVersionStr.Replace(".", ""), newestVersion) OrElse
-			   Not Int32.TryParse(currentVersion.ToString().Replace(".", ""), applicationversion) Then
+		   Not Integer.TryParse(newestVersionStr.Replace(".", ""), newestVersion) OrElse
+		   Not Integer.TryParse(currentVersion.ToString().Replace(".", ""), applicationVersion) Then
 
 					status = UpdateStatus.Error
 					Return
 				End If
 
-				If newestVersion <= applicationversion Then
+				If newestVersion <= applicationVersion Then
 					status = UpdateStatus.NoUpdates
 				Else
 					status = UpdateStatus.UpdateAvailable
@@ -75,8 +73,10 @@ Namespace Display_Driver_Uninstaller
 				status = UpdateStatus.Error
 			Finally
 				Update(status)
+				_alreadyChecked = True
 			End Try
-		End Sub
+		End Function
+
 
 		Private Sub Update(ByVal status As UpdateStatus)
 			If Not Application.Data.Settings.Dispatcher.CheckAccess() Then
@@ -101,31 +101,36 @@ Namespace Display_Driver_Uninstaller
 			End If
 		End Sub
 
-		Public Sub CheckUpdates()
+		Public Async Function CheckUpdatesAsync() As Task
 			Try
+				If _alreadyChecked Then Return
+
 				If Application.IsDebug Then
 					Application.Settings.UpdateAvailable = UpdateStatus.Error
-				Else
-					If Application.Settings.EnableSafeModeDialog Then
-						Dim currentVersion As Version = Application.Settings.AppVersion
-						Dim CheckUpdate As Boolean = Application.Settings.CheckUpdates
-						Dim trd As Thread = New Thread(Sub() CheckUpdatesThread(currentVersion, CheckUpdate)) With
-					  {
-					  .CurrentCulture = New Globalization.CultureInfo("en-US"),
-					  .CurrentUICulture = New Globalization.CultureInfo("en-US"),
-					  .IsBackground = True
-					  }
-
-						trd.Start()
-					Else
-						Dim currentVersion As Version = Application.Settings.AppVersion
-						Dim CheckUpdate As Boolean = Application.Settings.CheckUpdates
-						CheckUpdatesThread(currentVersion, CheckUpdate)
-					End If
+					Return
 				End If
+
+				Dim currentVersion As Version = Application.Settings.AppVersion
+				Dim checkUpdate As Boolean = Application.Settings.CheckUpdates
+
+				If Application.Settings.EnableSafeModeDialog Then
+					' Run the async update check in the background
+					Await Task.Run(Async Function()
+									   Try
+										   Await CheckUpdatesThreadAsync(currentVersion, checkUpdate)
+									   Catch ex As Exception
+										   Application.Log.AddException(ex, "Failed during async update check!")
+									   End Try
+								   End Function)
+					Return
+				End If
+
+				' Run the async update check directly
+				Await CheckUpdatesThreadAsync(currentVersion, checkUpdate)
+
 			Catch ex As Exception
-				Application.Log.AddException(ex, "Failed to start UpdateCheck thread!")
+				Application.Log.AddException(ex, "Failed to start UpdateCheck!")
 			End Try
-		End Sub
+		End Function
 	End Class
 End Namespace

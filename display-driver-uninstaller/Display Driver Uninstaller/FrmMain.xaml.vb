@@ -394,7 +394,7 @@ Namespace Display_Driver_Uninstaller
 			End If
 
 		End Sub
-		Private Sub FrmMain_ContentRendered(sender As System.Object, e As System.EventArgs) Handles MyBase.ContentRendered
+		Private Async Sub FrmMain_ContentRendered(sender As System.Object, e As System.EventArgs) Handles MyBase.ContentRendered
 			Me.Topmost = False
 
 			Try
@@ -407,7 +407,7 @@ Namespace Display_Driver_Uninstaller
 				cbSelectedType.SelectedIndex = If(Application.Settings.RememberLastChoice, Application.Settings.LastSelectedTypeIndex, 0)
 				If Not Application.LaunchOptions.Silent Then
 					If WinForm.SystemInformation.BootMode <> Forms.BootMode.FailSafe Then
-						_checkUpdate.CheckUpdates()
+						Await _checkUpdate.CheckUpdatesAsync()
 					End If
 				End If
 

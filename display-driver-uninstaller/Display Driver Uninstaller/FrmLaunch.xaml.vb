@@ -17,7 +17,7 @@
 			Me.Close()
 		End Sub
 
-		Private Sub FrmLaunch_ContentRendered(sender As Object, e As System.EventArgs) Handles Me.ContentRendered
+		Private Async Sub FrmLaunch_ContentRendered(sender As Object, e As System.EventArgs) Handles Me.ContentRendered
 			Me.Topmost = False
 			Dim Checkupdate As New CheckUpdate
 			If Application.Settings.ProcessKilled Then
@@ -25,7 +25,7 @@
 				'	Application.Settings.ProcessKilled = False
 			End If
 
-			Checkupdate.CheckUpdates()
+			Await Checkupdate.CheckUpdatesAsync()
 
 		End Sub
 		Private Sub BtnWuRestore_Click(sender As Object, e As EventArgs) Handles btnWuRestore.Click
