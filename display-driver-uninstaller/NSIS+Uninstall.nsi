@@ -146,7 +146,7 @@ Section "MainSection" SEC01
   CreateShortCut "$DESKTOP\Display Driver Uninstaller.lnk" "$INSTDIR\Display Driver Uninstaller.exe"
   File "${SOURCE_PATH}\Display Driver Uninstaller.pdb"
   File "${SOURCE_PATH}\Issues and solutions.txt"
-  File "${SOURCE_PATH}\Licence.txt"
+  File "${SOURCE_PATH}\License.txt"
   File "${SOURCE_PATH}\Readme.txt"
   SetOutPath "$INSTDIR\Settings\AMD"
   File "${SOURCE_PATH}\Settings\AMD\classroot.cfg"
