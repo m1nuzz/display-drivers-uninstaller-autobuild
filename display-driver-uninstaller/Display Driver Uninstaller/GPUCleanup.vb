@@ -5955,7 +5955,7 @@ Namespace Display_Driver_Uninstaller
 				If filePath IsNot Nothing Then
 					For Each child As String In _fileIo.GetDirectories(filePath)
 						If IsNullOrWhitespace(child) = False Then
-							If StrContainsAny(child, True, "PerDriverVersion") Then
+							If StrContainsAny(child, True, "PerDriverVersion", "dxcache") Then
 
 								Delete(child)
 
@@ -7676,7 +7676,7 @@ Namespace Display_Driver_Uninstaller
 			If _fileIo.ExistsDir(filePath) Then
 				For Each child As String In _fileIo.GetDirectories(filePath)
 					If IsNullOrWhitespace(child) = False Then
-						If StrContainsAny(child, True, "Media SDK", "Media Resource", "ACMirageCache", "Intel(R) Arc Software & Drivers", "PrebuiltShaderBinaries") OrElse
+						If StrContainsAny(child, True, "Media SDK", "Media Resource", "ACMirageCache", "Intel(R) Arc Software & Drivers", "PrebuiltShaderBinaries", "Intel(R) Graphics Software & Drivers") OrElse
 							(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel Graphics Software", "Intel Arc Control")) Then
 							Delete(child)
 						End If
@@ -7723,7 +7723,7 @@ Namespace Display_Driver_Uninstaller
 				If _fileIo.ExistsDir(filePath) Then
 					For Each child As String In _fileIo.GetDirectories(filePath)
 						If IsNullOrWhitespace(child) = False Then
-							If StrContainsAny(child, True, "Media SDK", "Media Resource", "Intel(R) Processor Graphics") Then
+							If StrContainsAny(child, True, "Media SDK", "Media Resource", "Intel(R) Processor Graphics", "Intel(R) Graphics Software & Drivers") Then
 								Delete(child)
 							End If
 						End If
