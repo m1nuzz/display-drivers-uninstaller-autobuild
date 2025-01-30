@@ -303,12 +303,12 @@
 			<Text>Vulkan-Runtime entfernen</Text>
 			<Tooltip>Nicht empfohlen, wenn Sie zwei verschiedene GPUs haben, die die Vulkan-API verwenden können.</Tooltip>
 		</lblVulkan>
-    <lblPreventWinUpdate>
-      <Text>Downlaods von Treibern von "Windows Update" verhindern, wenn "Windows" nach einem Treiber für ein Gerät sucht</Text>
-      <Tooltip>Vereinfacht ausgedrückt, diese Option verweigert dem "Windows/Geräte-Manager" die Suche nach einem Treiber-Update über "Windows Update". 
+		<lblPreventWinUpdate>
+			<Text>Downlaods von Treibern von "Windows Update" verhindern, wenn "Windows" nach einem Treiber für ein Gerät sucht</Text>
+			<Tooltip>Vereinfacht ausgedrückt, diese Option verweigert dem "Windows/Geräte-Manager" die Suche nach einem Treiber-Update über "Windows Update". 
                Hinweis 1: Dies hindert "Windows Update" nicht daran, neue Treiber herunterzuladen und zu installieren. 
                Hinweis 2: Es wird außerdem *NACHDRUECKLICH* empfohlen, diese Änderung rückgängig zu machen, nachdem Sie die Verwendung von DDU beendet und Ihren GPU-Treiber neu installiert haben, da es sonst zu Problemen bei der Installation anderer Geräte kommen kann.</Tooltip>
-     </lblPreventWinUpdate>
+		</lblPreventWinUpdate>
 		<lblRememberLastChoice>
 			<Text>Zuletzt ausgewählte GPU merken</Text>	
 		</lblRememberLastChoice>
@@ -433,7 +433,8 @@
 				-Peter Le
 				-Kater Willschie
 				-Duke Hanson
-				
+				-Sam Gooding
+
 			</Text>
 		</lblPatron>
 	</frmAbout>
@@ -513,7 +514,7 @@
 
 		<Translator2>
 			<User>_rk_</User>
-			<LastUpdate>06/12/2024</LastUpdate>
+			<LastUpdate>31/01/2025</LastUpdate>
 		</Translator2>
 	</LanguageTranslators>
 
