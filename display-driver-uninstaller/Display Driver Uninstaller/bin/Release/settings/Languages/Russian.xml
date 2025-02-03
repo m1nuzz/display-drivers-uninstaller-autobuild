@@ -284,8 +284,11 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH-драйвер) Удалить Панель управления Intel, установленную из Microsoft Store</Text>
+		    <Text>(DCH-драйвер) Удалить Панель управления Intel, установленную из Microsoft Store</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>Удалить программное обеспечение Intel Arc Control / Intel Graphics</Text>
+		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH-драйвер) Удалить Панель управления AMD, установленную из Microsoft Store</Text>
 		</lblRemAMDCP>
@@ -304,7 +307,7 @@
       <Text>Не загружать драйверы из Центра обновления Windows, когда Windows ищет драйвер для устройства</Text>
       <Tooltip>Эта настройка запрещает Windows/Диспетчеру устройств проверять наличие обновления драйверов в Windows Update.
                Примечание 1: Это не мешает Центру обновления Windows загружать/устанавливать новые драйверы.
-               Примечание 2: *Настоятельно* рекомендуется вернуть прежнее состояние этой настройки после завершения использования DDU и переустановки драйвера видеокарты, иначе возможны проблемы с установкой другого устройства.</Tooltip>
+               Примечание 2: *Настоятельно* рекомендуется вернуть прежнее состояние этой настройки после завершения использования DDU и переустановки драйвера видеокарты, иначе возможны проблемы с установкой других устройств.</Tooltip>
      </lblPreventWinUpdate>
      <lblRememberLastChoice>
          <Text>Запомнить последний выбранный графический процессор</Text>
@@ -319,6 +322,11 @@
 				безопасный режим
 			</Text2>
 		</btnAccept>
+		<btnWuRestore>
+			<Text>
+				Устан.устр.Windows «По умолчанию» и выйти
+			</Text>
+		</btnWuRestore>
 		<btnClose>
 			<Text>Закрыть</Text>
 		</btnClose>
@@ -405,7 +413,7 @@
 		</lblTranslators>
 		<lblPatron>
 			<Text>
-				Благодарим следующих меценатов и тех, кто не упомянут!</Text>
+				Благодарим следующих меценатов и тех, кто не упомянут!
 
 				-Alberto Bursi
 				-honnmaguro
@@ -422,11 +430,13 @@
 				-Matti Metsikko
 				-mikalonia - mika
 				-ChaosDMNS
-        -Eduardo Macias
-        -Peter Le
-        -Kater Willschie
-        -Duke Hanson
-
+                -Eduardo Macias
+                -Peter Le
+                -Kater Willschie
+                -Duke Hanson
+		        -Sam Gooding
+            
+			</Text>
 		</lblPatron>
 	</frmAbout>
 
@@ -496,7 +506,7 @@
 
 		<Translator2>
 			<User>Danis Miryasov (miryasov.danis@yandex.ru)</User>
-			<LastUpdate>18.10.2024</LastUpdate>
+			<LastUpdate>03.02.2025</LastUpdate>
 		</Translator2>
 		<Translator3>
 			<User>Dmitry Yerokhin (erodim@mail.ru)</User>
