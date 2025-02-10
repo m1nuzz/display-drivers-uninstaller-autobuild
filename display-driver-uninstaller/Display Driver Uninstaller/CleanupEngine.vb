@@ -2205,6 +2205,18 @@ Namespace Display_Driver_Uninstaller
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
 								If IsNullOrWhitespace(child) Then Continue For
+
+								If StrContainsAny(child, True, clsidleftover) Then
+									Try
+										Deletesubregkey(regkey, child)
+										OnCLSIDLeftoverRemovalWOW6432(child)
+										childlist.Add(child)
+										Continue For
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+
 								Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, child & "\InProcServer32", False)
 									If subregkey IsNot Nothing Then
 										wantedvalue = TryCast(subregkey.GetValue("", String.Empty), String)

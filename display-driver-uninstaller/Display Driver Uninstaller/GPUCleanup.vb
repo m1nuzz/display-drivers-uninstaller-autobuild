@@ -6299,6 +6299,7 @@ Namespace Display_Driver_Uninstaller
 					 (child.ToLower.Contains("nvidia app") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("frameviewsdk") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("nvidia broadcast") AndAlso config.RemoveNVBROADCAST) Or
+					 (child.ToLower.Contains("gfnruntimesdk") AndAlso config.RemoveGFE) Or
 					 (child.ToLower.Contains("nvstreamsvc") AndAlso config.RemoveGFE) Then
 
 							Delete(child)
