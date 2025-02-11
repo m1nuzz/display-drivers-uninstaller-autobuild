@@ -7614,6 +7614,85 @@ Namespace Display_Driver_Uninstaller
 				End If
 			End Using
 
+			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT", False)
+				If regkey IsNot Nothing Then
+					Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "Channels", True)
+						If subregkey IsNot Nothing Then
+							For Each child As String In subregkey.GetSubKeyNames()
+								If IsNullOrWhitespace(child) Then Continue For
+								If StrContainsAny(child, True, "intel-gfx-info", "GfxFwError") Then
+									Try
+										Deletesubregkey(subregkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+							Next
+						End If
+					End Using
+
+					Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "Publishers", True)
+						If subregkey IsNot Nothing Then
+							For Each child As String In subregkey.GetSubKeyNames()
+								If IsNullOrWhitespace(child) Then Continue For
+								If StrContainsAny(child, True, "{f70d4be7-78e4-4edf-91a9-0c1341d500db}", "{47F2193C-E940-4AED-90D0-C1EB9E4C23D6}") Then
+									Try
+										Deletesubregkey(subregkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+							Next
+						End If
+					End Using
+				End If
+			End Using
+
+			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\WMI\Autologger", True)
+				If regkey IsNot Nothing Then
+					For Each child As String In regkey.GetSubKeyNames()
+						If IsNullOrWhitespace(child) Then Continue For
+						If StrContainsAny(child, True, "Intel-Gfx-Driver", "GfxFwError") Then
+							Try
+								Deletesubregkey(regkey, child)
+							Catch ex As Exception
+								Application.Log.AddException(ex)
+							End Try
+						End If
+					Next
+
+					Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "EventLog-Application", True)
+						If subregkey IsNot Nothing Then
+							For Each child As String In subregkey.GetSubKeyNames()
+								If IsNullOrWhitespace(child) Then Continue For
+								If StrContainsAny(child, True, "{f70d4be7-78e4-4edf-91a9-0c1341d500db}") Then
+									Try
+										Deletesubregkey(subregkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+							Next
+						End If
+					End Using
+
+					Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "EventLog-System", True)
+						If subregkey IsNot Nothing Then
+							For Each child As String In subregkey.GetSubKeyNames()
+								If IsNullOrWhitespace(child) Then Continue For
+								If StrContainsAny(child, True, "{f70d4be7-78e4-4edf-91a9-0c1341d500db}") Then
+									Try
+										Deletesubregkey(subregkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+							Next
+						End If
+					End Using
+				End If
+			End Using
+
 			Application.Log.AddMessage("End Remove eventviewer stuff")
 			'---------------------------
 			'end remove event view stuff
