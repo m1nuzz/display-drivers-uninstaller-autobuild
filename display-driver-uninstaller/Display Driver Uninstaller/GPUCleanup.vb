@@ -204,7 +204,7 @@ Namespace Display_Driver_Uninstaller
 					Try
 						UpdateTextMethod("Start - Check for AMDKMPFD system device.")
 						Application.Log.AddMessage("Executing SetupAPI: check AMDKMPFD system device started")
-						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", "0a0", False)
+						Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("system", "0a0", False, driverDetails:=True)
 						If found IsNot Nothing AndAlso found.Count > 0 Then
 							For Each d As SetupAPI.Device In found
 								If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
@@ -213,10 +213,17 @@ Namespace Display_Driver_Uninstaller
 											For Each LowerFilter In d.LowerFilters
 												If IsNullOrWhitespace(LowerFilter) Then Continue For
 												If StrContainsAny(LowerFilter, True, "amdkmpfd") Then
-													Application.Log.AddMessage("Executing SetupAPI: update AMDKMPFD system device to Windows default started")
-													SetupAPI.UninstallDevice(d)
-													SetupAPI.ReScanDevices()
-													Exit For
+													If d.OemInfs IsNot Nothing AndAlso d.OemInfs.Count > 0 Then
+														Dim oem As Inf = d.OemInfs(0)
+														If _win10 Then
+															SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\PCI.inf", True)
+														Else
+															SetupAPI.UpdateDeviceInf(d, config.Paths.WinDir + "inf\machine.inf", True)
+														End If
+														SetupAPI.RemoveInf(oem, False)
+														SetupAPI.ReScanDevices()
+														Exit For
+													End If
 												End If
 											Next
 										End If
