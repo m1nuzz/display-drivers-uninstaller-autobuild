@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME            "Display Driver Uninstaller"
-!define PRODUCT_VERSION         "18.0.9.2"
+!define PRODUCT_VERSION         "18.0.9.3"
 
 !define PRODUCT_PUBLISHER       "Wagnardsoft"
 !define PRODUCT_WEB_SITE        "https://www.wagnardsoft.com"
@@ -208,6 +208,7 @@ Section "MainSection" SEC01
   File "${SOURCE_PATH}\Settings\Languages\_For translators - ReadMe.txt"
   SetOutPath "$INSTDIR\Settings\NVIDIA"
   File "${SOURCE_PATH}\Settings\NVIDIA\classroot.cfg"
+  File "${SOURCE_PATH}\Settings\NVIDIA\classrootgfe.cfg"
   File "${SOURCE_PATH}\Settings\NVIDIA\clsidleftover.cfg"
   File "${SOURCE_PATH}\Settings\NVIDIA\clsidleftoverGFE.cfg"
   File "${SOURCE_PATH}\Settings\NVIDIA\clsidleftoverNVB.cfg"
@@ -298,6 +299,7 @@ Section Uninstall
   Delete "$INSTDIR\Settings\NVIDIA\clsidleftoverNVB.cfg"
   Delete "$INSTDIR\Settings\NVIDIA\clsidleftover.cfg"
   Delete "$INSTDIR\Settings\NVIDIA\classroot.cfg"
+  Delete "$INSTDIR\Settings\NVIDIA\classrootgfe.cfg"
   Delete "$INSTDIR\Settings\Languages\_For translators - ReadMe.txt"
   Delete "$INSTDIR\Settings\Languages\Ukrainian.xml"
   Delete "$INSTDIR\Settings\Languages\Turkish.xml"

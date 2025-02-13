@@ -3755,6 +3755,7 @@ Namespace Display_Driver_Uninstaller
 			Dim removenvbroadcast As Boolean = config.RemoveNVBROADCAST
 			Dim removephysx As Boolean = config.RemovePhysX
 			Dim classroot As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\classroot.cfg")
+			Dim classrootgfe As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\classrootgfe.cfg")
 			Dim clsidleftoverGFE As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\clsidleftoverGFE.cfg")
 			Dim clsidleftoverNVB As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\clsidleftoverNVB.cfg")
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\clsidleftover.cfg")
@@ -3782,6 +3783,10 @@ Namespace Display_Driver_Uninstaller
 
 
 				CleanupEngine.ClassRoot(classroot, config)
+
+				If config.RemoveGFE Then
+					CleanupEngine.ClassRoot(classrootgfe, config)
+				End If
 
 				If WindowsIdentity.GetCurrent().IsSystem Then
 					ImpersonateLoggedOnUser.ReleaseToken()
@@ -4271,7 +4276,7 @@ Namespace Display_Driver_Uninstaller
 																If regkey3 IsNot Nothing Then
 																	For Each child3 As String In regkey3.GetSubKeyNames()
 																		If IsNullOrWhitespace(child3) Then Continue For
-																		If StrContainsAny(child3, True, "gfeclient", "gfexperience", "shadowplay", "ledvisualizer") Then
+																		If StrContainsAny(child3, True, "gfeclient", "gfexperience", "shadowplay", "ledvisualizer", "nvapp") Then
 																			'do nothing
 																		Else
 																			Try
