@@ -755,101 +755,102 @@ Namespace Display_Driver_Uninstaller
 											If regkey2 IsNot Nothing Then
 												wantedvalue = TryCast(regkey2.GetValue("", String.Empty), String)
 
-												If IsNullOrWhitespace(wantedvalue) Then Continue For
+												If Not IsNullOrWhitespace(wantedvalue) Then
 
-												Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID\" & wantedvalue)
-													If regkey3 IsNot Nothing Then
-														appid = TryCast(regkey3.GetValue("AppID", String.Empty), String)
+													Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID\" & wantedvalue)
+														If regkey3 IsNot Nothing Then
+															appid = TryCast(regkey3.GetValue("AppID", String.Empty), String)
 
-														If Not IsNullOrWhitespace(appid) Then
+															If Not IsNullOrWhitespace(appid) Then
 
-															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "AppID", True)
-																If regkey4 IsNot Nothing Then
-																	Try
-																		Deletesubregkey(regkey4, appid, False)
-																	Catch ex As Exception
-																		Application.Log.AddException(ex)
-																	End Try
-																End If
-															End Using
+																Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "AppID", True)
+																	If regkey4 IsNot Nothing Then
+																		Try
+																			Deletesubregkey(regkey4, appid, False)
+																		Catch ex As Exception
+																			Application.Log.AddException(ex)
+																		End Try
+																	End If
+																End Using
+															End If
 														End If
-													End If
-												End Using
+													End Using
 
-												Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID\" & wantedvalue & "\TypeLib")
-													If regkey3 IsNot Nothing Then
-														typelib = TryCast(regkey3.GetValue("", String.Empty), String)
+													Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID\" & wantedvalue & "\TypeLib")
+														If regkey3 IsNot Nothing Then
+															typelib = TryCast(regkey3.GetValue("", String.Empty), String)
 
-														If Not IsNullOrWhitespace(typelib) Then
-															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "TypeLib", True)
-																If regkey4 IsNot Nothing Then
-																	Try
-																		Deletesubregkey(regkey4, typelib)
-																		SyncLock _listLock
-																			typelibList.Add(typelib)
-																		End SyncLock
-																	Catch exARG As ArgumentException
-																		'Do nothing, can happen (Not found)
-																	Catch ex As Exception
-																		Application.Log.AddException(ex)
-																	End Try
-																End If
-															End Using
+															If Not IsNullOrWhitespace(typelib) Then
+																Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "TypeLib", True)
+																	If regkey4 IsNot Nothing Then
+																		Try
+																			Deletesubregkey(regkey4, typelib)
+																			SyncLock _listLock
+																				typelibList.Add(typelib)
+																			End SyncLock
+																		Catch exARG As ArgumentException
+																			'Do nothing, can happen (Not found)
+																		Catch ex As Exception
+																			Application.Log.AddException(ex)
+																		End Try
+																	End If
+																End Using
+															End If
 														End If
-													End If
-												End Using
+													End Using
 
-												Using crkey As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID", True)
-													If crkey IsNot Nothing Then
+													Using crkey As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "CLSID", True)
+														If crkey IsNot Nothing Then
 
-														Try
-															Deletesubregkey(crkey, wantedvalue)
-															SyncLock _listLock
-																childlist.Add(wantedvalue)
-															End SyncLock
-														Catch exARG As ArgumentException
-															'Do nothing, can happen (Not found)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
-
-
-												'here I remove the mediafoundationkeys if present
-												'f79eac7d-e545-4387-bdee-d647d7bde42a is the Ecnoder section. Same on all windows version.
-
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
+															Try
+																Deletesubregkey(crkey, wantedvalue)
+																SyncLock _listLock
+																	childlist.Add(wantedvalue)
+																End SyncLock
+															Catch exARG As ArgumentException
+																'Do nothing, can happen (Not found)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
 
 
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms\Categories\f79eac7d-e545-4387-bdee-d647d7bde42a", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
+													'here I remove the mediafoundationkeys if present
+													'f79eac7d-e545-4387-bdee-d647d7bde42a is the Ecnoder section. Same on all windows version.
+
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
 
 
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms\Categories\d6c02d4b-6833-45b4-971a-05a4b04bab91", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms\Categories\f79eac7d-e545-4387-bdee-d647d7bde42a", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
+
+
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkeyRoot, "MediaFoundation\Transforms\Categories\d6c02d4b-6833-45b4-971a-05a4b04bab91", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""), False)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
+												End If
 											End If
 										End Using
 
@@ -933,109 +934,110 @@ Namespace Display_Driver_Uninstaller
 											If regkey2 IsNot Nothing Then
 												wantedvalue = TryCast(regkey2.GetValue("", String.Empty), String)
 
-												If IsNullOrWhitespace(wantedvalue) Then Continue For
+												If Not IsNullOrWhitespace(wantedvalue) Then
 
-												Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID\" & wantedvalue)
-													If regkey3 IsNot Nothing Then
-														appid = TryCast(regkey3.GetValue("AppID", String.Empty), String)
+													Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID\" & wantedvalue)
+														If regkey3 IsNot Nothing Then
+															appid = TryCast(regkey3.GetValue("AppID", String.Empty), String)
 
-														If Not IsNullOrWhitespace(appid) Then
+															If Not IsNullOrWhitespace(appid) Then
 
-															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "AppID", True)
-																If regkey4 IsNot Nothing Then
-																	Try
-																		Deletesubregkey(regkey4, appid)
-																	Catch exARG As ArgumentException
-																		'Do nothing, can happen (Not found)
-																	Catch ex As Exception
-																		Application.Log.AddException(ex)
-																	End Try
-																End If
-															End Using
+																Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "AppID", True)
+																	If regkey4 IsNot Nothing Then
+																		Try
+																			Deletesubregkey(regkey4, appid)
+																		Catch exARG As ArgumentException
+																			'Do nothing, can happen (Not found)
+																		Catch ex As Exception
+																			Application.Log.AddException(ex)
+																		End Try
+																	End If
+																End Using
+															End If
 														End If
-													End If
-												End Using
+													End Using
 
-												Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID\" & wantedvalue & "\TypeLib")
-													If regkey3 IsNot Nothing Then
-														typelib = TryCast(regkey3.GetValue("", String.Empty), String)
+													Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID\" & wantedvalue & "\TypeLib")
+														If regkey3 IsNot Nothing Then
+															typelib = TryCast(regkey3.GetValue("", String.Empty), String)
 
-														If Not IsNullOrWhitespace(typelib) Then
+															If Not IsNullOrWhitespace(typelib) Then
 
-															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "TypeLib", True)
-																If regkey4 IsNot Nothing Then
-																	Try
-																		Deletesubregkey(regkey4, typelib)
-																		SyncLock _listLock
-																			typelibList.Add(typelib)
-																		End SyncLock
-																	Catch exARG As ArgumentException
-																		'Do nothing, can happen (Not found)
-																	Catch ex As Exception
-																		Application.Log.AddException(ex)
-																	End Try
-																End If
-															End Using
+																Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "TypeLib", True)
+																	If regkey4 IsNot Nothing Then
+																		Try
+																			Deletesubregkey(regkey4, typelib)
+																			SyncLock _listLock
+																				typelibList.Add(typelib)
+																			End SyncLock
+																		Catch exARG As ArgumentException
+																			'Do nothing, can happen (Not found)
+																		Catch ex As Exception
+																			Application.Log.AddException(ex)
+																		End Try
+																	End If
+																End Using
+															End If
 														End If
-													End If
-												End Using
+													End Using
 
-												Using regkeyC As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID", True)
-													If regkeyC IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyC, wantedvalue)
-															SyncLock _listLock
-																childlist.Add(wantedvalue)
-															End SyncLock
-														Catch exARG As ArgumentException
-															'Do nothing, can happen (Not found)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
-
-
-												'here I remove the mediafoundationkeys if present
-												'f79eac7d-e545-4387-bdee-d647d7bde42a is the Ecnoder section. Same on all windows version.
-
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
-														Catch exARG As ArgumentException
-															'Do nothing, can happen (Not found)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
-
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms\Categories\f79eac7d-e545-4387-bdee-d647d7bde42a", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
-														Catch exARG As ArgumentException
-															'Do nothing, can happen (Not found)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
+													Using regkeyC As RegistryKey = MyRegistry.OpenSubKey(regkey, "CLSID", True)
+														If regkeyC IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyC, wantedvalue)
+																SyncLock _listLock
+																	childlist.Add(wantedvalue)
+																End SyncLock
+															Catch exARG As ArgumentException
+																'Do nothing, can happen (Not found)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
 
 
+													'here I remove the mediafoundationkeys if present
+													'f79eac7d-e545-4387-bdee-d647d7bde42a is the Ecnoder section. Same on all windows version.
 
-												Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms\Categories\d6c02d4b-6833-45b4-971a-05a4b04bab91", True)
-													If regkeyM IsNot Nothing Then
-														Try
-															Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
-														Catch exARG As ArgumentException
-															'Do nothing, can happen (Not found)
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
-												End Using
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
+															Catch exARG As ArgumentException
+																'Do nothing, can happen (Not found)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
+
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms\Categories\f79eac7d-e545-4387-bdee-d647d7bde42a", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
+															Catch exARG As ArgumentException
+																'Do nothing, can happen (Not found)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
+
+
+
+													Using regkeyM As RegistryKey = MyRegistry.OpenSubKey(regkey, "MediaFoundation\Transforms\Categories\d6c02d4b-6833-45b4-971a-05a4b04bab91", True)
+														If regkeyM IsNot Nothing Then
+															Try
+																Deletesubregkey(regkeyM, (wantedvalue.Replace("{", "")).Replace("}", ""))
+															Catch exARG As ArgumentException
+																'Do nothing, can happen (Not found)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+													End Using
+												End If
 											End If
 										End Using
 
@@ -2400,16 +2402,8 @@ Namespace Display_Driver_Uninstaller
 									If subregkey IsNot Nothing Then
 										wantedvalue = TryCast(subregkey.GetValue("AppID", String.Empty), String)
 										If Not IsNullOrWhitespace(wantedvalue) Then
-
 											Try
 												Deletesubregkey(regkey, wantedvalue, False)
-											Catch ex As Exception
-												Application.Log.AddException(ex)
-											End Try
-
-											Try
-												Deletesubregkey(regkey, child)
-												Continue For
 											Catch ex As Exception
 												Application.Log.AddException(ex)
 											End Try
@@ -2421,15 +2415,14 @@ Namespace Display_Driver_Uninstaller
 												Catch ex As Exception
 													Application.Log.AddException(ex)
 												End Try
-
-												Try
-													Deletesubregkey(regkey, child)
-													Continue For
-												Catch ex As Exception
-													Application.Log.AddException(ex)
-												End Try
 											End If
 										End If
+										Try
+											Deletesubregkey(regkey, child)
+											Continue For
+										Catch ex As Exception
+											Application.Log.AddException(ex)
+										End Try
 									End If
 								End Using
 							End If
@@ -2457,30 +2450,22 @@ Namespace Display_Driver_Uninstaller
 												Catch ex As Exception
 													Application.Log.AddException(ex)
 												End Try
+											End If
 
+											wantedvalue = TryCast(subregkey.GetValue("", String.Empty), String)
+											If Not IsNullOrWhitespace(wantedvalue) Then
 												Try
-													Deletesubregkey(regkey, child)
-													Continue For
+													Deletesubregkey(regkey, wantedvalue, False)
 												Catch ex As Exception
 													Application.Log.AddException(ex)
 												End Try
-											Else
-												wantedvalue = TryCast(subregkey.GetValue("", String.Empty), String)
-												If Not IsNullOrWhitespace(wantedvalue) Then
-													Try
-														Deletesubregkey(regkey, wantedvalue, False)
-													Catch ex As Exception
-														Application.Log.AddException(ex)
-													End Try
-
-													Try
-														Deletesubregkey(regkey, child)
-														Continue For
-													Catch ex As Exception
-														Application.Log.AddException(ex)
-													End Try
-												End If
 											End If
+											Try
+												Deletesubregkey(regkey, child)
+												Continue For
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
 										End If
 									End Using
 								End If
