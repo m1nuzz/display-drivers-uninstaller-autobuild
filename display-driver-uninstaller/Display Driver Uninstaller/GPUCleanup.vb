@@ -1062,8 +1062,9 @@ Namespace Display_Driver_Uninstaller
 																 wantedvalue2.ToLower.Contains("mmace procamp") Or
 																 wantedvalue2.ToLower.Contains("ati video") Then
 																				Try
-																					Deletesubregkey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2)
+																					Deletesubregkey(Registry.ClassesRoot, "CLSID\" & child & "\Instance\" & child2, False)
 																				Catch ex As Exception
+																					Application.Log.AddException(ex)
 																				End Try
 																			End If
 																		End If
@@ -1109,8 +1110,9 @@ Namespace Display_Driver_Uninstaller
 																	wantedvalue2.ToLower.Contains("amd video") Or
 																	wantedvalue2.ToLower.Contains("ati video") Then
 																				Try
-																					Deletesubregkey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2)
+																					Deletesubregkey(Registry.ClassesRoot, "Wow6432Node\CLSID\" & child & "\Instance\" & child2, False)
 																				Catch ex As Exception
+																					Application.Log.AddException(ex)
 																				End Try
 																			End If
 																		End If
@@ -1152,6 +1154,7 @@ Namespace Display_Driver_Uninstaller
 																Try
 																	Deletesubregkey(regkey4, child)
 																Catch ex As Exception
+																	Application.Log.AddException(ex)
 																End Try
 															End If
 														End Using
@@ -1161,6 +1164,7 @@ Namespace Display_Driver_Uninstaller
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 										End If
 									End If
@@ -1193,6 +1197,7 @@ Namespace Display_Driver_Uninstaller
 																	Try
 																		Deletesubregkey(regkey4, child)
 																	Catch ex As Exception
+																		Application.Log.AddException(ex)
 																	End Try
 																End If
 															End Using
@@ -1202,6 +1207,7 @@ Namespace Display_Driver_Uninstaller
 												Try
 													Deletesubregkey(regkey, child)
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											End If
 										End If
@@ -1244,6 +1250,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey, child)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												End If
 											End If
@@ -1271,6 +1278,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 
 								End If
@@ -1292,8 +1300,9 @@ Namespace Display_Driver_Uninstaller
 		  "Display\shellex\PropertySheetHandlers", True)
 				If regkey IsNot Nothing Then
 					Try
-						Deletesubregkey(regkey, "ATIACE")
+						Deletesubregkey(regkey, "ATIACE", False)
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 			End Using
@@ -1320,6 +1329,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -1399,45 +1409,53 @@ Namespace Display_Driver_Uninstaller
 			If config.RemoveVulkan Then
 				Try
 
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Khronos")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Khronos", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 			End If
 
 			If config.SelectedGPU = GPUVendor.AMD Then
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\AMD")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\AMD", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\ATI Technologies")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\ATI Technologies", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\amdkmdap")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\amdkmdap", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\AMD\EEU")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\AMD\EEU", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord\eRecordEnable")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord\eRecordEnable", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 				Try
-					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord\eRecordEnablePopups")
+					Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\Services\Atierecord\eRecordEnablePopups", False)
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 			End If
@@ -1445,15 +1463,16 @@ Namespace Display_Driver_Uninstaller
 			If IntPtr.Size = 8 Then
 				If config.RemoveVulkan Then
 					Try
-						Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\Khronos")
+						Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\Khronos", False)
 					Catch ex As Exception
 					End Try
 				End If
 
 				If config.SelectedGPU = GPUVendor.AMD Then
 					Try
-						Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\ATI\ACE")
+						Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\ATI\ACE", False)
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 			End If
@@ -1748,6 +1767,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -1801,30 +1821,35 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "ati catalyst control center") Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "cds") Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "log") Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "prw") Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "install") Then
@@ -1872,6 +1897,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey2, child2)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												End If
 											Next
@@ -1880,12 +1906,14 @@ Namespace Display_Driver_Uninstaller
 												Try
 													Deletevalue(regkey2, values) 'This is for windows 7, it prevent removing the South Bridge and fix the Catalyst "Upgrade"
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											Next
 											If regkey2.SubKeyCount = 0 Then
 												Try
 													Deletesubregkey(regkey, child)
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											Else
 												For Each data As String In regkey2.GetSubKeyNames()
@@ -1902,6 +1930,7 @@ Namespace Display_Driver_Uninstaller
 							Try
 								Deletesubregkey(Registry.LocalMachine, "Software\ATI Technologies")
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						Else
 							For Each data As String In regkey.GetSubKeyNames()
@@ -1924,6 +1953,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 								If StrContainsAny(child, True, "install") Then  'Just a safety here....
@@ -1931,6 +1961,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											Deletesubregkey(regkey, child)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									End If
 								End If
@@ -1962,6 +1993,7 @@ Namespace Display_Driver_Uninstaller
 							Try
 								Deletesubregkey(Registry.LocalMachine, "Software\AMDDVR")
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						Else
 							For Each data As String In regkey.GetSubKeyNames()
@@ -1985,6 +2017,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											Deletesubregkey(regkey, child)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									End If
 								End If
@@ -1993,6 +2026,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletesubregkey(Registry.LocalMachine, "Software\Wow6432Node\ATI")
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							Else
 								For Each data As String In regkey.GetSubKeyNames()
@@ -2038,6 +2072,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											Deletesubregkey(regkey, child)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									End If
 									If child.ToLower.Contains("install") Then
@@ -2084,6 +2119,7 @@ Namespace Display_Driver_Uninstaller
 														Try
 															Deletesubregkey(regkey2, child2)
 														Catch ex As Exception
+															Application.Log.AddException(ex)
 														End Try
 													End If
 												Next
@@ -2091,6 +2127,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey, child)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												Else
 													For Each data As String In regkey2.GetSubKeyNames()
@@ -2107,6 +2144,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletesubregkey(Registry.LocalMachine, "Software\Wow6432Node\ATI Technologies")
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							Else
 								For Each data As String In regkey.GetSubKeyNames()
@@ -2290,6 +2328,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletevalue(regkey, child)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						Next
@@ -2376,6 +2415,7 @@ Namespace Display_Driver_Uninstaller
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 										End If
 									End If
@@ -2431,6 +2471,7 @@ Namespace Display_Driver_Uninstaller
 												Try
 													Deletesubregkey(regkey, child)
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											End If
 										End If
@@ -3743,6 +3784,7 @@ Namespace Display_Driver_Uninstaller
 					End If
 				Next
 			Catch ex As Exception
+				Application.Log.AddException(ex)
 			End Try
 		End Sub
 
@@ -4200,6 +4242,7 @@ Namespace Display_Driver_Uninstaller
 						Try
 							regkey.SetValue("LoadAppInit_DLLs", "0", RegistryValueKind.DWord)
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End Using
@@ -4234,6 +4277,7 @@ Namespace Display_Driver_Uninstaller
 							Try
 								regkey.SetValue("LoadAppInit_DLLs", "0", RegistryValueKind.DWord)
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						End If
 					End Using
@@ -4282,6 +4326,7 @@ Namespace Display_Driver_Uninstaller
 																			Try
 																				Deletesubregkey(regkey3, child3)
 																			Catch ex As Exception
+																				Application.Log.AddException(ex)
 																			End Try
 																		End If
 																	Next
@@ -4306,6 +4351,7 @@ Namespace Display_Driver_Uninstaller
 														Try
 															Deletesubregkey(regkey2, child2)
 														Catch ex As Exception
+															Application.Log.AddException(ex)
 														End Try
 													End If
 												Next
@@ -4313,6 +4359,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey, child)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												Else
 													For Each data As String In regkey2.GetSubKeyNames()
@@ -4342,12 +4389,14 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletevalue(regkey, child)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												End If
 												If StrContainsAny(arrayelement, True, "geforce experience") AndAlso config.RemoveGFE Then
 													Try
 														Deletevalue(regkey, child)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												End If
 											End If
@@ -4377,6 +4426,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											Deletevalue(regkey, child)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									End If
 								End If
@@ -4709,14 +4759,14 @@ Namespace Display_Driver_Uninstaller
 																						Try
 																							Deletevalue(regkey5, ValueName)
 																						Catch ex As Exception
-																							'Application.Log.AddException(ex)
+																							Application.Log.AddException(ex)
 																						End Try
 																					End If
 																					If StrContainsAny(ValueName, True, "nvbroadcast", "broadcastvoice", "nvidiabroadcast", "nvvirtualcamera") AndAlso removenvbroadcast Then
 																						Try
 																							Deletevalue(regkey5, ValueName)
 																						Catch ex As Exception
-																							'Application.Log.AddException(ex)
+																							Application.Log.AddException(ex)
 																						End Try
 																					End If
 																					If StrContainsAny(ValueName, True, "Display.PhysX") AndAlso removephysx Then
@@ -4804,6 +4854,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											Deletesubregkey(regkey, child)
 										Catch ex As Exception
+											Application.Log.AddException(ex)
 										End Try
 									Else
 										For Each data As String In regkey2.GetSubKeyNames()
@@ -4830,6 +4881,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -4845,6 +4897,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey2, child2)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												Else
 													Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey2, child2, True)
@@ -4858,6 +4911,7 @@ Namespace Display_Driver_Uninstaller
 																	Try
 																		Deletesubregkey(regkey3, child3)
 																	Catch ex As Exception
+																		Application.Log.AddException(ex)
 																	End Try
 																End If
 															Next
@@ -4870,6 +4924,7 @@ Namespace Display_Driver_Uninstaller
 													Try
 														Deletesubregkey(regkey2, child2)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												Else
 													If child2.ToLower.Contains("physx") Then
@@ -4878,6 +4933,7 @@ Namespace Display_Driver_Uninstaller
 														Try
 															Deletesubregkey(regkey2, child2)
 														Catch ex As Exception
+															Application.Log.AddException(ex)
 														End Try
 													End If
 												End If
@@ -4886,6 +4942,7 @@ Namespace Display_Driver_Uninstaller
 												Try
 													Deletesubregkey(regkey2, child2)
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											End If
 										Next
@@ -4893,6 +4950,7 @@ Namespace Display_Driver_Uninstaller
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 										Else
 											For Each data As String In regkey2.GetSubKeyNames()
@@ -4990,6 +5048,7 @@ Namespace Display_Driver_Uninstaller
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 										End If
 									End If
@@ -5016,13 +5075,15 @@ Namespace Display_Driver_Uninstaller
 											Try
 												Deletesubregkey(regkey, child)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 											'special case only to nvidia afaik. there i a clsid for a control pannel that link from namespace.
 											Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "CLSID", True)
 												If regkey2 IsNot Nothing Then
 													Try
-														Deletesubregkey(regkey2, child)
+														Deletesubregkey(regkey2, child, False)
 													Catch ex As Exception
+														Application.Log.AddException(ex)
 													End Try
 												End If
 											End Using
@@ -5048,6 +5109,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletesubregkey(regkey, child)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						End If
@@ -5064,6 +5126,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -5087,6 +5150,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletesubregkey(regkey, child)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						End If
@@ -5104,6 +5168,7 @@ Namespace Display_Driver_Uninstaller
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -5211,15 +5276,17 @@ Namespace Display_Driver_Uninstaller
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "VirtualStore\MACHINE\SOFTWARE\NVIDIA Corporation", True)
 				If regkey IsNot Nothing Then
 					Try
-						Deletesubregkey(regkey, "Global")
+						Deletesubregkey(regkey, "Global", False)
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 					If regkey.SubKeyCount = 0 Then
 						Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "VirtualStore\MACHINE\SOFTWARE", True)
 							If regkey2 IsNot Nothing Then
 								Try
-									Deletesubregkey(regkey2, "NVIDIA Corporation")
+									Deletesubregkey(regkey2, "NVIDIA Corporation", False)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						End Using
@@ -5238,15 +5305,17 @@ Namespace Display_Driver_Uninstaller
 						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, users & "\Software\Classes\VirtualStore\MACHINE\SOFTWARE\NVIDIA Corporation", True)
 							If regkey IsNot Nothing Then
 								Try
-									Deletesubregkey(regkey, "Global")
+									Deletesubregkey(regkey, "Global", False)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 								If regkey.SubKeyCount = 0 Then
 									Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, users & "\Software\Classes\VirtualStore\MACHINE\SOFTWARE", True)
 										If regkey2 IsNot Nothing Then
 											Try
-												Deletesubregkey(regkey2, "NVIDIA Corporation")
+												Deletesubregkey(regkey2, "NVIDIA Corporation", False)
 											Catch ex As Exception
+												Application.Log.AddException(ex)
 											End Try
 										End If
 									End Using
@@ -5271,13 +5340,14 @@ Namespace Display_Driver_Uninstaller
 						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, child & "Software\Classes\VirtualStore\MACHINE\SOFTWARE\NVIDIA Corporation", True)
 							If regkey IsNot Nothing Then
 								Try
-									Deletesubregkey(regkey, "Global")
+									Deletesubregkey(regkey, "Global", False)
 									If regkey.SubKeyCount = 0 Then
 										Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, child & "Software\Classes\VirtualStore\MACHINE\SOFTWARE", True)
 											If regkey2 IsNot Nothing Then
 												Try
-													Deletesubregkey(regkey2, "NVIDIA Corporation")
+													Deletesubregkey(regkey2, "NVIDIA Corporation", False)
 												Catch ex As Exception
+													Application.Log.AddException(ex)
 												End Try
 											End If
 										End Using
@@ -5288,6 +5358,7 @@ Namespace Display_Driver_Uninstaller
 										Next
 									End If
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						End Using
@@ -5300,16 +5371,18 @@ Namespace Display_Driver_Uninstaller
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "SOFTWARE\NVIDIA Corporation", True)
 				If regkey IsNot Nothing Then
 					Try
-						Deletesubregkey(regkey, "Global")
+						Deletesubregkey(regkey, "Global", False)
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 					If regkey.SubKeyCount = 0 Then
 						Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "SOFTWARE", True)
 							If regkey2 IsNot Nothing Then
 								Try
-									Deletesubregkey(regkey2, "NVIDIA Corporation")
-									Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR\SOFTWARE\NVIDIA Corporation")
+									Deletesubregkey(regkey2, "NVIDIA Corporation", False)
+									Deletesubregkey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR\SOFTWARE\NVIDIA Corporation", False)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						End Using
@@ -5362,18 +5435,21 @@ Namespace Display_Driver_Uninstaller
 					Try
 						Deletesubregkey(Registry.ClassesRoot, "mpegfile\shellex\ContextMenuHandlers\NvPlayOnMyTV")
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 				If MyRegistry.OpenSubKey(Registry.ClassesRoot, "WMVFile\shellex\ContextMenuHandlers\NvPlayOnMyTV", False) IsNot Nothing Then
 					Try
 						Deletesubregkey(Registry.ClassesRoot, "WMVFile\shellex\ContextMenuHandlers\NvPlayOnMyTV")
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 				If MyRegistry.OpenSubKey(Registry.ClassesRoot, "AVIFile\shellex\ContextMenuHandlers\NvPlayOnMyTV", False) IsNot Nothing Then
 					Try
 						Deletesubregkey(Registry.ClassesRoot, "AVIFile\shellex\ContextMenuHandlers\NvPlayOnMyTV")
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 			End If
@@ -5393,6 +5469,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletevalue(regkey, child)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						Next
@@ -5419,9 +5496,7 @@ Namespace Display_Driver_Uninstaller
 														If IsNullOrWhitespace(valuename) Then Continue For
 														If StrContainsAny(valuename, True, wantedvalue) Then
 															Try
-																Deletevalue(regkey3, valuename)
-															Catch exARG As ArgumentException
-																'nothing to do,it probably doesn't exit.
+																Deletevalue(regkey3, valuename, False)
 															Catch ex As Exception
 																Application.Log.AddException(ex)
 															End Try
@@ -5434,9 +5509,7 @@ Namespace Display_Driver_Uninstaller
 								End Using
 							End If
 							Try
-								Deletesubregkey(regkey, "NVIDIA CPL Extension")
-							Catch exARG As ArgumentException
-								'nothing to do,it probably doesn't exit.
+								Deletesubregkey(regkey, "NVIDIA CPL Extension", False)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
@@ -5449,9 +5522,7 @@ Namespace Display_Driver_Uninstaller
 		  "Display\shellex\PropertySheetHandlers", True)
 				If regkey IsNot Nothing Then
 					Try
-						Deletesubregkey(regkey, "NVIDIA CPL Extension")
-					Catch exARG As ArgumentException
-						'nothing to do,it probably doesn't exit.
+						Deletesubregkey(regkey, "NVIDIA CPL Extension", False)
 					Catch ex As Exception
 						Application.Log.AddException(ex)
 					End Try
@@ -5493,6 +5564,7 @@ Namespace Display_Driver_Uninstaller
 								Try
 									Deletevalue(regkey, child)
 								Catch ex As Exception
+									Application.Log.AddException(ex)
 								End Try
 							End If
 						Next
@@ -5510,12 +5582,14 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "NvCplDesktopContext")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 					If MyRegistry.OpenSubKey(regkey, "00nView") IsNot Nothing Then
 						Try
 							Deletesubregkey(regkey, "00nView")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5527,12 +5601,14 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "NvCplDesktopContext")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 					If MyRegistry.OpenSubKey(regkey, "00nView") IsNot Nothing Then
 						Try
 							Deletesubregkey(regkey, "00nView")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5544,6 +5620,7 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5566,6 +5643,7 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5577,6 +5655,7 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5588,6 +5667,7 @@ Namespace Display_Driver_Uninstaller
 						Try
 							Deletesubregkey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}")
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5598,8 +5678,9 @@ Namespace Display_Driver_Uninstaller
 				If regkey IsNot Nothing Then
 					If (Not IsNullOrWhitespace(regkey.GetValue("", String.Empty).ToString)) AndAlso StrContainsAny(regkey.GetValue("", String.Empty).ToString, True, "nvstview") Then
 						Try
-							Deletesubregkey(Registry.ClassesRoot, "jpsfile")
+							Deletesubregkey(Registry.ClassesRoot, "jpsfile", False)
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5609,8 +5690,9 @@ Namespace Display_Driver_Uninstaller
 				If regkey IsNot Nothing Then
 					If (Not IsNullOrWhitespace(regkey.GetValue("", String.Empty).ToString)) AndAlso StrContainsAny(regkey.GetValue("", String.Empty).ToString, True, "nvstview") Then
 						Try
-							Deletesubregkey(Registry.ClassesRoot, "mpofile")
+							Deletesubregkey(Registry.ClassesRoot, "mpofile", False)
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5620,8 +5702,9 @@ Namespace Display_Driver_Uninstaller
 				If regkey IsNot Nothing Then
 					If (Not IsNullOrWhitespace(regkey.GetValue("", String.Empty).ToString)) AndAlso StrContainsAny(regkey.GetValue("", String.Empty).ToString, True, "nvstview") Then
 						Try
-							Deletesubregkey(Registry.ClassesRoot, "pnsfile")
+							Deletesubregkey(Registry.ClassesRoot, "pnsfile", False)
 						Catch ex As Exception
+							Application.Log.AddException(ex)
 						End Try
 					End If
 				End If
@@ -5631,6 +5714,7 @@ Namespace Display_Driver_Uninstaller
 				Try
 					Deletesubregkey(Registry.ClassesRoot, ".tvp")  'CrazY_Milojko
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 			End If
 
@@ -6081,6 +6165,7 @@ Namespace Display_Driver_Uninstaller
 					Catch ex As Exception
 					End Try
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 
@@ -6112,6 +6197,7 @@ Namespace Display_Driver_Uninstaller
 					Catch ex As Exception
 					End Try
 				Catch ex As Exception
+					Application.Log.AddException(ex)
 				End Try
 
 
@@ -6171,6 +6257,7 @@ Namespace Display_Driver_Uninstaller
 						Catch ex As Exception
 						End Try
 					Catch ex As Exception
+						Application.Log.AddException(ex)
 					End Try
 				End If
 
@@ -6276,6 +6363,7 @@ Namespace Display_Driver_Uninstaller
 				Catch ex As Exception
 				End Try
 			Catch ex As Exception
+				Application.Log.AddException(ex)
 			End Try
 
 			filePath = Environment.GetFolderPath _
@@ -6387,6 +6475,7 @@ Namespace Display_Driver_Uninstaller
 				Catch ex As Exception
 				End Try
 			Catch ex As Exception
+				Application.Log.AddException(ex)
 			End Try
 
 			filePath = Environment.GetFolderPath _
@@ -7222,15 +7311,17 @@ Namespace Display_Driver_Uninstaller
 							If regkey IsNot Nothing Then
 								If regkey.GetValue("Intel® Arc™ Control") IsNot Nothing Then
 									Try
-										Deletevalue(regkey, "Intel® Arc™ Control")
+										Deletevalue(regkey, "Intel® Arc™ Control", False)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 
 								If regkey.GetValue("Intel® Graphics Software") IsNot Nothing Then
 									Try
-										Deletevalue(regkey, "Intel® Graphics Software")
+										Deletevalue(regkey, "Intel® Graphics Software", False)
 									Catch ex As Exception
+										Application.Log.AddException(ex)
 									End Try
 								End If
 							End If
@@ -7250,18 +7341,21 @@ Namespace Display_Driver_Uninstaller
 							Try
 								Deletevalue(regkey, "IgfxTray")
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						End If
 						If regkey.GetValue("Persistence") IsNot Nothing Then
 							Try
 								Deletevalue(regkey, "Persistence")
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						End If
 						If regkey.GetValue("HotKeysCmds") IsNot Nothing Then
 							Try
 								Deletevalue(regkey, "HotKeysCmds")
 							Catch ex As Exception
+								Application.Log.AddException(ex)
 							End Try
 						End If
 					End If
@@ -8429,9 +8523,9 @@ Namespace Display_Driver_Uninstaller
 			CleanupEngine.Deletesubregkey(value1, value2, throwOnMissingSubKey)
 		End Sub
 
-		Private Sub Deletevalue(ByVal value1 As RegistryKey, ByVal value2 As String)
+		Private Sub Deletevalue(ByVal value1 As RegistryKey, ByVal value2 As String, Optional ByVal throwOnMissingSubKey As Boolean = True)
 			Dim CleanupEngine As New CleanupEngine
-			CleanupEngine.Deletevalue(value1, value2)
+			CleanupEngine.Deletevalue(value1, value2, throwOnMissingSubKey)
 		End Sub
 
 		Private Sub CLSIDCleanThread(ByVal Clsidleftover As String())
