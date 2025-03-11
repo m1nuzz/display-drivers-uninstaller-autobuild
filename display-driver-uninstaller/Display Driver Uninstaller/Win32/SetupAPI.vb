@@ -11,6 +11,7 @@ Imports System.Runtime.ConstrainedExecution
 Imports Microsoft.Win32
 Imports Microsoft.Win32.SafeHandles
 Imports System.Security.Principal
+Imports System.Linq
 
 Namespace Display_Driver_Uninstaller.Win32
 
@@ -2214,12 +2215,7 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includechilds Then
-									For Each dev As Device In Devices
-										GetChild(dev)
-										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ChildDevices, driverDetails)
-										End If
-									Next
+									ExtractChilds(driverDetails, Devices)
 								End If
 
 								UpdateDevicesByID(Devices, driverDetails)
@@ -2499,12 +2495,7 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includeChilds Then
-									For Each dev As Device In Devices
-										GetChild(dev)
-										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
-											UpdateDevicesByID(dev.ChildDevices, driverDetails)
-										End If
-									Next
+									ExtractChilds(driverDetails, Devices)
 								End If
 
 								UpdateDevicesByID(Devices, driverDetails)
@@ -2536,6 +2527,20 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return New List(Of Device)(0)
 			End Try
 		End Function
+
+		Private Shared Sub ExtractChilds(driverDetails As Boolean, Devices As List(Of Device), Optional updateDevice As Boolean = False)
+			For Each dev As Device In Devices
+				GetChild(dev)
+				If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
+					UpdateDevicesByID(dev.ChildDevices, driverDetails)
+					ExtractChilds(driverDetails, dev.ChildDevices.ToList(), True)
+				End If
+			Next
+
+			If updateDevice Then
+				UpdateDevicesByID(Devices, driverDetails)
+			End If
+		End Sub
 
 		' RESERVED FOR CLEANING FROM CODE
 		Public Shared Sub UninstallDevice(ByVal device As Device)

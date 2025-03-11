@@ -5,6 +5,8 @@ Imports System.Reflection
 Imports System.Security.Cryptography
 Imports Microsoft.Win32
 Imports Display_Driver_Uninstaller.Win32
+Imports System.Linq
+Imports System.Text.RegularExpressions
 
 Namespace Display_Driver_Uninstaller
 
@@ -263,6 +265,21 @@ Namespace Display_Driver_Uninstaller
 			Next
 
 			Return oemInfList
+		End Function
+
+		Public Function GetOemInf(ByVal directory As String, oem As String) As Inf
+
+			' Regular expression to match a string ending with .inf (with or without the colon)
+			Dim pattern As String = "^[\w\d_-]+\.inf"
+			Dim match As Match = Regex.Match(oem, pattern)
+
+			If match.Success Then
+				Dim infFile = directory + match.Value
+				If FileIO.ExistsFile(infFile) Then
+					Return New Inf(infFile)
+				End If
+			End If
+			Return Nothing
 		End Function
 
 		Public ReadOnly Property ProcessIs64 As Boolean

@@ -1455,6 +1455,7 @@ Namespace Display_Driver_Uninstaller
 													Next
 												End If
 											End Using
+
 											Using superregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\Components", True)
 												If superregkey IsNot Nothing Then
 													For Each child2 As String In superregkey.GetSubKeyNames()
@@ -3040,11 +3041,13 @@ Namespace Display_Driver_Uninstaller
 									If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
 										Dim disabledAudiobusList As New List(Of SetupAPI.Device)
 										For Each audiobus As SetupAPI.Device In audiobusList
-											If audiobus IsNot Nothing AndAlso audiobus.IsPresent AndAlso audiobus.ExtendedInfs IsNot Nothing AndAlso
+											If audiobus IsNot Nothing AndAlso audiobus.ExtendedInfs IsNot Nothing AndAlso
 												audiobus.ExtendedInfs.Length > 0 AndAlso Not IsNullOrWhitespace(audiobus.Service) Then
 												If StrContainsAny(audiobus.Service, True, "HDAudBus", "IntcAudioBus") Then
-													SetupAPI.EnableDevice(audiobus, False) 'Removing the Audio bus.
-													disabledAudiobusList.Add(audiobus)
+													If audiobus.IsPresent Then
+														SetupAPI.EnableDevice(audiobus, False) 'Removing the Audio bus.
+														disabledAudiobusList.Add(audiobus)
+													End If
 												End If
 											End If
 										Next
