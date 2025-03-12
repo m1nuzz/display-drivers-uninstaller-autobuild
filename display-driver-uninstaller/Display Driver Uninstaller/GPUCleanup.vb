@@ -1154,7 +1154,7 @@ wantedvalue2.ToLower.Contains("ati video") Then
 														Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories\" & child2, True)
 															If regkey4 IsNot Nothing Then
 																Try
-																	Deletesubregkey(regkey4, child)
+																	Deletesubregkey(regkey4, child, False)
 																Catch ex As Exception
 																	Application.Log.AddException(ex)
 																End Try
@@ -1194,7 +1194,7 @@ wantedvalue2.ToLower.Contains("ati video") Then
 															Using regkey4 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Categories\" & child2, True)
 																If regkey4 IsNot Nothing Then
 																	Try
-																		Deletesubregkey(regkey4, child)
+																		Deletesubregkey(regkey4, child, False)
 																	Catch ex As Exception
 																		Application.Log.AddException(ex)
 																	End Try
@@ -1259,6 +1259,7 @@ wantedvalue2.ToLower.Contains("ati video") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Application.Log.AddMessage("Assembly CleanUP")
 
 			'------------------
@@ -2603,24 +2604,29 @@ child.Contains("HydraVision\") Then
 			Dim thread1 As Task = Task.Run(Sub() Threaddata1(driverfiles))
 			TaskList.Add(thread1)
 			Threaddata1(driverfiles)
+
 			If config.RemoveAMDKMPFD AndAlso config.NotPresentAMDKMPFD Then
 				Dim thread2 As Task = Task.Run(Sub() Threaddata1(driverfilesKMPFD))
 				TaskList.Add(thread2)
 			End If
+
 			If config.RemoveAudioBus AndAlso FrmMain.DoNotRemoveAmdHdAudioBusFiles = False Then
 				Dim thread3 As Task = Task.Run(Sub() Threaddata1(driverfilesKMAFD))
 				TaskList.Add(thread3)
 			End If
+
 			filePath = Environment.GetEnvironmentVariable("windir")
 			Try
 				Delete(filePath + "\atiogl.xml")
 			Catch ex As Exception
 			End Try
+
 			filePath = Environment.GetEnvironmentVariable("windir")
 			Try
 				Delete(filePath + "\ativpsrm.bin")
 			Catch ex As Exception
 			End Try
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\ATI Technologies"
 			If _fileIo.ExistsDir(filePath) Then
@@ -2635,6 +2641,7 @@ child.ToLower.Contains("hydravision") Then
 						End If
 					End If
 				Next
+
 				If _fileIo.CountDirectories(filePath) = 0 Then
 					Delete(filePath)
 				Else
@@ -2644,6 +2651,7 @@ child.ToLower.Contains("hydravision") Then
 					Next
 				End If
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\ATI"
 			If _fileIo.ExistsDir(filePath) Then
@@ -2654,6 +2662,7 @@ child.ToLower.Contains("hydravision") Then
 						End If
 					End If
 				Next
+
 				If _fileIo.CountDirectories(filePath) = 0 Then
 					Delete(filePath)
 				Else
@@ -2663,6 +2672,7 @@ child.ToLower.Contains("hydravision") Then
 					Next
 				End If
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\Common Files" + "\ATI Technologies"
 			If _fileIo.ExistsDir(filePath) Then
@@ -2673,6 +2683,7 @@ child.ToLower.Contains("hydravision") Then
 						End If
 					End If
 				Next
+
 				If _fileIo.CountDirectories(filePath) = 0 Then
 					Delete(filePath)
 				Else
@@ -2682,17 +2693,20 @@ child.ToLower.Contains("hydravision") Then
 					Next
 				End If
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\AMD APP"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			If IntPtr.Size = 8 Then
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\AMD AVT"
 				If _fileIo.ExistsDir(filePath) Then
 					Delete(filePath)
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\ATI Technologies"
 				If _fileIo.ExistsDir(filePath) Then
@@ -2719,6 +2733,7 @@ child.ToLower.Contains("hydravision") Then
 					Catch ex As Exception
 					End Try
 				End If
+
 				filePath = System.Environment.SystemDirectory
 				If _fileIo.ExistsDir(filePath) Then
 					Dim files() As String = IO.Directory.GetFiles(filePath + "\", "coinst_*.*")
@@ -2728,15 +2743,20 @@ child.ToLower.Contains("hydravision") Then
 						End If
 					Next
 				End If
+
 				filePath = System.Environment.SystemDirectory + "\amd"
 				If _fileIo.ExistsDir(filePath) Then
 					Try
 						For Each child As String In _fileIo.GetDirectories(filePath)
 							If IsNullOrWhitespace(child) = False Then
 								If StrContainsAny(child, True, "acrdumps", "mmddumps", "real", "amdfendr", "EeuDumps", "Persistent", "ANR") Or
-(child.ToLower.Contains("amdkmpfd") AndAlso config.NotPresentAMDKMPFD) Or
+(child.ToLower.Contains("amdkmpfd") AndAlso config.NotPresentAMDKMPFD AndAlso config.RemoveAMDKMPFD) Or
 (child.ToLower.Contains("amdkmafd") AndAlso config.RemoveAudioBus) Then
-									Delete(child)
+									Try
+										Delete(child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
 								End If
 							End If
 						Next
@@ -2751,26 +2771,31 @@ child.ToLower.Contains("hydravision") Then
 					Catch ex As Exception
 					End Try
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\AMD APP"
 				If _fileIo.ExistsDir(filePath) Then
 					Delete(filePath)
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\AMD\SteadyVideo"
 				If _fileIo.ExistsDir(filePath) Then
 					Delete(filePath)
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\AMD\SteadyVideoFirefox"
 				If _fileIo.ExistsDir(filePath) Then
 					Delete(filePath)
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\AMD\SteadyVideoChrome"
 				If _fileIo.ExistsDir(filePath) Then
 					Delete(filePath)
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + " (x86)" + "\Common Files" + "\ATI Technologies"
 				If _fileIo.ExistsDir(filePath) Then
@@ -2794,51 +2819,61 @@ child.ToLower.Contains("hydravision") Then
 					End Try
 				End If
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Catalyst Control Center"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Problem Report Wizard"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Settings"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Catalyst Control Center"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Radeon Software"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Software꞉ Adrenalin Edition"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMDBugReportTool"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD Bug Report Tool"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMD link for Windows"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\ATI"
 			If _fileIo.ExistsDir(filePath) Then
@@ -2858,6 +2893,7 @@ child.ToLower.Contains("hydravision") Then
 					Next
 				End If
 			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\AMD"
 			If _fileIo.ExistsDir(filePath) Then
@@ -2877,6 +2913,7 @@ child.ToLower.Contains("hydravision") Then
 					Next
 				End If
 			End If
+
 			For Each filepaths As String In _fileIo.GetDirectories(config.Paths.UserPath)
 				If IsNullOrWhitespace(filepaths) Then Continue For
 				filePath = filepaths + "\AppData\Roaming\ATI"
@@ -2904,6 +2941,7 @@ child.ToLower.Contains("hydravision") Then
 						Application.Log.AddMessage("Possible permission issue detected on : " + filePath)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\ATI"
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\ATI"
@@ -2929,6 +2967,7 @@ child.ToLower.Contains("hydravision") Then
 						Application.Log.AddMessage("Possible permission issue detected on : " + filePath)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\AMD"
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\AMD"

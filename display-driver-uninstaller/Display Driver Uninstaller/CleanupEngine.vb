@@ -27,6 +27,9 @@ Namespace Display_Driver_Uninstaller
 				If (regkeypath IsNot Nothing) AndAlso (Not IsNullOrWhitespace(child)) Then
 					Try
 						Using regkey As RegistryKey = MyRegistry.OpenSubKey(regkeypath, child, True)
+							If regkey Is Nothing AndAlso Not throwOnMissingSubKey Then
+								Return
+							End If
 							'we do this simply to ensure that the permissions are set to open this registrykey.
 							'or else we will get an argument exception when trying to remove the key if permission are wrong.
 							If regkey IsNot Nothing Then
