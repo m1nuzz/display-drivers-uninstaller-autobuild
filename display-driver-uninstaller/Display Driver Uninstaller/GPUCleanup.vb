@@ -334,7 +334,7 @@ Namespace Display_Driver_Uninstaller
 				'------------------------------------------------------------------------------------
 				Try
 					UpdateTextMethod(UpdateTextTranslated(24))
-					Application.Log.AddMessage("SetupAPI: Removing Audio controller associated to the GPU(s).")
+					Application.Log.AddMessage("SetupAPI: Removing Audio device associated to the GPU(s).")
 					Dim audioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True, True)
 					If audioDevices IsNot Nothing AndAlso audioDevices.Count > 0 Then
 						' Create a list to track devices already removed
@@ -349,11 +349,10 @@ Namespace Display_Driver_Uninstaller
 								End If
 								If audioDevice.ChildDevices IsNot Nothing AndAlso audioDevice.ChildDevices.Length > 0 Then
 									'Removing every children of the "Audio device"
-									Application.Log.AddMessage("SetupAPI: Removing childrens associated to the GPU(s) Audio controller.")
+									Application.Log.AddMessage("SetupAPI: Removing childrens associated to the GPU(s) Audio device.")
 									RemoveChiendrensFromDevices(audioDevice.ChildDevices, removedDevices)
-									Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the GPU(s) Audio controller completed.")
+									Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the GPU(s) Audio device completed.")
 								End If
-								Application.Log.AddMessage("SetupAPI: Removing the Audio controller associated to the GPU(s).")
 
 								SetupAPI.UninstallDevice(audioDevice) 'Removing the audio card
 
@@ -397,6 +396,7 @@ Namespace Display_Driver_Uninstaller
 					Application.Log.AddException(ex)
 				End Try
 				ImpersonateLoggedOnUser.Taketoken()
+
 				'Verification is there is still an AMD HD Audio Bus device and set donotremoveamdhdaudiobusfiles to true if thats the case
 				Try
 					FrmMain.DoNotRemoveAmdHdAudioBusFiles = False
@@ -431,6 +431,7 @@ Namespace Display_Driver_Uninstaller
 					Application.Log.AddException(ex)
 					FrmMain.DoNotRemoveAmdHdAudioBusFiles = True  ' A security if the code to check fail.
 				End Try
+
 				If WindowsIdentity.GetCurrent().IsSystem Then
 					ImpersonateLoggedOnUser.ReleaseToken()
 				End If

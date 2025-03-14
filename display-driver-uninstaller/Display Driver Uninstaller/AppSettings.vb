@@ -96,7 +96,7 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly m_remMonitors As DependencyProperty = RegDP("RemoveMonitors", GetType(Boolean), GetType(AppSettings), True)
 
 		Private ReadOnly m_remCrimsonCache As DependencyProperty = RegDP("RemoveCrimsonCache", GetType(Boolean), GetType(AppSettings), True)
-		Private ReadOnly m_remAMDDirs As DependencyProperty = RegDP("RemoveAMDDirs", GetType(Boolean), GetType(AppSettings), True)
+		Private ReadOnly m_remAMDDirs As DependencyProperty = RegDP("RemoveAMDDirs", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_remAudioBus As DependencyProperty = RegDP("RemoveAudioBus", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_remAMDKMPFD As DependencyProperty = RegDP("RemoveAMDKMPFD", GetType(Boolean), GetType(AppSettings), False)
 
