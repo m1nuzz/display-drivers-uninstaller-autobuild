@@ -506,6 +506,7 @@
 		</Tos>
 	</Misc>
 
+	<LanguageTranslators>
 		<Translator>
 			<User>DH ◆OmegaWBPUI</User>
 			<Details>DH.OmegaWBPUI@gmail.com</Details>
@@ -517,5 +518,6 @@
 			<Details>https://reindex-ot.github.io</Details>
 			<LastUpdate>03/14/2025</LastUpdate>
 		</Translator2>
+	</LanguageTranslators>
 
 </DisplayDriverUninstaller>
