@@ -33,7 +33,7 @@
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
 ; License page
-!insertmacro MUI_PAGE_LICENSE "Licence.txt"
+!insertmacro MUI_PAGE_LICENSE "License.txt"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -357,6 +357,7 @@ Section Uninstall
   Delete "$INSTDIR\Settings\AMD\classroot.cfg"
   Delete "$INSTDIR\Readme.txt"
   Delete "$INSTDIR\Licence.txt"
+  Delete "$INSTDIR\License.txt"
   Delete "$INSTDIR\Issues and solutions.txt"
   Delete "$INSTDIR\Display Driver Uninstaller.pdb"
   Delete "$INSTDIR\Display Driver Uninstaller.exe"
