@@ -43,7 +43,13 @@
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\Readme.txt"
 !insertmacro MUI_PAGE_FINISH
 ; Uninstaller pages
-!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_CONFIRM
+UninstPage custom un.UninstPage un.UninstPageLeave  ; Custom page for options
+UninstPage instfiles                                ; Uninstall progress page
+
+; Variables for the checkbox
+Var RemoveLogs
+Var RemoveLogsCheckbox
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
@@ -59,6 +65,29 @@
 ; Show the language selection dialog in .onInit
 Function .onInit
   !insertmacro MUI_LANGDLL_DISPLAY
+  
+; Save the language choice in the registry
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Installer Language" $LANGUAGE
+FunctionEnd
+
+; Custom uninstall page function
+Function un.UninstPage
+  !insertmacro MUI_HEADER_TEXT $(STR_UNINST_TITLE) $(STR_UNINST_SUBTITLE)
+  nsDialogs::Create 1018
+  Pop $0
+  
+  ; Add a label above the checkbox
+  ${NSD_CreateLabel} 0 0 100% 20u $(STR_UNINST_TEXT)
+  
+  ; Adjust the checkbox position to be below the label
+  ${NSD_CreateCheckbox} 0 25u 100% 10u $(STR_UNINST_REMOVELOGS)
+  Pop $RemoveLogsCheckbox
+  
+  nsDialogs::Show
+FunctionEnd
+
+Function un.UninstPageLeave
+  ${NSD_GetState} $RemoveLogsCheckbox $RemoveLogs
 FunctionEnd
 
 ; English
@@ -66,55 +95,90 @@ LangString STR_01 ${LANG_ENGLISH}  "Web site ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_ENGLISH}  "Uninstall ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_ENGLISH}  "$(^Name) was successfully removed from your computer."
 LangString STR_04 ${LANG_ENGLISH}  "Are you sure you want to completely remove $(^Name) and all of its components?"
+LangString STR_UNINST_TITLE ${LANG_ENGLISH} "Uninstall Options"
+LangString STR_UNINST_SUBTITLE ${LANG_ENGLISH} "Choose additional cleanup options"
+LangString STR_UNINST_TEXT ${LANG_ENGLISH} "You are about to uninstall ${PRODUCT_NAME}. Please choose any additional options below:"
+LangString STR_UNINST_REMOVELOGS ${LANG_ENGLISH} "Remove log files"
 
 ; Italian
 LangString STR_01 ${LANG_ITALIAN}  "Sito web ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_ITALIAN}  "Disinstalla ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_ITALIAN}  "$(^Name) è stato correttamente rimosso dal computer."
 LangString STR_04 ${LANG_ITALIAN}  "Sei sicuro di voler rimuovere completamente $(^Name) e tutti i suoi componenti?"
+LangString STR_UNINST_TITLE ${LANG_ITALIAN} "Opzioni di disinstallazione"
+LangString STR_UNINST_SUBTITLE ${LANG_ITALIAN} "Scegli opzioni aggiuntive di pulizia"
+LangString STR_UNINST_TEXT ${LANG_ITALIAN} "Stai per disinstallare ${PRODUCT_NAME}. Seleziona le opzioni aggiuntive qui sotto:"
+LangString STR_UNINST_REMOVELOGS ${LANG_ITALIAN} "Rimuovi i file di log"
 
 ; French
 LangString STR_01 ${LANG_FRENCH} "Site web ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_FRENCH} "Désinstaller ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_FRENCH} "$(^Name) a été supprimé avec succès de votre ordinateur."
 LangString STR_04 ${LANG_FRENCH} "Êtes-vous sûr de vouloir complètement supprimer $(^Name) et tous ses composants ?"
+LangString STR_UNINST_TITLE ${LANG_FRENCH} "Options de désinstallation"
+LangString STR_UNINST_SUBTITLE ${LANG_FRENCH} "Choisissez des options de nettoyage supplémentaires"
+LangString STR_UNINST_TEXT ${LANG_FRENCH} "Vous êtes sur le point de désinstaller ${PRODUCT_NAME}. Veuillez choisir les options supplémentaires ci-dessous:"
+LangString STR_UNINST_REMOVELOGS ${LANG_FRENCH} "Supprimer les fichiers journaux"
 
 ; Simplified Chinese
 LangString STR_01 ${LANG_SIMPCHINESE} "网站 ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_SIMPCHINESE} "卸载 ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_SIMPCHINESE} "$(^Name) 已成功从您的电脑中移除。"
 LangString STR_04 ${LANG_SIMPCHINESE} "您确定要完全删除 $(^Name) 及其所有组件吗？"
+LangString STR_UNINST_TITLE ${LANG_SIMPCHINESE} "卸载选项"
+LangString STR_UNINST_SUBTITLE ${LANG_SIMPCHINESE} "选择额外的清理选项"
+LangString STR_UNINST_TEXT ${LANG_SIMPCHINESE} "您即将卸载 ${PRODUCT_NAME}。请在下方选择任何其他选项："
+LangString STR_UNINST_REMOVELOGS ${LANG_SIMPCHINESE} "删除日志文件"
 
 ; Traditional Chinese
 LangString STR_01 ${LANG_TRADCHINESE} "網站 ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_TRADCHINESE} "卸載 ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_TRADCHINESE} "$(^Name) 已成功從您的電腦中移除。"
 LangString STR_04 ${LANG_TRADCHINESE} "您確定要完全刪除 $(^Name) 及其所有組件嗎？"
+LangString STR_UNINST_TITLE ${LANG_TRADCHINESE} "卸載選項"
+LangString STR_UNINST_SUBTITLE ${LANG_TRADCHINESE} "選擇額外的清理選項"
+LangString STR_UNINST_TEXT ${LANG_TRADCHINESE} "您即將卸載 ${PRODUCT_NAME}。請在下方選擇任何其他選項："
+LangString STR_UNINST_REMOVELOGS ${LANG_TRADCHINESE} "刪除日誌文件"
 
 ; German
 LangString STR_01 ${LANG_GERMAN}  "Webseite ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_GERMAN}  "Deinstalliere ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_GERMAN}  "$(^Name) wurde erfolgreich von Ihrem Computer entfernt."
 LangString STR_04 ${LANG_GERMAN}  "Sind Sie sicher, dass Sie $(^Name) und alle Komponenten vollständig entfernen möchten?"
+LangString STR_UNINST_TITLE ${LANG_GERMAN} "Deinstallationsoptionen"
+LangString STR_UNINST_SUBTITLE ${LANG_GERMAN} "Wählen Sie zusätzliche Bereinigungsoptionen"
+LangString STR_UNINST_TEXT ${LANG_GERMAN} "Sie sind dabei, ${PRODUCT_NAME} zu deinstallieren. Bitte wählen Sie unten zusätzliche Optionen:"
+LangString STR_UNINST_REMOVELOGS ${LANG_GERMAN} "Protokolldateien entfernen"
 
 ; Spanish
 LangString STR_01 ${LANG_SPANISH}  "Sitio web ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_SPANISH}  "Desinstalar ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_SPANISH}  "$(^Name) se ha eliminado correctamente de su ordenador."
 LangString STR_04 ${LANG_SPANISH}  "¿Está seguro de que desea eliminar completamente $(^Name) y todos sus componentes?"
+LangString STR_UNINST_TITLE ${LANG_SPANISH} "Opciones de desinstalación"
+LangString STR_UNINST_SUBTITLE ${LANG_SPANISH} "Elija opciones adicionales de limpieza"
+LangString STR_UNINST_TEXT ${LANG_SPANISH} "Está a punto de desinstalar ${PRODUCT_NAME}. Elija cualquier opción adicional a continuación:"
+LangString STR_UNINST_REMOVELOGS ${LANG_SPANISH} "Eliminar archivos de registro"
 
 ; Japanese
 LangString STR_01 ${LANG_JAPANESE}  "ウェブサイト ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_JAPANESE}  "${PRODUCT_NAME} をアンインストールする"
 LangString STR_03 ${LANG_JAPANESE}  "$(^Name) はコンピュータから正常に削除されました。"
 LangString STR_04 ${LANG_JAPANESE}  "本当に $(^Name) とそのすべてのコンポーネントを完全に削除しますか？"
+LangString STR_UNINST_TITLE ${LANG_JAPANESE} "アンインストールオプション"
+LangString STR_UNINST_SUBTITLE ${LANG_JAPANESE} "追加のクリーンアップオプションを選択してください"
+LangString STR_UNINST_TEXT ${LANG_JAPANESE} "${PRODUCT_NAME} をアンインストールしようとしています。以下の追加オプションを選択してください："
+LangString STR_UNINST_REMOVELOGS ${LANG_JAPANESE} "ログファイルを削除する"
 
 ; Polski
 LangString STR_01 ${LANG_POLISH}  "Strona ${PRODUCT_NAME}"
 LangString STR_02 ${LANG_POLISH}  "Odinstaluj ${PRODUCT_NAME}"
 LangString STR_03 ${LANG_POLISH}  "$(^Name) został pomyślnie usunięty z komputera."
 LangString STR_04 ${LANG_POLISH}  "Czy na pewno chcesz usunąć $(^Name) i wszystkie jego składniki?"
-
+LangString STR_UNINST_TITLE ${LANG_POLISH} "Opcje odinstalowania"
+LangString STR_UNINST_SUBTITLE ${LANG_POLISH} "Wybierz dodatkowe opcje czyszczenia"
+LangString STR_UNINST_TEXT ${LANG_POLISH} "Zamierzasz odinstalować ${PRODUCT_NAME}. Wybierz dodatkowe opcje poniżej:"
+LangString STR_UNINST_REMOVELOGS ${LANG_POLISH} "Usuń pliki dziennika"
 
 
 ; MUI end ------
@@ -265,10 +329,22 @@ Function un.onUninstSuccess
   MessageBox MB_ICONINFORMATION|MB_OK "$(STR_03)"
 FunctionEnd
 
-Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(STR_04)" IDYES +2
-  Abort
+; Removed un.onInit to eliminate the default confirmation prompt
+;Function un.onInit
+;  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(STR_04)" IDYES +2
+;  Abort
+;FunctionEnd
 
+Function un.onInit
+; Retrieve the language choice from the registry
+  ReadRegStr $0 ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Installer Language"
+  ${If} $0 != ""
+    ; If found, set the language to match what was used during installation
+    StrCpy $LANGUAGE $0
+  ${Else}
+    ; If not found (maybe registry was cleaned), show the language dialog
+    !insertmacro MUI_UNGETLANGUAGE
+  ${EndIf}
 FunctionEnd
 
 Section Uninstall
@@ -374,6 +450,13 @@ Section Uninstall
   RMDir "$INSTDIR\Settings\INTEL"
   RMDir "$INSTDIR\Settings\AMD"
   RMDir /r  "$INSTDIR\Settings"
+
+; Add log file deletion based on checkbox state
+  ${If} $RemoveLogs == ${BST_CHECKED}
+    RMDir /r "$INSTDIR\DDU Logs"           ; Remove Logs directory
+  ${EndIf}
+
+  RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
