@@ -2,6 +2,7 @@
 Imports System.Xml
 Imports System.Reflection
 Imports System.Collections.ObjectModel
+Imports Microsoft.Win32
 
 Namespace Display_Driver_Uninstaller
 
@@ -87,6 +88,7 @@ Namespace Display_Driver_Uninstaller
 
 		Private ReadOnly m_winVersion As DependencyProperty = RegDP("WinVersion", GetType(OSVersion), GetType(AppSettings), OSVersion.Unknown)
 		Private ReadOnly m_winVersionText As DependencyProperty = RegDP("WinVersionText", GetType(String), GetType(AppSettings), "Unknown")
+		Private ReadOnly m_winBuildText As DependencyProperty = RegDP("WinBuildText", GetType(String), GetType(AppSettings), "Unknown")
 		Private ReadOnly m_winIs64 As DependencyProperty = RegDP("WinIs64", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_processKilled As DependencyProperty = RegDP("ProcessKilled", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_win10_1809 As DependencyProperty = RegDP("Win10_1809", GetType(Boolean), GetType(AppSettings), False)
@@ -162,6 +164,15 @@ Namespace Display_Driver_Uninstaller
 			End Get
 			Set(value As String)
 				SetValue(m_winVersionText, value)
+			End Set
+		End Property
+
+		Public Property WinBuildText As String
+			Get
+				Return CStr(GetValue(m_winBuildText))
+			End Get
+			Set(value As String)
+				SetValue(m_winBuildText, value)
 			End Set
 		End Property
 
@@ -518,10 +529,11 @@ Namespace Display_Driver_Uninstaller
 				Case OSVersion.Win81
 					Application.Settings.WinVersionText = "Windows 8.1"
 
-					Using regkey As Microsoft.Win32.RegistryKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\Microsoft\Windows NT\CurrentVersion", False)
+					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", False)
 						If regkey IsNot Nothing Then
 							Dim regValue As String = regkey.GetValue("CurrentMajorVersionNumber", String.Empty).ToString()
 							Dim regValue2 As String = regkey.GetValue("Currentbuild", String.Empty).ToString()
+
 							If Not IsNullOrWhitespace(regValue) AndAlso regValue.Equals("10") Then
 								version = OSVersion.Win10
 								Application.Settings.WinVersionText = "Windows 10"
@@ -542,6 +554,17 @@ Namespace Display_Driver_Uninstaller
 					Application.Settings.WinVersionText = "Unsupported OS"
 					Application.Log.AddWarningMessage("Unsupported OS.")
 			End Select
+
+			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", False)
+				If regkey IsNot Nothing Then
+					Dim regValue2 As String = regkey.GetValue("Currentbuild", String.Empty).ToString()
+					Dim ubr As String = regkey.GetValue("UBR", String.Empty).ToString()
+
+					If Not IsNullOrWhitespace(regValue2) AndAlso Not IsNullOrWhitespace(ubr) Then
+						Application.Settings.WinBuildText = regValue2 + "." + ubr
+					End If
+				End If
+			End Using
 
 			SetValue(m_winVersion, version)
 		End Sub

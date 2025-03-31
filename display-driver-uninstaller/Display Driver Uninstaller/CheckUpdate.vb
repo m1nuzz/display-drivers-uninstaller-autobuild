@@ -1,5 +1,5 @@
-﻿Imports System.Threading
-Imports Display_Driver_Uninstaller.Win32
+﻿Imports Display_Driver_Uninstaller.Win32
+Imports System.Net
 Imports System.Net.Http
 Imports System.Reflection
 Imports System.Threading.Tasks
@@ -30,6 +30,9 @@ Namespace Display_Driver_Uninstaller
 					Return
 				End Try
 
+				' Add this code before creating the HttpClient
+				ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13 Or SecurityProtocolType.Tls12
+
 				Dim url As String = "https://www.wagnardsoft.com/DDU/currentversion2.txt"
 				Dim newestVersionStr As String = Nothing
 
@@ -43,6 +46,7 @@ Namespace Display_Driver_Uninstaller
 						response.EnsureSuccessStatusCode() ' Throws an exception if the request is not successful
 
 						newestVersionStr = Await response.Content.ReadAsStringAsync()
+						response.Dispose()
 					Catch ex As Exception
 						' Handle the error appropriately
 						status = UpdateStatus.Error
@@ -85,7 +89,7 @@ Namespace Display_Driver_Uninstaller
 				Application.Settings.UpdateAvailable = status
 
 				If status = UpdateStatus.UpdateAvailable Then
-					If Not Security.Principal.WindowsIdentity.GetCurrent().IsSystem AndAlso Not Application.LaunchOptions.Silent Then
+					If Not System.Security.Principal.WindowsIdentity.GetCurrent().IsSystem AndAlso Not Application.LaunchOptions.Silent Then
 						Select Case MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text1"), "Display Driver Uninstaller", MessageBoxButton.YesNoCancel, MessageBoxImage.Information)
 							Case MessageBoxResult.Yes
 								WinAPI.OpenVisitLink(" -visitdduhome")

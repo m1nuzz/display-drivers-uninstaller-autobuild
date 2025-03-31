@@ -819,6 +819,7 @@ Namespace Display_Driver_Uninstaller
 				info.Message = "System Information"
 				info.Add("DDU Version", Application.Settings.AppVersion.ToString())
 				info.Add("OS", Application.Settings.WinVersionText)
+				info.Add("Build", Application.Settings.WinBuildText)
 				info.Add("Win 10 1809+ ?", Application.Settings.Win10_1809.ToString())
 				info.Add("Architecture", If(Application.Settings.WinIs64, "x64", "x86"))
 

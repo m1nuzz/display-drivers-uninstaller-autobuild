@@ -794,7 +794,7 @@ Namespace Display_Driver_Uninstaller
 
 								Return GetFileNames(directory, wildCard, searchSubDirs, unicodePaths, writeAccess, True)
 							Else
-								Application.Log.AddWarningMessage("Couldn't find files, access denied!{0}{1}", CRLF, directory)
+								Application.Log.AddWarningMessage("Couldn't find files, access denied!", CRLF, directory)
 							End If
 						Else
 							Throw New Win32Exception(GetInt32(errCode))
@@ -895,7 +895,7 @@ Namespace Display_Driver_Uninstaller
 
 								Return GetDirNames(directory, wildCard, searchSubDirs, unicodePaths, writeAccess, True)
 							Else
-								Application.Log.AddWarningMessage("Couldn't find directories, access denied!{0}{1}", CRLF, directory)
+								Application.Log.AddWarningMessage("Couldn't find directories, access denied!", CRLF, directory)
 							End If
 						Else
 							Throw New Win32Exception(GetInt32(errCode))
