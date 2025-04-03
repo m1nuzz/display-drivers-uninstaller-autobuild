@@ -6509,6 +6509,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Dim wantedvalue As String = Nothing
 			Dim packages As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packages.cfg")
 			Dim packagesigs As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesigs.cfg")
+			Dim packagesoneapi As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesoneapi.cfg")
 			Dim classroot As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\classroot.cfg")
 			Dim reginterface As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\interface.cfg")
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftover.cfg")
@@ -6782,9 +6783,15 @@ child.ToLower.Contains("igfxdtcm") Then
 				Application.Log.AddException(ex)
 			End Try
 			CleanupEngine.Installer(packages, config)
+
 			If config.RemoveINTELIGS Then
 				CleanupEngine.Installer(packagesigs, config)
 			End If
+
+			If config.RemoveOneAPI Then
+				CleanupEngine.Installer(packagesoneapi, config)
+			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 "Software\Microsoft\Windows\CurrentVersion\Uninstall", True)
@@ -7208,6 +7215,7 @@ child.ToLower.Equals("oneapp_igcc") Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanIntelServiceProcess(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			Dim services As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\services.cfg")
@@ -7227,18 +7235,20 @@ child.ToLower.Equals("oneapp_igcc") Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanIntelFolders(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
-			Dim filePath As String = Nothing
 			Dim driverfiles As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
 			UpdateTextMethod(UpdateTextTranslated(4))
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			Application.Log.AddMessage("Cleaning Directory")
 			CleanupEngine.Folderscleanup(driverfiles)      '// add each line as String Array.
 
-			filePath = System.Environment.SystemDirectory
+			Dim filePath As String = System.Environment.SystemDirectory
 			Dim files() As String = IO.Directory.GetFiles(filePath + "\", "igfxcoin*.*")
 			For i As Integer = 0 To files.Length - 1
 				If Not IsNullOrWhitespace(files(i)) Then
@@ -7248,6 +7258,7 @@ child.ToLower.Equals("oneapp_igcc") Then
 					End Try
 				End If
 			Next
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\Intel"
 			If _fileIo.ExistsDir(filePath) Then
@@ -7268,6 +7279,14 @@ child.ToLower.Equals("oneapp_igcc") Then
 					Next
 				End If
 			End If
+
+			If config.RemoveOneAPI Then
+				filePath = config.Paths.ProgramFiles + "LevelZeroSDK"
+				If _fileIo.ExistsDir(filePath) Then
+					Delete(filePath)
+				End If
+			End If
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Intel"
 			If _fileIo.ExistsDir(filePath) Then
@@ -7288,6 +7307,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					Next
 				End If
 			End If
+
 			If IntPtr.Size = 8 Then
 				filePath = Application.Paths.ProgramFilesx86 + "Intel"
 				If _fileIo.ExistsDir(filePath) Then
@@ -7308,6 +7328,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				End If
 			End If
+
 			If config.RemoveINTELIGS Then
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs"
@@ -7321,6 +7342,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Intel"
 				If _fileIo.ExistsDir(filePath) Then
@@ -7339,6 +7361,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						Next
 					End If
 				End If
+
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Startup"
 				Try
@@ -7352,6 +7375,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					Application.Log.AddException(ex)
 				End Try
 			End If
+
 			For Each filepaths As String In _fileIo.GetDirectories(config.Paths.UserPath)
 				If IsNullOrWhitespace(filepaths) Then Continue For
 				For Each child As String In _fileIo.GetDirectories(filepaths)
@@ -7360,6 +7384,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						Delete(child)
 					End If
 				Next
+
 				filePath = filepaths + "\AppData\LocalLow\Intel"
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\Intel"  'need check in the future.
@@ -7385,6 +7410,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						Application.Log.AddMessage("Possible permission issue detected on : " + filePath)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\Intel"
 				If _fileIo.ExistsDir(filePath) Then
 					Try
@@ -7408,6 +7434,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						Application.Log.AddMessage("Possible permission issue detected on : " + filePath)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\D3DSCache"
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\D3DSCache"
@@ -7432,16 +7459,17 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End Try
 				End If
 			Next
+
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanVulkan(ByVal config As ThreadSettings)
-			Dim FilePath As String = Nothing
-			Dim files() As String = Nothing
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Khronos\OpenCL\Vendors", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetValueNames()
@@ -7477,6 +7505,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				End If
 			End Using
+
 			Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Khronos\vulkan\Drivers", True)
 				If regkey2 IsNot Nothing Then
 					For Each child As String In regkey2.GetValueNames
@@ -7505,6 +7534,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				End If
 			End Using
+
 			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Khronos", True)
 				If subregkey IsNot Nothing Then
 					If subregkey.GetSubKeyNames().Length = 0 Then
@@ -7516,6 +7546,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				End If
 			End Using
+
 			For Each users As String In Registry.Users.GetSubKeyNames()
 				If IsNullOrWhitespace(users) Then Continue For
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, users & "\Software", True)
@@ -7555,6 +7586,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 								End If
 							End If
 						End Using
+
 						Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, "Khronos\vulkan\Drivers", True)
 							If regkey2 IsNot Nothing Then
 								For Each child As String In regkey2.GetValueNames
@@ -7583,6 +7615,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 								End If
 							End If
 						End Using
+
 						Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "Khronos", True)
 							If subregkey IsNot Nothing Then
 								If subregkey.GetSubKeyNames().Length = 0 Then
@@ -7597,6 +7630,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				End Using
 			Next
+
 			If config.WinIs64 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\WOW6432Node\Khronos\OpenCL\Vendors", True)
 					If regkey IsNot Nothing Then
@@ -7634,6 +7668,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						End If
 					End If
 				End Using
+
 				Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\WOW6432Node\Khronos\vulkan\Drivers", True)
 					If regkey2 IsNot Nothing Then
 						For Each child As String In regkey2.GetValueNames
@@ -7662,6 +7697,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						End If
 					End If
 				End Using
+
 				Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\WOW6432Node\Khronos", True)
 					If subregkey IsNot Nothing Then
 						If subregkey.GetSubKeyNames().Length = 0 Then
@@ -7673,6 +7709,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						End If
 					End If
 				End Using
+
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If IsNullOrWhitespace(users) Then Continue For
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, users & "\Software\Wow6432Node", True)
@@ -7755,8 +7792,9 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End Using
 				Next
 			End If
-			FilePath = System.Environment.SystemDirectory
-			files = IO.Directory.GetFiles(FilePath + "\", "vulkan-1*.dll")
+
+			Dim filePath As String = System.Environment.SystemDirectory
+			Dim files As String() = IO.Directory.GetFiles(filePath + "\", "vulkan-1*.dll")
 			For i As Integer = 0 To files.Length - 1
 				If Not IsNullOrWhitespace(files(i)) Then
 					Try
@@ -7765,7 +7803,8 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End Try
 				End If
 			Next
-			files = IO.Directory.GetFiles(FilePath + "\", "vulkaninfo*.*")
+
+			files = IO.Directory.GetFiles(filePath + "\", "vulkaninfo*.*")
 			For i As Integer = 0 To files.Length - 1
 				If Not IsNullOrWhitespace(files(i)) Then
 					Try
@@ -7774,9 +7813,10 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End Try
 				End If
 			Next
+
 			If IntPtr.Size = 8 Then
-				FilePath = Environment.GetEnvironmentVariable("windir") + "\SysWOW64"
-				files = IO.Directory.GetFiles(FilePath + "\", "vulkan-1*.dll")
+				filePath = Environment.GetEnvironmentVariable("windir") + "\SysWOW64"
+				files = IO.Directory.GetFiles(filePath + "\", "vulkan-1*.dll")
 				For i As Integer = 0 To files.Length - 1
 					If Not IsNullOrWhitespace(files(i)) Then
 						Try
@@ -7785,7 +7825,7 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 						End Try
 					End If
 				Next
-				files = IO.Directory.GetFiles(FilePath + "\", "vulkaninfo*.*")
+				files = IO.Directory.GetFiles(filePath + "\", "vulkaninfo*.*")
 				For i As Integer = 0 To files.Length - 1
 					If Not IsNullOrWhitespace(files(i)) Then
 						Try
@@ -7795,22 +7835,25 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 					End If
 				Next
 			End If
+
 			If config.RemoveVulkan Then
-				FilePath = config.Paths.ProgramFiles + "VulkanRT"
-				If _fileIo.ExistsDir(FilePath) Then
-					Delete(FilePath)
+				filePath = config.Paths.ProgramFiles + "VulkanRT"
+				If _fileIo.ExistsDir(filePath) Then
+					Delete(filePath)
 				End If
 				If IntPtr.Size = 8 Then
-					FilePath = Application.Paths.ProgramFilesx86 + "VulkanRT"
-					If _fileIo.ExistsDir(FilePath) Then
-						Delete(FilePath)
+					filePath = Application.Paths.ProgramFilesx86 + "VulkanRT"
+					If _fileIo.ExistsDir(filePath) Then
+						Delete(filePath)
 					End If
 				End If
 			End If
+
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub AmdEnvironementPath(ByVal filepath As String)
 			Dim valuesToFind() As String = New String() {
 filepath & "\amd app\bin\x86_64",
@@ -7819,12 +7862,15 @@ filepath & "\ati.ace\core-static"
 }
 			CleanEnvironementPath(valuesToFind)
 		End Sub
+
 		Private Sub UpdateTextMethod(ByVal strMessage As String)
 			FrmMain.UpdateTextMethod(strMessage)
 		End Sub
+
 		Private Function UpdateTextTranslated(ByVal number As Integer) As String
 			Return FrmMain.UpdateTextTranslated(number)
 		End Function
+
 		Private Sub Delete(ByVal filename As String)
 			Dim CleanupEngine As New CleanupEngine
 			If _fileIo.ExistsFile(filename) OrElse _fileIo.ExistsDir(filename) Then
@@ -7832,6 +7878,7 @@ filepath & "\ati.ace\core-static"
 			End If
 			CleanupEngine.RemoveSharedDlls(filename)
 		End Sub
+
 		Private Sub Threaddata1(ByVal driverfiles As String())
 			Dim CleanupEngine As New CleanupEngine
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -7839,14 +7886,17 @@ filepath & "\ati.ace\core-static"
 			End If
 			CleanupEngine.Folderscleanup(driverfiles)
 		End Sub
+
 		Private Sub Deletesubregkey(ByVal value1 As RegistryKey, ByVal value2 As String, Optional ByVal throwOnMissingSubKey As Boolean = True)
 			Dim CleanupEngine As New CleanupEngine
 			CleanupEngine.Deletesubregkey(value1, value2, throwOnMissingSubKey)
 		End Sub
+
 		Private Sub Deletevalue(ByVal value1 As RegistryKey, ByVal value2 As String, Optional ByVal throwOnMissingSubKey As Boolean = True)
 			Dim CleanupEngine As New CleanupEngine
 			CleanupEngine.Deletevalue(value1, value2, throwOnMissingSubKey)
 		End Sub
+
 		Private Sub CLSIDCleanThread(ByVal Clsidleftover As String())
 			Dim CleanupEngine As New CleanupEngine
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -7854,6 +7904,7 @@ filepath & "\ati.ace\core-static"
 			End If
 			CleanupEngine.Clsidleftover(Clsidleftover)
 		End Sub
+
 		Private Sub InstallerCleanThread(ByVal Packages As String(), config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -7861,6 +7912,7 @@ filepath & "\ati.ace\core-static"
 			End If
 			CleanupEngine.Installer(Packages, config)
 		End Sub
+
 		Private Sub ClassrootCleanThread(ByRef ThreadFinised As Boolean, ByVal Classroot As String(), config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			If Not WindowsIdentity.GetCurrent().IsSystem Then

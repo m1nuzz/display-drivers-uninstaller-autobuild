@@ -111,6 +111,7 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly m_remNVBROADCAST As DependencyProperty = RegDP("RemoveNVBROADCAST", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remINTELCP As DependencyProperty = RegDP("RemoveINTELCP", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remINTELIGS As DependencyProperty = RegDP("RemoveINTELIGS", GetType(Boolean), GetType(AppSettings), True)
+		Private ReadOnly m_remOneAPI As DependencyProperty = RegDP("RemoveOneAPI", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_remAMDCP As DependencyProperty = RegDP("RemoveAMDCP", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_removevulkan As DependencyProperty = RegDP("RemoveVulkan", GetType(Boolean), GetType(AppSettings), True)
 
@@ -389,6 +390,15 @@ Namespace Display_Driver_Uninstaller
 			End Set
 		End Property
 
+		Public Property RemoveOneAPI As Boolean
+			Get
+				Return CBool(GetValue(m_remOneAPI))
+			End Get
+			Set(value As Boolean)
+				SetValue(m_remOneAPI, value)
+			End Set
+		End Property
+
 		Public Property RemoveAMDCP As Boolean
 			Get
 				Return CBool(GetValue(m_remAMDCP))
@@ -657,6 +667,7 @@ Namespace Display_Driver_Uninstaller
 							.WriteElementString("RemoveNVCP", RemoveNVCP.ToString())
 							.WriteElementString("RemoveINTELCP", RemoveINTELCP.ToString())
 							.WriteElementString("RemoveINTELIGS", RemoveINTELIGS.ToString())
+							.WriteElementString("RemoveOneAPI", RemoveOneAPI.ToString())
 							.WriteElementString("RemoveAMDCP", RemoveAMDCP.ToString())
 							.WriteElementString("UseRoamingConfig", UseRoamingConfig.ToString())
 							.WriteElementString("CheckUpdates", CheckUpdates.ToString())
@@ -815,6 +826,9 @@ Namespace Display_Driver_Uninstaller
 
 								Case "removeinteligs"
 									RemoveINTELIGS = Boolean.Parse(KvP.Value)
+
+								Case "removeoneapi"
+									RemoveOneAPI = Boolean.Parse(KvP.Value)
 
 								Case "removeamdcp"
 									RemoveAMDCP = Boolean.Parse(KvP.Value)

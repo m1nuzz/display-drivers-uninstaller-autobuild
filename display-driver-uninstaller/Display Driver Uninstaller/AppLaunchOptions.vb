@@ -39,6 +39,7 @@ Namespace Display_Driver_Uninstaller
 		Public Property KeepNVCPopt As Boolean = False
 		Public Property RemoveINTELCP As Boolean = False
 		Public Property RemoveINTELIGS As Boolean = False
+		Public Property RemoveOneAPI As Boolean = False
 		Public Property RemoveAMDCP As Boolean = False
 		Public Property RemoveVulkan As Boolean = False
 		Public Property NoSetupAPI As Boolean = False
@@ -124,6 +125,8 @@ Namespace Display_Driver_Uninstaller
 						Case StrContainsAny(Argument, True, "-RemoveNVCP") : RemoveNVCP = True
 						Case StrContainsAny(Argument, True, "-KeepNVCPopt") : KeepNVCPopt = True
 						Case StrContainsAny(Argument, True, "-RemoveINTELCP") : RemoveINTELCP = True
+						Case StrContainsAny(Argument, True, "-RemoveINTELIGS") : RemoveINTELIGS = True
+						Case StrContainsAny(Argument, True, "-RemoveOneAPI") : RemoveOneAPI = True
 						Case StrContainsAny(Argument, True, "-RemoveAMDCP") : RemoveAMDCP = True
 						Case StrContainsAny(Argument, True, "-RemoveAMDKMPFD") : RemoveAMDKMPFD = True
 						Case StrContainsAny(Argument, True, "-RemoveAudioBus") : RemoveAudioBus = True
@@ -140,6 +143,8 @@ Namespace Display_Driver_Uninstaller
 							RemoveAMDKMPFD = True
 							RemoveAMDCP = True
 							RemoveINTELCP = True
+							RemoveINTELIGS = True
+							RemoveOneAPI = True
 							RemoveNVCP = True
 							RemoveNVBROADCAST = True
 							RemoveGFE = True

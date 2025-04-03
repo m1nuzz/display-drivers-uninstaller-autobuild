@@ -289,6 +289,9 @@
 		<lblRemINTELIGS>
 			<Text>Remove Intel Arc Control / Intel Graphics Software</Text>
 		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>Remove Intel® oneAPI Level Zero SDK</Text>
+		</lblRemOneAPI>
 		<lblRemAMDCP>
 			<Text>(DCH driver) Remove the AMD Control Panel installed from the Microsoft Store</Text>
 		</lblRemAMDCP>

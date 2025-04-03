@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME            "Display Driver Uninstaller"
-!define PRODUCT_VERSION         "18.1.0.0"
+!define PRODUCT_VERSION         "18.1.0.1"
 
 !define PRODUCT_PUBLISHER       "Wagnardsoft"
 !define PRODUCT_WEB_SITE        "https://www.wagnardsoft.com"
@@ -246,6 +246,7 @@ Section "MainSection" SEC01
   File "${SOURCE_PATH}\Settings\INTEL\interface.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\packages.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\packagesigs.cfg"
+  File "${SOURCE_PATH}\Settings\INTEL\packagesoneapi.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\services.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\servicesigs.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\servicesaudio.cfg"
@@ -431,6 +432,7 @@ Section Uninstall
   Delete "$INSTDIR\Settings\INTEL\servicesigs.cfg"
   Delete "$INSTDIR\Settings\INTEL\packages.cfg"
   Delete "$INSTDIR\Settings\INTEL\packagesigs.cfg"
+  Delete "$INSTDIR\Settings\INTEL\packagesoneapi.cfg"
   Delete "$INSTDIR\Settings\INTEL\interface.cfg"
   Delete "$INSTDIR\Settings\INTEL\driverfiles.cfg"
   Delete "$INSTDIR\Settings\INTEL\clsidleftover.cfg"
