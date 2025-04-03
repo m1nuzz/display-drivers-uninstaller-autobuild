@@ -1518,7 +1518,7 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 											If IsNullOrWhitespace(child) Then Continue For
 											If child.Contains("AMDAPPSDKROOT") Then
 												Try
-													Deletesubregkey(regkey, child)
+													Deletevalue(regkey, child)
 												Catch ex As Exception
 													Application.Log.AddExceptionWithValues(ex, "Path: " + regkey.ToString + " Key : " + child)
 												End Try
@@ -3240,6 +3240,7 @@ child.ToLower.Contains("\dem.") Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanEnvironementPath(ByVal valuesToRemove() As String)
 			Dim value As String = Nothing
 			Dim paths() As String = Nothing
@@ -7061,6 +7062,38 @@ child.ToLower.Contains("igfxdtcm") Then
 				End Try
 			End If
 
+			'--------------------------------
+			'System environement path cleanup
+			'--------------------------------
+			Application.Log.AddMessage("System environement cleanUP")
+			Try
+				Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
+					If subregkey IsNot Nothing Then
+						For Each child2 As String In subregkey.GetSubKeyNames()
+							If IsNullOrWhitespace(child2) Then Continue For
+							If StrContainsAny(child2, True, "controlset") Then
+								Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\" & child2 & "\Control\Session Manager\Environment", True)
+									If regkey IsNot Nothing Then
+										For Each child As String In regkey.GetValueNames()
+											If IsNullOrWhitespace(child) Then Continue For
+											If child.Contains("LEVEL_ZERO_V1_SDK_PATH") AndAlso config.RemoveOneAPI Then
+												Try
+													Deletevalue(regkey, child)
+												Catch ex As Exception
+													Application.Log.AddExceptionWithValues(ex, "Path: " + regkey.ToString + " Key : " + child)
+												End Try
+											End If
+										Next
+									End If
+								End Using
+							End If
+						Next
+					End If
+				End Using
+			Catch ex As Exception
+				Application.Log.AddException(ex)
+			End Try
+
 			'-----------------------
 			'remove event view stuff
 			'-----------------------
@@ -7855,6 +7888,15 @@ StrContainsAny(child, True, "gcc") AndAlso config.RemoveINTELCP Then
 		End Sub
 
 		Private Sub AmdEnvironementPath(ByVal filepath As String)
+			Dim valuesToFind() As String = New String() {
+filepath & "\amd app\bin\x86_64",
+filepath & "\amd app\bin\x86",
+filepath & "\ati.ace\core-static"
+}
+			CleanEnvironementPath(valuesToFind)
+		End Sub
+
+		Private Sub IntelCleanEnvironementPath(ByVal filepath As String)
 			Dim valuesToFind() As String = New String() {
 filepath & "\amd app\bin\x86_64",
 filepath & "\amd app\bin\x86",
