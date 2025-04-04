@@ -111,7 +111,7 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly m_remNVBROADCAST As DependencyProperty = RegDP("RemoveNVBROADCAST", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remINTELCP As DependencyProperty = RegDP("RemoveINTELCP", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remINTELIGS As DependencyProperty = RegDP("RemoveINTELIGS", GetType(Boolean), GetType(AppSettings), True)
-		Private ReadOnly m_remOneAPI As DependencyProperty = RegDP("RemoveOneAPI", GetType(Boolean), GetType(AppSettings), False)
+		Private ReadOnly m_remOneAPI As DependencyProperty = RegDP("RemoveOneAPI", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remEnduranceGaming As DependencyProperty = RegDP("RemoveEnduranceGaming", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_remAMDCP As DependencyProperty = RegDP("RemoveAMDCP", GetType(Boolean), GetType(AppSettings), True)
 		Private ReadOnly m_removevulkan As DependencyProperty = RegDP("RemoveVulkan", GetType(Boolean), GetType(AppSettings), True)
