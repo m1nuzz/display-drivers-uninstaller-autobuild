@@ -292,6 +292,9 @@
 		<lblRemOneAPI>
 			<Text>Remove Intel® oneAPI Level Zero SDK</Text>
 		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>Remove Intel® Endurance Gaming</Text>
+		</lblRemEnduranceGaming>
 		<lblRemAMDCP>
 			<Text>(DCH driver) Remove the AMD Control Panel installed from the Microsoft Store</Text>
 		</lblRemAMDCP>

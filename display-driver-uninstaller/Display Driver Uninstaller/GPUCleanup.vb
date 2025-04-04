@@ -146,7 +146,7 @@ Namespace Display_Driver_Uninstaller
 								Application.Log.AddException(ex)
 							End Try
 						Next
-						KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing", "intelgraphicssoftware")
+						KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing", "intelgraphicssoftware", "EnduranceGamingProcess")
 					End If
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
@@ -6511,6 +6511,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Dim packages As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packages.cfg")
 			Dim packagesigs As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesigs.cfg")
 			Dim packagesoneapi As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesoneapi.cfg")
+			Dim packagesEndurance As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\packagesendurance.cfg")
 			Dim classroot As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\classroot.cfg")
 			Dim reginterface As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\interface.cfg")
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftover.cfg")
@@ -6596,12 +6597,15 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If config.RemoveVulkan Then
 				CleanVulkan(config)
 			End If
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Intel", True)
 					If regkey IsNot Nothing Then
@@ -6634,6 +6638,39 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
+			Try
+				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Intel Corporation", True)
+					If regkey IsNot Nothing Then
+						For Each child As String In regkey.GetSubKeyNames()
+							If IsNullOrWhitespace(child) = False Then
+								If config.RemoveEnduranceGaming AndAlso StrContainsAny(child, True, "Intel Endurance Gaming") Then
+									Try
+										Deletesubregkey(regkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
+								End If
+							End If
+						Next
+						If regkey.SubKeyCount = 0 Then
+							Try
+								Deletesubregkey(MyRegistry.OpenSubKey(Registry.LocalMachine, "Software", True), "Intel")
+							Catch ex As Exception
+								Application.Log.AddException(ex)
+							End Try
+						Else
+							For Each data As String In regkey.GetSubKeyNames()
+								If IsNullOrWhitespace(data) Then Continue For
+								Application.Log.AddWarningMessage("Remaining Key(s) found " + " : " + regkey.ToString + "\ --> " + data)
+							Next
+						End If
+					End If
+				End Using
+			Catch ex As Exception
+				Application.Log.AddException(ex)
+			End Try
+
 			Try
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If Not IsNullOrWhitespace(users) Then
@@ -6747,6 +6784,15 @@ child.ToLower.Contains("nvidia.gfe") Then
 								Application.Log.AddException(ex)
 							End Try
 						End If
+						If config.RemoveEnduranceGaming Then
+							If regkey.GetValue("Intel Endurance Gaming") IsNot Nothing Then
+								Try
+									Deletevalue(regkey, "Intel Endurance Gaming")
+								Catch ex As Exception
+									Application.Log.AddException(ex)
+								End Try
+							End If
+						End If
 					End If
 				End Using
 			Catch ex As Exception
@@ -6793,6 +6839,10 @@ child.ToLower.Contains("igfxdtcm") Then
 				CleanupEngine.Installer(packagesoneapi, config)
 			End If
 
+			If config.RemoveEnduranceGaming Then
+				CleanupEngine.Installer(packagesEndurance, config)
+			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 "Software\Microsoft\Windows\CurrentVersion\Uninstall", True)
@@ -6833,7 +6883,10 @@ child.ToLower.Contains("igfxdtcm") Then
 										wantedvalue = subregkey.GetValue("DisplayName", String.Empty).ToString
 										Dim InstallSource = subregkey.GetValue("InstallSource", String.Empty).ToString.TrimEnd(CChar("\"))
 										If IsNullOrWhitespace(wantedvalue) Then Continue For
-										If StrContainsAny(wantedvalue, True, packages) OrElse (config.RemoveINTELIGS AndAlso StrContainsAny(wantedvalue, True, packagesigs)) Then
+										If StrContainsAny(wantedvalue, True, packages) OrElse
+											(config.RemoveINTELIGS AndAlso StrContainsAny(wantedvalue, True, packagesigs)) OrElse
+											(config.RemoveEnduranceGaming AndAlso StrContainsAny(wantedvalue, True, packagesEndurance)) OrElse
+											(config.RemoveOneAPI AndAlso StrContainsAny(wantedvalue, True, packagesoneapi)) Then
 											Try
 												If Not (config.RemoveVulkan = False AndAlso StrContainsAny(wantedvalue, True, "vulkan")) Then
 													Deletesubregkey(regkey, child)
@@ -6957,7 +7010,8 @@ child.ToLower.Contains("igfxdtcm") Then
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetValueNames()
 							If IsNullOrWhitespace(child) Then Continue For
-							If StrContainsAny(child, True, "Intel® Arc™ Control", "Intel® Graphics Software") Then
+							If StrContainsAny(child, True, "Intel® Arc™ Control", "Intel® Graphics Software") OrElse
+								(config.RemoveEnduranceGaming AndAlso StrContainsAny(child, True, "Intel Endurance Gaming")) Then
 								Try
 									Deletevalue(regkey, child)
 								Catch ex As Exception
@@ -7298,7 +7352,8 @@ child.ToLower.Equals("oneapp_igcc") Then
 				For Each child As String In _fileIo.GetDirectories(filePath)
 					If IsNullOrWhitespace(child) = False Then
 						If StrContainsAny(child, True, "Media SDK", "Media Resource", "ACMirageCache", "Intel(R) Arc Software & Drivers", "PrebuiltShaderBinaries", "Intel(R) Graphics Software & Drivers") OrElse
-(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel Graphics Software", "Intel Arc Control")) Then
+(config.RemoveINTELIGS AndAlso StrContainsAny(child, True, "Intel Graphics Software", "Intel Arc Control")) OrElse
+(config.RemoveEnduranceGaming AndAlso StrContainsAny(child, True, "EnduranceGaming")) Then
 							Delete(child)
 						End If
 					End If
