@@ -286,6 +286,15 @@
 		<lblRemINTELCP>
 			<Text>Supprimer Intel® (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>Supprimer Intel® Arc Control / Intel® Graphics Software</Text>
+		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>Supprimer Intel® oneAPI Level Zero SDK</Text>
+		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>Supprimer Intel® Endurance Gaming</Text>
+		</lblRemEnduranceGaming>
 		<lblRemAMDCP>
 			<Text>Supprimer AMD (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>
 		</lblRemAMDCP>
