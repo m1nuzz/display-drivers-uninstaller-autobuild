@@ -222,7 +222,7 @@
 			<Text>Opzioni driver AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Opzioni driver INTEL</Text>
+			<Text>Opzioni driver Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Avanzate</Text>
@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>Rimuovi pannello controllo INTEL installato da Microsoft Store (driver DCH)</Text>
+			<Text>Rimuovi pannello controllo Intel® installato da Microsoft Store (driver DCH)</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>Rimuovi pannello controllo AMD installato da Microsoft Store (driver DCH)</Text>
@@ -439,7 +439,7 @@
 			<Text>
 				Display Driver Uninstaller (DDU):
 
-				"Display Driver Uninstaller" rimuove i driver video e tutti i servizi associati ad essi delle schede video NVIDIA, AMD e INTEL.
+				"Display Driver Uninstaller" rimuove i driver video e tutti i servizi associati ad essi delle schede video NVIDIA, AMD e Intel®.
 
 				L'effetto ottenuto sarà simile a una "nuova installazione pulita" dei driver.
 
@@ -455,7 +455,7 @@
 
 				- Se hai avuto problemi con un driver video e questo programma ti è stato d'aiuto, puoi condividere l'esperienza con noi!
 
-				- Tieni a mente che NVIDIA, AMD, INTEL o Microsoft non hanno niente a che fare con noi. Non lavoriamo per NVIDIA, AMD, INTEL o Microsoft e non devono essere ritenuti responsabili per qualunque danno causato a questo computer.
+				- Tieni a mente che NVIDIA, AMD, Intel® o Microsoft non hanno niente a che fare con noi. Non lavoriamo per NVIDIA, AMD, Intel® o Microsoft e non devono essere ritenuti responsabili per qualunque danno causato a questo computer.
 				-------------------------------
 				
 				Creato da Wagnard.
@@ -487,7 +487,7 @@
 
 				Usando "Display Driver Uninstaller" accetti di non accusare "Display Driver Uninstaller", i suoi creatori e affiliati di danni o di qualsiasi cosa che possa influenzare negativamente questo computer.
 
-				Usando "Display Driver Uninstaller" riconosci che nè NVIDIA ("NVIDIA, GeForce"), nè Advanced Micro Devices ("AMD, Radeon"), nè INTEL hanno niente a che vedere con questo programma, e che non sono in alcun modo affiliati a Display Driver Uninstaller e/o ai suoi creatori.
+				Usando "Display Driver Uninstaller" riconosci che nè NVIDIA ("NVIDIA, GeForce"), nè Advanced Micro Devices ("AMD, Radeon"), nè Intel® hanno niente a che vedere con questo programma, e che non sono in alcun modo affiliati a Display Driver Uninstaller e/o ai suoi creatori.
 
 			</Text>
 		</Tos>

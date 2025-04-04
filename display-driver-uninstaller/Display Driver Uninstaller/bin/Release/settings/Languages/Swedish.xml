@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH-drivrutin) Ta bort INTEL Kontrollpanel installerad från Microsoft Store</Text>
+			<Text>(DCH-drivrutin) Ta bort Intel® Kontrollpanel installerad från Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Ta bort Intel Arc Control / Intel Graphics Software</Text>
+			<Text>Ta bort Intel® Arc Control / Intel® Graphics Software</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH-drivrutin) Ta bort AMD Kontrollpanel installerad från Microsoft Store</Text>

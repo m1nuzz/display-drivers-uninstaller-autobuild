@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített INTEL Vezérlőpult eltávolítása</Text>
+			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített Intel® Vezérlőpult eltávolítása</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Intel Arc vezérlőpult / Intel Grafikus Szoftver eltávolítása</Text>
+			<Text>Intel Arc vezérlőpult / Intel® Grafikus Szoftver eltávolítása</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített AMD Vezérlőpult eltávolítása</Text>

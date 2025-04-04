@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(דרייבר DCH) הסר את לוח הבקרה של INTEL שהותקן מחנות Microsoft</Text>
+			<Text>(דרייבר DCH) הסר את לוח הבקרה של Intel® שהותקן מחנות Microsoft</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(דרייבר DCH) הסר את לוח הבקרה של AMD שהותקן מחנות Microsoft</Text>

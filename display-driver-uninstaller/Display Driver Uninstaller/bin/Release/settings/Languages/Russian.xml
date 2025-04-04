@@ -222,7 +222,7 @@
 			<Text>Параметры драйверов AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Параметры драйверов Intel</Text>
+			<Text>Параметры драйверов Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Дополнительные параметры (изменение - на ваш риск)</Text>
@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-		    <Text>(DCH-драйвер) Удалить Панель управления Intel, установленную из Microsoft Store</Text>
+		    <Text>(DCH-драйвер) Удалить Панель управления Intel®, установленную из Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Удалить программное обеспечение Intel Arc Control / Intel Graphics</Text>
+			<Text>Удалить программное обеспечение Intel® Arc Control / Intel® Graphics</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH-драйвер) Удалить Панель управления AMD, установленную из Microsoft Store</Text>
@@ -443,7 +443,7 @@
 	<Misc>
 		<About>
 			<Text>
-				Display Driver Uninstaller (DDU) - утилита для удаления видеодрайверов NVIDIA, AMD, Intel.
+				Display Driver Uninstaller (DDU) - утилита для удаления видеодрайверов NVIDIA, AMD, Intel®.
 
 				Удаляет текущие и предыдущие видеодрайверы из диспетчера устройств и хранилища драйверов Windows. Также удаляются службы NVIDIA и AMD.
 
@@ -493,7 +493,7 @@
 				Используя программу DDU, вы отказываетесь от претензий к её создателям в случае возникновения неполадок или ошибок в системе.
 
 				Используя DDU, вы признаёте, что компании NVIDIA ("NVIDIA, GeForce"), Advanced Micro Devices ("AMD, Radeon")
-				и Intel не имеют ничего общего с этой программой и не являются партнёрами DDU или её создателей.
+				и Intel® не имеют ничего общего с этой программой и не являются партнёрами DDU или её создателей.
 			</Text>
 		</Tos>
 	</Misc>

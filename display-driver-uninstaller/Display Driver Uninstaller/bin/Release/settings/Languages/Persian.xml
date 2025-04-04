@@ -213,7 +213,7 @@
 			<Text>گزینه های خاص AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>گزینه های خاص INTEL</Text>
+			<Text>گزینه های خاص Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>(گزینه های پیشرفته (تنظیمات را با احتیاط تغییر دهید</Text>
@@ -265,7 +265,7 @@
 			<Text>(DCH driver) Remove the NVIDIA Control Panel installed from the Microsoft Store</Text>
 		</lblRemNVCP>
 		<lblRemINTELCP>
-			<Text>(DCH driver) Remove the INTEL Control Panel installed from the Microsoft Store</Text>
+			<Text>(DCH driver) Remove the Intel® Control Panel installed from the Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH driver) Remove the AMD Control Panel installed from the Microsoft Store</Text>

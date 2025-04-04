@@ -277,7 +277,7 @@
 			<Text>(DCH driver) Verwijder NVIDIA Control Panel geïnstalleerd van de Microsoft Store</Text>
 		</lblRemNVCP>
 		<lblRemINTELCP>
-			<Text>(DCH driver) Verwijder INTEL Control Panel geïnstalleerd van de Microsoft Store</Text>
+			<Text>(DCH driver) Verwijder Intel® Control Panel geïnstalleerd van de Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH driver) Verwijder AMD Control Panel geïnstalleerd van de Microsoft Store</Text>

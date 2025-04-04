@@ -222,7 +222,7 @@
 			<Text>Specifické možnosti AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Specifické možnosti INTEL</Text>
+			<Text>Specifické možnosti Intel®</Text>
 		</lblINTELspecific>
     		<lblAdvancedO>
 			<Text>Pokročilá nastavení (Změna na vlastní riziko)</Text>
@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH ovladač) Odstranit INTEL Control Panel nainstalovaný z obchodu Microsoft Store</Text>
+			<Text>(DCH ovladač) Odstranit Intel® Control Panel nainstalovaný z obchodu Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH ovladač) Odstranit AMD Control Panel nainstalovaný z obchodu Microsoft Store</Text>

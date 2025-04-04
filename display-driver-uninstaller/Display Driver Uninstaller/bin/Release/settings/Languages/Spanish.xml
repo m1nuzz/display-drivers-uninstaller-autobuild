@@ -219,7 +219,7 @@
 			<Text>Opciones específicas de AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Opciones específicas de INTEL</Text>
+			<Text>Opciones específicas de Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Opciones avanzadas (Modifíquelas bajo su propia responsabilidad)</Text>
@@ -281,7 +281,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(Controlador DCH) Elimina el Panel de Control INTEL instalado desde Microsoft Store</Text>
+			<Text>(Controlador DCH) Elimina el Panel de Control Intel® instalado desde Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(Controlador DCH) Elimina el Panel de Control AMD instalado desde Microsoft Store</Text>

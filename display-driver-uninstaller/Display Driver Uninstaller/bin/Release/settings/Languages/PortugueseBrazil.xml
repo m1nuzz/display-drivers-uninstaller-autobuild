@@ -197,7 +197,7 @@
 			<Text>Opções especificas da AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Opções especificas da Intel</Text>
+			<Text>Opções especificas da Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Opções avançadas (Alterações por sua conta e risco)</Text>
@@ -257,10 +257,10 @@
 Esta opção não foi desenvolvida para corrigir problemas e pode não corrigir o problema enfrentado."</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH driver) Remover o INTEL Control Panel instalado da Microsoft Store</Text>
+			<Text>(DCH driver) Remover o Intel® Control Panel instalado da Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Remover Intel Arc Control / Intel Graphics Software</Text>
+			<Text>Remover Intel® Arc Control / Intel® Graphics Software</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH driver) Remover o AMD Control Panel instalado da Microsoft Store</Text>

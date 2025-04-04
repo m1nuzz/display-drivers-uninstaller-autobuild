@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH Driver) Entfernen des aus dem Microsoft Store installierten INTEL Control Panel</Text>
+			<Text>(DCH Driver) Entfernen des aus dem Microsoft Store installierten Intel® Control Panel</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Intel Arc Control / Intel Graphics Software entfernen</Text>
+			<Text>Intel Arc Control / Intel® Graphics Software entfernen</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH Driver) Entfernen des aus dem Microsoft Store installierten AMD Control Panel</Text>

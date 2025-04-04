@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH 드라이버) Microsoft Store에서 설치된 Intel 제어판 제거</Text>
+			<Text>(DCH 드라이버) Microsoft Store에서 설치된 Intel® 제어판 제거</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Intel Arc Control / Intel 그래픽 소프트웨어 제거</Text>
+			<Text>Intel Arc Control / Intel® 그래픽 소프트웨어 제거</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH 드라이버) Microsoft Store에서 설치된 AMD 제어판 제거</Text>

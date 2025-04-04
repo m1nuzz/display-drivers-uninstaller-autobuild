@@ -288,7 +288,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH 驅動程式) 移除從 Microsoft Store 安裝的 INTEL 控制台</Text>
+			<Text>(DCH 驅動程式) 移除從 Microsoft Store 安裝的 Intel® 控制台</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH 驅動程式) 移除從 Microsoft Store 安裝的 AMD 控制台</Text>

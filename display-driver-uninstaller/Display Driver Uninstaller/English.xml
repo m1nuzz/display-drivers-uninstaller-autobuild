@@ -155,7 +155,7 @@
 			<Options1>---Select device---</Options1>
 			<Options2>NVIDIA</Options2>
 			<Options3>AMD</Options3>
-			<Options4>INTEL</Options4>
+			<Options4>Intel®</Options4>
 		</Options_GPU>
 		<Options_AUDIO>
 			<Options1>---Select device---</Options1>
@@ -222,7 +222,7 @@
 			<Text>AMD Specific Options</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>INTEL Specific Options</Text>
+			<Text>Intel® Specific Options</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Advanced Options (Change at your own risks)</Text>
@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH driver) Remove the INTEL Control Panel installed from the Microsoft Store</Text>
+			<Text>(DCH driver) Remove the Intel® Control Panel installed from the Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Remove Intel Arc Control / Intel Graphics Software</Text>
+			<Text>Remove Intel® Arc Control / Intel® Graphics Software</Text>
 		</lblRemINTELIGS>
 		<lblRemOneAPI>
 			<Text>Remove Intel® oneAPI Level Zero SDK</Text>

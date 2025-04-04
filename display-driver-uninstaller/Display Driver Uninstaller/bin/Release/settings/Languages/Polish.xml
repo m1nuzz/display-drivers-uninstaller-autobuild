@@ -222,7 +222,7 @@
 			<Text>Opcje dla kart AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Opcje dla kart INTEL</Text>
+			<Text>Opcje dla kart Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Zaawansowane opcje</Text>
@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(Sterownik DCH) Usuń Panel Sterowania INTEL zainstalowany z Microsoft Store</Text>
+			<Text>(Sterownik DCH) Usuń Panel Sterowania Intel® zainstalowany z Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Usuń Panel sterowania Intel Arc / Panel sterowania grafiki Intel</Text>
+			<Text>Usuń Panel sterowania Intel® Arc / Panel sterowania grafiki Intel®</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(Sterownik DCH) Usuń Panel Sterowania AMD zainstalowany z Microsoft Store</Text>

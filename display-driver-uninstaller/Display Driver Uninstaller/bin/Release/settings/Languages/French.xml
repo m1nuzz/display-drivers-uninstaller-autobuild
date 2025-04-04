@@ -222,7 +222,7 @@
 			<Text>Options spécifiques à AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Options spécifiques à INTEL</Text>
+			<Text>Options spécifiques à Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Options avancées (changez à vos propres risques)</Text>
@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>Supprimer INTEL (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>
+			<Text>Supprimer Intel® (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>Supprimer AMD (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>

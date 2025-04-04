@@ -284,10 +284,10 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH ドライバー) Microsoft Store からインストールされた INTEL コントロールパネルを削除する</Text>
+			<Text>(DCH ドライバー) Microsoft Store からインストールされた Intel® コントロールパネルを削除する</Text>
 		</lblRemINTELCP>
 		<lblRemINTELIGS>
-			<Text>Intel Arc Control / Intel Graphics Software を削除する</Text>
+			<Text>Intel Arc Control / Intel® Graphics Software を削除する</Text>
 		</lblRemINTELIGS>
 		<lblRemAMDCP>
 			<Text>(DCH ドライバー) Microsoft Store からインストールされた AMD コントロールパネルを削除する</Text>

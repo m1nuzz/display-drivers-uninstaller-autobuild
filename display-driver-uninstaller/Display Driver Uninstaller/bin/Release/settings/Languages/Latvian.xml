@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH draiveris) Noņemt no Microsoft veikala instalēto INTEL vadības paneli</Text>
+			<Text>(DCH draiveris) Noņemt no Microsoft veikala instalēto Intel® vadības paneli</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH draiveris) Noņemt no Microsoft veikala instalēto AMD vadības paneli</Text>

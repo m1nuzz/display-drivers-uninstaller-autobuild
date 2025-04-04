@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>Microsoft Store'dan yüklenen INTEL Kontrol Panelini kaldır (DCH sürücü)</Text>
+			<Text>Microsoft Store'dan yüklenen Intel® Kontrol Panelini kaldır (DCH sürücü)</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>Microsoft Store'dan yüklenen AMD Kontrol Panelini kaldır (DCH sürücü)</Text>

@@ -222,7 +222,7 @@
 			<Text>Posebne možnosti AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Posebne možnosti INTEL</Text>
+			<Text>Posebne možnosti Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Napredne možnosti (Sprememba na lastno odgovornost)</Text>
@@ -284,7 +284,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH gonilnik) Odstrani nameščeno nadzorno ploščo INTEL iz Microsoft trgovine</Text>
+			<Text>(DCH gonilnik) Odstrani nameščeno nadzorno ploščo Intel® iz Microsoft trgovine</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>(DCH gonilnik) Odstrani nameščeno nadzorno ploščo AMD iz Microsoft trgovine</Text>

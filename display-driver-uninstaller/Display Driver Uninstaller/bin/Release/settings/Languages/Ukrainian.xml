@@ -231,7 +231,7 @@
 			<Text>Параметри, специфічні для AMD</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>Параметри, специфічні для INTEL</Text>
+			<Text>Параметри, специфічні для Intel®</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>Додаткові параметри (змінюйте на свій страх і ризик)</Text>
@@ -296,7 +296,7 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>Видалити панель керування INTEL, інстальовану з Microsoft Store (драйвер DCH)</Text>
+			<Text>Видалити панель керування Intel®, інстальовану з Microsoft Store (драйвер DCH)</Text>
 		</lblRemINTELCP>
 		<lblRemAMDCP>
 			<Text>Видалити панель керування AMD, інстальовану з Microsoft Store (драйвер DCH)</Text>
