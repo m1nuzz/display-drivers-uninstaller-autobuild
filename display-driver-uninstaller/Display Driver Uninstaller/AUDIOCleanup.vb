@@ -1,4 +1,5 @@
-﻿Imports Display_Driver_Uninstaller.Win32
+﻿Imports System.Security.Principal
+Imports Display_Driver_Uninstaller.Win32
 Imports Microsoft.Win32
 
 Namespace Display_Driver_Uninstaller
@@ -11,6 +12,10 @@ Namespace Display_Driver_Uninstaller
 			Dim win10 As Boolean = FrmMain.IsWindows10
 			Dim vendidexpected As String = ""
 			Dim VendidSC As String() = Nothing   ' "SoftwareComponent" Vendor ID
+
+			If WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.ReleaseToken()
+			End If
 
 			Select Case config.SelectedAUDIO
 				Case AudioVendor.Realtek
@@ -153,14 +158,19 @@ Namespace Display_Driver_Uninstaller
 
 			Application.Log.AddMessage("Cleaning known Regkeys")
 
+			If WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.ReleaseToken()
+			End If
+
 			'Removal of the (DCH) Nvidia control panel comming from the Window Store. (In progress...)
 			If win10 Then
-				If CanDeprovisionPackageForAllUsersAsync() Then
-					_cleanupEngine.RemoveAppx1809("RealtekAudioControl")
-				Else
-					_cleanupEngine.RemoveAppx("RealtekAudioControl")
-				End If
+				_cleanupEngine.RemoveAppx("RealtekAudioControl")
 			End If
+
+			If Not WindowsIdentity.GetCurrent().IsSystem Then
+				ImpersonateLoggedOnUser.Taketoken()
+			End If
+
 			Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
 
 			_cleanupEngine.ClassRoot(IO.File.ReadAllLines(config.Paths.AppBase & "settings\REALTEK\classroot.cfg"), config)  '// add each line as String Array.

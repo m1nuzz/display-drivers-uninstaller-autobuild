@@ -52,6 +52,7 @@ Namespace Display_Driver_Uninstaller
 				_cleaningTask = value
 			End Set
 		End Property
+
 		Friend Shared Property WorkTask As Task
 			Get
 				Return _workTask
@@ -60,6 +61,7 @@ Namespace Display_Driver_Uninstaller
 				_workTask = value
 			End Set
 		End Property
+
 		Public Shared Property DoNotRemoveAmdHdAudioBusFiles As Boolean
 			Get
 				Return _donotremoveamdhdaudiobusfiles
@@ -74,6 +76,7 @@ Namespace Display_Driver_Uninstaller
 				Return _isWindows8OrHigher
 			End Get
 		End Property
+
 		Public Shared ReadOnly Property IsWindows10 As Boolean
 			Get
 				Return _isWindows10

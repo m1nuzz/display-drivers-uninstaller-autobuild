@@ -7,6 +7,7 @@ Imports System.Threading.Tasks
 Imports Display_Driver_Uninstaller.Win32
 Imports Microsoft.Win32
 Imports WinForm = System.Windows.Forms
+
 Namespace Display_Driver_Uninstaller
 	Public Class GPUCleanup
 		Private ReadOnly _fileIo As New FileIO
@@ -16,38 +17,42 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly _sysdrv As String = Application.Paths.SystemDrive
 
 		Public Sub Start(ByVal config As ThreadSettings)
-			Dim CleanupEngine As New CleanupEngine
-			Dim ServiceInstaller As New ServiceInstaller
-			Dim Array As String()
-			Dim VendCHIDGPU As String = ""
-			Dim vendidexpected As String = ""
-			Dim VendidSC As String() = Nothing
-			Dim AudioServices As String() = Nothing
+			Dim cleanupEngine As New CleanupEngine
+			Dim serviceInstaller As New ServiceInstaller
+			Dim array As String()
+			Dim vendCHIDGPU As String = ""
+			Dim vendIdExpected As String = ""
+			Dim vendidSC As String()
+			Dim audioServices As String()
+
 			Select Case config.SelectedGPU
 				Case GPUVendor.Nvidia
-					vendidexpected = "VEN_10DE"
-					VendCHIDGPU = "VEN_10DE&CC_03"
-					VendidSC = {"VEN_10DE"}
-					AudioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\servicesaudio.cfg")
+					vendIdExpected = "VEN_10DE"
+					vendCHIDGPU = "VEN_10DE&CC_03"
+					vendidSC = {"VEN_10DE"}
+					audioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\servicesaudio.cfg")
 				Case GPUVendor.AMD
-					vendidexpected = "VEN_1002"
-					VendCHIDGPU = "VEN_1002&CC_03"
-					VendidSC = {"VEN_1002"}
-					AudioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\servicesaudio.cfg")
+					vendIdExpected = "VEN_1002"
+					vendCHIDGPU = "VEN_1002&CC_03"
+					vendidSC = {"VEN_1002"}
+					audioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\servicesaudio.cfg")
 				Case GPUVendor.Intel
-					vendidexpected = "VEN_8086"
-					VendCHIDGPU = "VEN_8086&CC_03"
-					VendidSC = {"VEN8086_MSDK", "VEN8086_GFXUI"}
-					AudioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\servicesaudio.cfg")
-				Case GPUVendor.None : vendidexpected = "NONE"
+					vendIdExpected = "VEN_8086"
+					vendCHIDGPU = "VEN_8086&CC_03"
+					vendidSC = {"VEN8086_MSDK", "VEN8086_GFXUI"}
+					audioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\servicesaudio.cfg")
+				Case GPUVendor.None : vendIdExpected = "NONE"
 			End Select
-			If vendidexpected = "NONE" Then
+
+			If vendIdExpected = "NONE" Then
 				Application.Log.AddWarningMessage("VendID is NONE, this is unexpected, cleaning aborted.")
 				Exit Sub
 			End If
+
 			UpdateTextMethod(UpdateTextTranslated(20) + " " & config.SelectedGPU.ToString() & " " + UpdateTextTranslated(21))
 			Application.Log.AddMessage("Uninstalling " + config.SelectedGPU.ToString() + " driver ...")
 			UpdateTextMethod(UpdateTextTranslated(22))
+
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
@@ -62,11 +67,11 @@ Namespace Display_Driver_Uninstaller
 					Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\services.cfg")
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
-						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
+						If serviceInstaller.GetServiceStatus(service, False) = Nothing Then
 							'Service is not present
 						Else
 							Try
-								ServiceInstaller.Uninstall(service)
+								serviceInstaller.Uninstall(service)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
@@ -84,36 +89,38 @@ Namespace Display_Driver_Uninstaller
 						Dim gfeservices As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\gfeservice.cfg")
 						For Each service As String In gfeservices
 							If IsNullOrWhitespace(service) Then Continue For
-							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+							If serviceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 							'Service is not present
 
 							Try
-								ServiceInstaller.Uninstall(service)
+								serviceInstaller.Uninstall(service)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
 						Next
 					End If
+
 					If config.RemoveNVBROADCAST Then
 						Dim nvbservices As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\nvbservice.cfg")
 						KillProcess("nvidia broadcast")
 						For Each service As String In nvbservices
 							If IsNullOrWhitespace(service) Then Continue For
-							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+							If serviceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 							'Service is not present
 
 							Try
-								ServiceInstaller.Uninstall(service)
+								serviceInstaller.Uninstall(service)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
 						Next
 					End If
+
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
-						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+						If serviceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 						Try
-							ServiceInstaller.Uninstall(service)
+							serviceInstaller.Uninstall(service)
 						Catch ex As Exception
 							Application.Log.AddException(ex)
 						End Try
@@ -131,30 +138,37 @@ Namespace Display_Driver_Uninstaller
 							Next
 						End If
 					End Using
+
 				Case GPUVendor.Intel
 					Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\services.cfg")
+
 					If config.RemoveINTELIGS Then
+						If _win10 Then
+							cleanupEngine.RemoveAppx("IntelArcSoftware")
+						End If
+
 						Dim igsServices As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\servicesigs.cfg")
 						For Each service As String In igsServices
 							If IsNullOrWhitespace(service) Then Continue For
-							If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+							If serviceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 							'Service is not present
 
 							Try
-								ServiceInstaller.Uninstall(service)
+								serviceInstaller.Uninstall(service)
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
 						Next
 						KillProcess("arccontrol", "arccontrolassist", "ArcControlLauncher", "ArcControlPostProcessing", "intelgraphicssoftware", "EnduranceGamingProcess")
 					End If
+
 					For Each service As String In services
 						If IsNullOrWhitespace(service) Then Continue For
-						If ServiceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
+						If serviceInstaller.GetServiceStatus(service, False) = Nothing Then Continue For
 						'Service is not present
 
 						Try
-							ServiceInstaller.Uninstall(service)
+							serviceInstaller.Uninstall(service)
 						Catch ex As Exception
 							Application.Log.AddException(ex)
 						End Try
@@ -229,7 +243,7 @@ Namespace Display_Driver_Uninstaller
 					If Not Checkamdkmpfd() Then
 						config.NotPresentAMDKMPFD = True
 						UpdateTextMethod("Start - Check for AMDKMPFD service.")
-						CleanupEngine.Cleanserviceprocess({"amdkmpfd"}, config)
+						cleanupEngine.Cleanserviceprocess({"amdkmpfd"}, config)
 						UpdateTextMethod("End - Check for AMDKMPFD service.")
 					End If
 				End If
@@ -335,13 +349,13 @@ Namespace Display_Driver_Uninstaller
 				Try
 					UpdateTextMethod(UpdateTextTranslated(24))
 					Application.Log.AddMessage("SetupAPI: Removing Audio device associated to the GPU(s).")
-					Dim audioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendidexpected, False, True, True)
+					Dim audioDevices As List(Of SetupAPI.Device) = SetupAPI.GetDevices("media", vendIdExpected, False, True, True)
 					If audioDevices IsNot Nothing AndAlso audioDevices.Count > 0 Then
 						' Create a list to track devices already removed
 						Dim removedDevices As New List(Of String)
 						For Each audioDevice As SetupAPI.Device In audioDevices
 							If audioDevice IsNot Nothing AndAlso Not IsNullOrWhitespace(audioDevice.Service) Then
-								If Not StrContainsAny(audioDevice.Service, True, AudioServices) Then Continue For
+								If Not StrContainsAny(audioDevice.Service, True, audioServices) Then Continue For
 
 								' Check if the device has already been removed
 								If removedDevices.Contains(audioDevice.ToString()) Then
@@ -410,9 +424,9 @@ Namespace Display_Driver_Uninstaller
 											For Each child3 As String In regkey3.GetSubKeyNames()
 												If IsNullOrWhitespace(child3) Then Continue For
 												'need to test more this code. got an error on a friend computer (Wagnard)(Possibly fixed with the trycast)
-												Array = TryCast(MyRegistry.OpenSubKey(regkey3, child3).GetValue("LowerFilters"), String())
-												If (Array IsNot Nothing) AndAlso Array.Length > 0 Then
-													For Each entry As String In Array
+												array = TryCast(MyRegistry.OpenSubKey(regkey3, child3).GetValue("LowerFilters"), String())
+												If (array IsNot Nothing) AndAlso array.Length > 0 Then
+													For Each entry As String In array
 														If IsNullOrWhitespace(entry) Then Continue For
 														If StrContainsAny(entry, True, "amdkmafd") Then
 															Application.Log.AddWarningMessage("Found a remaining AMD audio controller bus ! Preventing the removal of its driverfiles.")
@@ -550,7 +564,7 @@ Namespace Display_Driver_Uninstaller
 
 				Try
 					Application.Log.AddMessage("Executing SetupAPI: Remove GPU(s).")
-					Dim GPUs As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID(VendCHIDGPU, False, False, True)
+					Dim GPUs As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID(vendCHIDGPU, False, False, True)
 					If GPUs IsNot Nothing AndAlso GPUs.Count > 0 Then
 						' Create a list to track devices already removed
 						Dim removedDevices As New List(Of String)
@@ -667,7 +681,7 @@ Namespace Display_Driver_Uninstaller
 					Application.Log.AddMessage("SetupAPI: Remove Intel Mini CTA Driver Complete .")
 
 					'remove left over audio
-					found = SetupAPI.GetDevices("media", vendidexpected, False)
+					found = SetupAPI.GetDevices("media", vendIdExpected, False)
 					Try
 						If found IsNot Nothing AndAlso found.Count > 0 Then
 							For Each d As SetupAPI.Device In found
@@ -832,7 +846,7 @@ Namespace Display_Driver_Uninstaller
 				End If
 				Application.Log.AddMessage("SetupAPI: Remove Audio/HDMI Complete")
 				If config.SelectedGPU <> GPUVendor.Intel Then
-					CleanupEngine.Cleandriverstore(config)
+					cleanupEngine.Cleandriverstore(config)
 				End If
 
 				'removing monitor and hidden monitor
@@ -845,7 +859,7 @@ Namespace Display_Driver_Uninstaller
 							If d IsNot Nothing Then
 								SetupAPI.UninstallDevice(d)
 								If d.HasHardwareID AndAlso d.HardwareIDs.Length > 0 Then
-									CleanupEngine.RemoveMonitorConfiguration(d.HardwareIDs(0).Substring(d.HardwareIDs(0).IndexOf("\") + 1))
+									cleanupEngine.RemoveMonitorConfiguration(d.HardwareIDs(0).Substring(d.HardwareIDs(0).IndexOf("\") + 1))
 								End If
 							End If
 						Next
@@ -886,15 +900,15 @@ Namespace Display_Driver_Uninstaller
 				Cleannvidiaserviceprocess(config)
 				CleanNvidia(config)
 				CleanNvidiaFolders(config)
-				CleanupEngine.RemoveRegDeviceSoftware("NVIDIA CoInstaller Display.Driver")
+				cleanupEngine.RemoveRegDeviceSoftware("NVIDIA CoInstaller Display.Driver")
 			End If
 			If config.SelectedGPU = GPUVendor.Intel Then
 				CleanIntelServiceProcess(config)
 				CleanIntel(config)
 				CleanIntelFolders(config)
 			End If
-			CleanupEngine.Cleandriverstore(config)
-			CleanupEngine.Fixregistrydriverstore(config)
+			cleanupEngine.Cleandriverstore(config)
+			cleanupEngine.Fixregistrydriverstore(config)
 			config.Success = True
 		End Sub
 		Private Sub KillProcess(ByVal ParamArray processnames As String())
@@ -994,7 +1008,7 @@ Namespace Display_Driver_Uninstaller
 			Dim CleanupEngine As New CleanupEngine
 			Dim wantedvalue As String = Nothing
 			Dim wantedvalue2 As String = Nothing
-			Dim filePath As String = Nothing
+			Dim filePath As String
 			Dim packages = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\packages.cfg")   '// add each line as String Array.
 			Dim classroot As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\classroot.cfg")
 			Dim reginterface As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\interface.cfg")
@@ -1002,12 +1016,14 @@ Namespace Display_Driver_Uninstaller
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfiles.cfg")
 			Dim driverfilesKMPFD As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMPFD.cfg")
 			Dim driverfilesKMAFD As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\driverfilesKMAFD.cfg")
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			If preclean Then
 				UpdateTextMethod(UpdateTextTranslated(2))
-				Application.Log.AddMessage("Cleaning known Regkeys")
+				Application.Log.AddMessage("Cleaning registry Part 1/2")
 
 
 				'Delete AMD regkey
@@ -1016,23 +1032,21 @@ Namespace Display_Driver_Uninstaller
 				Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
 				CleanupEngine.ClassRoot(classroot, config)  '// add each line as String Array.
 
+				If WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.ReleaseToken()
+				End If
 
 				'Removal of the (DCH) AMD control panel comming from the Window Store. (In progress...)
 				If _win10 Then
 					If config.RemoveAMDCP Then
-						If CanDeprovisionPackageForAllUsersAsync() Then
-							CleanupEngine.RemoveAppx1809("AMDRadeonSoftware")
-							CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-RSXCM")
-						Else
-							CleanupEngine.RemoveAppx("AMDRadeonSoftware")
-							CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-RSXCM")
-						End If
+						CleanupEngine.RemoveAppx("AMDRadeonSoftware")
+						CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-RSXCM")
 					End If
-					If CanDeprovisionPackageForAllUsersAsync() Then
-						CleanupEngine.RemoveAppx1809("AdvancedMicroDevicesInc-2.AMDLink")
-					Else
-						CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-2.AMDLink")
-					End If
+					CleanupEngine.RemoveAppx("AdvancedMicroDevicesInc-2.AMDLink")
+				End If
+
+				If Not WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.Taketoken()
 				End If
 
 				'-----------------
@@ -1225,6 +1239,8 @@ wantedvalue2.ToLower.Contains("ati video") Then
 				CLSIDCleanThread(clsidleftover)
 				Return
 			End If
+
+			Application.Log.AddMessage("Cleaning registry Part 2/2")
 			Application.Log.AddMessage("Record CleanUP")
 
 			'--------------
@@ -3539,36 +3555,37 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			Dim reginterface As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\interface.cfg")
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\driverfiles.cfg")
 			Dim gfedriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\gfedriverfiles.cfg")
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			If preclean Then
 
 				'-----------------
 				'Registry Cleaning
 				'-----------------
 				UpdateTextMethod(UpdateTextTranslated(5))
-				Application.Log.AddMessage("Starting reg cleanUP... May take a minute or two.")
+				Application.Log.AddMessage("Cleaning registry Part 1/2")
 
 
 				'Deleting DCOM object /classroot
 				Application.Log.AddMessage("Starting dcom/clsid/appid/typelib cleanup")
 				CleanupEngine.ClassRoot(classroot, config)
+
 				If config.RemoveGFE Then
 					CleanupEngine.ClassRoot(classrootgfe, config)
 				End If
+
 				If WindowsIdentity.GetCurrent().IsSystem Then
 					ImpersonateLoggedOnUser.ReleaseToken()
 				End If
 
 				'Removal of the (DCH) Nvidia control panel comming from the Window Store. (In progress...)
 				If _win10 AndAlso config.RemoveNVCP Then
-					If CanDeprovisionPackageForAllUsersAsync() Then
-						CleanupEngine.RemoveAppx1809("NVIDIAControlPanel")
-					Else
-						CleanupEngine.RemoveAppx("NVIDIAControlPanel")
-					End If
+					CleanupEngine.RemoveAppx("NVIDIAControlPanel")
 				End If
+
 				If Not WindowsIdentity.GetCurrent().IsSystem Then
 					ImpersonateLoggedOnUser.Taketoken()
 				End If
@@ -3616,14 +3633,18 @@ child2.ToLower.Contains("hdaudio.driver") Then
 				'-----------------
 
 				Task.WaitAll(TaskList.ToArray())
+
 				If removegfe Then 'When removing GFE only
 					CleanupEngine.Interfaces(reginterfaceGFE) '// add each line as String Array.
 				Else
 					CleanupEngine.Interfaces(reginterface)  '// add each line as String Array.
 				End If
+
 				Application.Log.AddMessage("Finished dcom/clsid/appid/typelib/interface cleanup")
 				Return
 			End If
+
+			Application.Log.AddMessage("Cleaning registry Part 2/2")
 
 			'end of deleting dcom stuff
 			Application.Log.AddMessage("Pnplockdownfiles region cleanUP")
@@ -3632,6 +3653,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			If removegfe Then
 				CleanupEngine.Pnplockdownfiles(gfedriverfiles) '// add each line as String Array.
 			End If
+
 			'Cleaning PNPRessources.  'Will fix this later, its not efficent clean at all. (Wagnard)
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Khronos", False)
 				If regkey IsNot Nothing Then
@@ -3642,6 +3664,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\NVIDIA Corporation\Global", False)
 				If regkey IsNot Nothing Then
 					Try
@@ -3651,6 +3674,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR\SOFTWARE\NVIDIA Corporation\global", False)
 				If regkey IsNot Nothing Then
 					Try
@@ -3660,6 +3684,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKCR\SOFTWARE\NVIDIA Corporation", False)
 				If regkey IsNot Nothing Then
 					If regkey.SubKeyCount = 0 Then
@@ -3676,6 +3701,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\NVIDIA Corporation", False)
 				If regkey IsNot Nothing Then
 					If regkey.SubKeyCount = 0 Then
@@ -3692,6 +3718,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Controls Folder\Display\shellex\PropertySheetHandlers\NVIDIA CPL Extension", False)
 				If regkey IsNot Nothing Then
 					Try
@@ -3701,6 +3728,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\NVIDIA Corporation", False)
 				If regkey IsNot Nothing Then
 					Try
@@ -3710,6 +3738,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SYSTEM\CurrentControlSet\services\nvlddmkm", False)
 				If regkey IsNot Nothing Then
 					Try
@@ -3719,6 +3748,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End Try
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpResources\Registry\HKLM\SOFTWARE\Wow6432Node\Khronos", False)
 					If regkey IsNot Nothing Then
@@ -3730,6 +3760,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 					End If
 				End Using
 			End If
+
 			If removegfe Then
 				'----------------------
 				'Firewall entry cleanup
@@ -6505,6 +6536,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanIntel(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
 			Dim wantedvalue As String = Nothing
@@ -6517,25 +6549,28 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Dim clsidleftover As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftover.cfg")
 			Dim clsidleftoverigs As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\clsidleftoverigs.cfg")
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			If preclean Then
 				UpdateTextMethod(UpdateTextTranslated(5))
-				Application.Log.AddMessage("Cleaning registry")
+				Application.Log.AddMessage("Cleaning registry Part 1/2")
 
 				'Removal of the (DCH) from the Window Store. (In progress...)
-				If _win10 AndAlso config.RemoveINTELCP Then
-					If CanDeprovisionPackageForAllUsersAsync() Then
-						CleanupEngine.RemoveAppx1809("IntelGraphicsControlPanel")
-						CleanupEngine.RemoveAppx1809("IntelGraphicsExperience")
-						CleanupEngine.RemoveAppx1809("IntelGraphicsCommandCenter")
-					Else
+				If _win10 Then
+					If config.RemoveINTELCP Then
 						CleanupEngine.RemoveAppx("IntelGraphicsControlPanel")
 						CleanupEngine.RemoveAppx("IntelGraphicsExperience")
 						CleanupEngine.RemoveAppx("IntelGraphicsCommandCenter")
 					End If
 				End If
+
+				If Not WindowsIdentity.GetCurrent().IsSystem Then
+					ImpersonateLoggedOnUser.Taketoken()
+				End If
+
 				CleanupEngine.Pnplockdownfiles(driverfiles) '// add each line as String Array.
 
 				CleanupEngine.ClassRoot(classroot, config) '// add each line as String Array.
@@ -6547,8 +6582,11 @@ child.ToLower.Contains("nvidia.gfe") Then
 				If config.RemoveINTELIGS Then
 					CleanupEngine.Clsidleftover(clsidleftoverigs) '// add each line as String Array.
 				End If
+
 				Return
 			End If
+
+			Application.Log.AddMessage("Cleaning registry Part 2/2")
 
 			'--------------------------
 			'Power Settings CleanUP
