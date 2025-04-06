@@ -15,7 +15,7 @@ Namespace Display_Driver_Uninstaller
 		Private _fileIo As New FileIO
 #Region "Visit links URLs"
 
-		Private Const URL_DONATE As String = "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KAQAJ6TNR9GQE&lc=CA&item_name=Display%20Driver%20Uninstaller%20%28DDU%29&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted"
+		Private Const URL_DONATE As String = "https://www.paypal.com/donate/?hosted_button_id=S8H2QAS7KLV7N"
 		Private Const URL_PATRON As String = "https://www.patreon.com/wagnardsoft"
 		Private Const URL_DISCORD As String = "https://discord.gg/JsSsKyqzjF"
 		Private Const URL_DDUHOME As String = "https://www.wagnardsoft.com"
