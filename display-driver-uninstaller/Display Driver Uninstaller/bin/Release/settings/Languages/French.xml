@@ -106,6 +106,9 @@
 		<VisitDDUHomeMenuItem>
 			<Text>Visiter le site officiel de DDU</Text>
 		</VisitDDUHomeMenuItem>
+		<VisitDiscord>
+			<Text>Rejoinde notre Discord</Text>
+		</VisitDiscord>
 		<VisitSVNMenuItem>
 			<Text>Visiter le site web de SVN</Text>
 		</VisitSVNMenuItem>

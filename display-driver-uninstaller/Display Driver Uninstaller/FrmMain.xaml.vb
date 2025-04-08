@@ -1367,5 +1367,9 @@ Namespace Display_Driver_Uninstaller
 		Private Sub LblOffer_MouseDown(sender As Object, e As MouseButtonEventArgs) Handles lblOffer.MouseDown
 			WinAPI.OpenVisitLink(" -visitoffer")
 		End Sub
+
+		Private Sub VisitDiscord_Click(sender As Object, e As RoutedEventArgs) Handles VisitDiscord.Click
+			WinAPI.OpenVisitLink(" -visitdiscord")
+		End Sub
 	End Class
 End Namespace
