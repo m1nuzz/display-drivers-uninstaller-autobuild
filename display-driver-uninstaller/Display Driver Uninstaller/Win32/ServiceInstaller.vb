@@ -36,6 +36,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 
 			GetServiceStatus(serviceName)
+			GetServiceStatus(serviceName, False)
 
 			'Verify that the service was indeed removed via registry.
 			Using regkey As Microsoft.Win32.RegistryKey = MyRegistry.OpenSubKey(Microsoft.Win32.Registry.LocalMachine, "SYSTEM\CurrentControlSet\Services\" & serviceName, False)
@@ -71,18 +72,6 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Sub
 
 		Public Function GetServiceStatus(ByVal serviceName As String, Optional getdevice As Boolean = True) As ServiceControllerStatus
-			For Each svc As ServiceController In ServiceController.GetServices()
-				Using svc
-					If svc.ServiceName.Equals(serviceName, StringComparison.OrdinalIgnoreCase) Then
-						Try
-							Return svc.Status
-						Catch ex As Exception
-							Application.Log.AddException(ex)
-							Return Nothing
-						End Try
-					End If
-				End Using
-			Next
 
 			If getdevice Then
 				For Each svc As ServiceController In ServiceController.GetDevices()
@@ -97,7 +86,22 @@ Namespace Display_Driver_Uninstaller.Win32
 						End If
 					End Using
 				Next
+				Return Nothing
 			End If
+
+			For Each svc As ServiceController In ServiceController.GetServices()
+				Using svc
+					If svc.ServiceName.Equals(serviceName, StringComparison.OrdinalIgnoreCase) Then
+						Try
+							Return svc.Status
+						Catch ex As Exception
+							Application.Log.AddException(ex)
+							Return Nothing
+						End Try
+					End If
+				End Using
+			Next
+
 			Return Nothing
 		End Function
 	End Class

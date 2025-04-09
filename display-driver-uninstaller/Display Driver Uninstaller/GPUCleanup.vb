@@ -23,7 +23,7 @@ Namespace Display_Driver_Uninstaller
 			Dim vendCHIDGPU As String = ""
 			Dim vendIdExpected As String = ""
 			Dim vendidSC As String()
-			Dim audioServices As String()
+			Dim audioServices As String() = Nothing
 
 			Select Case config.SelectedGPU
 				Case GPUVendor.Nvidia
@@ -254,9 +254,7 @@ Namespace Display_Driver_Uninstaller
 						{"PCI\VEN_8086&DEV_4910",
 						"PCI\VEN_8086&DEV_4FA0",
 						"PCI\VEN_8086&DEV_4FA1",
-						"PCI\VEN_8086&DEV_E2FF",
-						"CT_28bb0e51-b4b0-4509-9e51-78d48daae82b",
-						"VIDEO\INTC_HECI_2"}
+						"PCI\VEN_8086&DEV_E2FF"}
 
 					Dim PCIEDPORT As String() =
 						{"PCI\VEN_8086&DEV_490F",
@@ -653,7 +651,7 @@ Namespace Display_Driver_Uninstaller
 								If d.HasHardwareID Then   'Workaround for a bug report we got.
 									For Each hardwareid As String In d.HardwareIDs
 										If IsNullOrWhitespace(hardwareid) Then Continue For
-										If StrContainsAny(hardwareid, True, "root\iwdbus", "VIDEO\INTC_CTA", "VIDEO\INTC_I2C", "VIDEO\INTC_PMT") Then
+										If StrContainsAny(hardwareid, True, "root\iwdbus", "VIDEO\INTC_CTA", "VIDEO\INTC_I2C", "VIDEO\INTC_PMT", "VIDEO\INTC_HECI_2", "{55BC022C-955B-4D87-A88D-D3E68CBEB2F4}\CT_28bb0e51-b4b0-4509-9e51-78d48daae82b") Then
 											SetupAPI.UninstallDevice(d)
 											Exit For
 										End If
@@ -702,7 +700,7 @@ Namespace Display_Driver_Uninstaller
 					Catch ex As Exception
 						Application.Log.AddException(ex)
 					End Try
-					Application.Log.AddMessage("SetupAPI: Intel(R) Graphics System Controller Auxiliary Firmware Interface Complete .")
+					Application.Log.AddMessage("SetupAPI: Remove Intel(R) Leftover audio complete")
 				End If
 
 				'Here I remove 3dVision USB Adapter and USB type C(RTX).

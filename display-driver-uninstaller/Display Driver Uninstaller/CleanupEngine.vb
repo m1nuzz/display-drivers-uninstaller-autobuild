@@ -1703,7 +1703,7 @@ Namespace Display_Driver_Uninstaller
 									ImpersonateLoggedOnUser.ReleaseToken()
 								End If
 
-								If ServiceInstaller.GetServiceStatus(service) = Nothing Then
+								If ServiceInstaller.GetServiceStatus(service) = Nothing AndAlso ServiceInstaller.GetServiceStatus(service, False) = Nothing Then
 									'Service is not present, but there is residual information on the registry service section for that service.
 
 									If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -1726,7 +1726,7 @@ Namespace Display_Driver_Uninstaller
 									Dim waits As Int32 = 0
 
 									While waits < 30                         'MAX 3 sec APROX to wait Windows remove all files. ( 30 * 100ms)
-										If ServiceInstaller.GetServiceStatus(service) <> Nothing Then
+										If ServiceInstaller.GetServiceStatus(service) <> Nothing OrElse ServiceInstaller.GetServiceStatus(service, False) <> Nothing Then
 											waits += 1
 											objAuto.WaitOne(100)
 											'System.Threading.Thread.Sleep(100)
