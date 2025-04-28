@@ -448,21 +448,6 @@ Namespace Display_Driver_Uninstaller
 					ImpersonateLoggedOnUser.ReleaseToken()
 				End If
 
-				If config.SelectedGPU = GPUVendor.Nvidia Then
-					'nVidia AudioEndpoints Removal
-					Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("audioendpoint", Nothing, False)
-					If found IsNot Nothing AndAlso found.Count > 0 Then
-						For Each d As SetupAPI.Device In found
-							If d IsNot Nothing AndAlso Not IsNullOrWhitespace(d.FriendlyName) Then
-								If StrContainsAny(d.FriendlyName, True, "nvidia virtual audio device", "nvidia high definition audio") Then
-									SetupAPI.UninstallDevice(d)
-								End If
-							End If
-						Next
-						found.Clear()
-					End If
-				End If
-
 				If config.SelectedGPU = GPUVendor.AMD Then
 					' ------------------------------
 					' Removing some of AMD AudioEndpoints
@@ -792,12 +777,23 @@ Namespace Display_Driver_Uninstaller
 						If config.RemoveNVBROADCAST Then
 							' NVIDIA Broadcast(Wave Extensible) (WDM) Removal
 							Application.Log.AddMessage("Executing SetupAPI: Remove NVIDIA Broadcast Audio Device (Wave Extensible) (WDM).")
-							found = SetupAPI.GetDevicesByHID("USB\VID_0956&PID_9001", False, False, False)
+							found = SetupAPI.GetDevicesByHID("USB\VID_0956&PID_9001", False, False, True)
+							Dim removedDevices As New List(Of String)
 							If found IsNot Nothing AndAlso found.Count > 0 Then
 								For Each d As SetupAPI.Device In found
 									If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
 										If StrContainsAny(d.HardwareIDs(0), True, "USB\VID_0956&PID_9001") Then
+											If removedDevices.Contains(d.ToString()) Then
+												Continue For
+											End If
+
+											If d.ChildDevices IsNot Nothing AndAlso d.ChildDevices.Length > 0 Then
+												Application.Log.AddMessage("SetupAPI: Removing childrens associated to the GPU(s)")
+												RemoveChiendrensFromDevices(d.ChildDevices, removedDevices)
+												Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the GPU(s) completed.")
+											End If
 											SetupAPI.UninstallDevice(d)
+											removedDevices.Add(d.ToString)
 										End If
 									End If
 								Next
@@ -805,6 +801,28 @@ Namespace Display_Driver_Uninstaller
 							End If
 						End If
 						Application.Log.AddMessage("SetupAPI: Remove NVIDIA Broadcast Audio Device (Wave Extensible) (WDM) Complete .")
+
+
+						'nVidia AudioEndpoints leftover Removal
+						found = SetupAPI.GetDevices("audioendpoint", Nothing, False)
+						If found IsNot Nothing AndAlso found.Count > 0 Then
+							For Each d As SetupAPI.Device In found
+								If d IsNot Nothing AndAlso Not IsNullOrWhitespace(d.FriendlyName) Then
+									If StrContainsAny(d.FriendlyName, True, "nvidia virtual audio device") AndAlso config.RemoveGFE Then
+										SetupAPI.UninstallDevice(d)
+										Continue For
+									End If
+									If StrContainsAny(d.FriendlyName, True, "nvidia high definition audio") Then
+										SetupAPI.UninstallDevice(d)
+										Continue For
+									End If
+									If StrContainsAny(d.FriendlyName, True, "NVIDIA Broadcast") AndAlso config.RemoveNVBROADCAST Then
+										SetupAPI.UninstallDevice(d)
+									End If
+								End If
+							Next
+							found.Clear()
+						End If
 
 						If config.RemoveGFE Then
 							' NVIDIA Virtual Audio Device (Wave Extensible) (WDM) Removal
@@ -4308,6 +4326,7 @@ child.ToLower.Contains("_nvdisplaycontainer") Or
 child.ToLower.Contains("_displaydriveranalyzer") Or
 child.ToLower.Contains("_nvdisplay.messagebus") Or
 child.ToLower.Contains("_broadcastvoice.driver") AndAlso config.RemoveNVBROADCAST Or
+child.ToLower.Contains("_nvmodels") AndAlso config.RemoveNVBROADCAST Or
 child.ToLower.Contains("_nvbroadcastcontainer") AndAlso config.RemoveNVBROADCAST Or
 child.ToLower.Contains("_nvidiabroadcast") AndAlso config.RemoveNVBROADCAST Or
 child.ToLower.Contains("_nvvirtualcamera") AndAlso config.RemoveNVBROADCAST Or
@@ -4464,7 +4483,7 @@ StrContainsAny(child3, True, "nvbroadcast") AndAlso Not removenvbroadcast Then
 																							Application.Log.AddException(ex)
 																						End Try
 																					End If
-																					If StrContainsAny(ValueName, True, "nvbroadcast", "broadcastvoice", "nvidiabroadcast", "nvvirtualcamera") AndAlso removenvbroadcast Then
+																					If StrContainsAny(ValueName, True, "nvbroadcast", "broadcastvoice", "nvidiabroadcast", "nvvirtualcamera", "nvmodels") AndAlso removenvbroadcast Then
 																						Try
 																							Deletevalue(regkey5, ValueName)
 																						Catch ex As Exception
@@ -6099,6 +6118,7 @@ child2.ToLower.Contains("nvtelemetry") AndAlso config.RemoveGFE Or
 child2.ToLower.Contains("nvvhci") AndAlso config.RemoveGFE Or
 child2.ToLower.Contains("nvmoduletracker.driver") AndAlso config.RemoveGFE Or
 child2.ToLower.Contains("broadcastvoice.driver") AndAlso config.RemoveNVBROADCAST Or
+child2.ToLower.Contains("nvmodels.") AndAlso config.RemoveNVBROADCAST Or
 child2.ToLower.Contains("nvbroadcastcontainer.") AndAlso config.RemoveNVBROADCAST Or
 child2.ToLower.Contains("rtx voice") AndAlso config.RemoveNVBROADCAST Or
 child2.ToLower.Contains("nvvirtualcamera.") AndAlso config.RemoveNVBROADCAST Or
