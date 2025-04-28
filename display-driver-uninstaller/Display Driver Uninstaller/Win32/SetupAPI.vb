@@ -1176,30 +1176,30 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DEVINFO_DATA_X64
-			Public cbSize As UInt32
+			Public cbSize As UInteger
 			Public ClassGuid As Guid
-			Public DevInst As UInt32
+			Public DevInst As UInteger
 			Public Reserved As IntPtr
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_CLASSINSTALL_HEADER_X64
-			Public cbSize As UInt32
-			Public InstallFunction As UInt32
+			Public cbSize As UInteger
+			Public InstallFunction As UInteger
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_PROPCHANGE_PARAMS_X64
 			Public ClassInstallHeader As SP_CLASSINSTALL_HEADER_X64
-			Public StateChange As UInt32
-			Public Scope As UInt32
-			Public HwProfile As UInt32
+			Public StateChange As UInteger
+			Public Scope As UInteger
+			Public HwProfile As UInteger
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DRVINFO_DATA_X64
-			Public cbSize As UInt32
-			Public DriverType As UInt32
+			Public cbSize As UInteger
+			Public DriverType As UInteger
 			Public Reserved As IntPtr
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=LINE_LEN)>
 			Public Description As String
@@ -1213,10 +1213,10 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DRVINFO_DETAIL_DATA_X64
-			Public cbSize As UInt32
+			Public cbSize As UInteger
 			Public InfDate As System.Runtime.InteropServices.ComTypes.FILETIME
-			Public CompatIDsOffset As UInt32
-			Public CompatIDsLength As UInt32
+			Public CompatIDsOffset As UInteger
+			Public CompatIDsLength As UInteger
 			Public Reserved As IntPtr
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=LINE_LEN)>
 			Public SectionName As String
@@ -1230,15 +1230,15 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=8, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DEVINSTALL_PARAMS_X64
-			Public cbSize As UInt32
-			Public Flags As UInt32
-			Public FlagsEx As UInt32
+			Public cbSize As UInteger
+			Public Flags As UInteger
+			Public FlagsEx As UInteger
 			Public hwndParent As IntPtr
 			Public InstallMsgHandler As IntPtr
 			Public InstallMsgHandlerContext As IntPtr
 			Public FileQueue As IntPtr
 			Public ClassInstallReserved As IntPtr
-			Public Reserved As UInt32
+			Public Reserved As UInteger
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=MAX_LEN)>
 			Public DriverPath As String
 		End Structure
@@ -1249,30 +1249,30 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DEVINFO_DATA_X86
-			Public cbSize As UInt32
+			Public cbSize As UInteger
 			Public ClassGuid As Guid
-			Public DevInst As UInt32
+			Public DevInst As UInteger
 			Public Reserved As IntPtr
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_CLASSINSTALL_HEADER_X86
-			Public cbSize As UInt32
-			Public InstallFunction As UInt32
+			Public cbSize As UInteger
+			Public InstallFunction As UInteger
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_PROPCHANGE_PARAMS_X86
 			Public ClassInstallHeader As SP_CLASSINSTALL_HEADER_X86
-			Public StateChange As UInt32
-			Public Scope As UInt32
-			Public HwProfile As UInt32
+			Public StateChange As UInteger
+			Public Scope As UInteger
+			Public HwProfile As UInteger
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DRVINFO_DATA_X86
-			Public cbSize As UInt32
-			Public DriverType As UInt32
+			Public cbSize As UInteger
+			Public DriverType As UInteger
 			Public Reserved As IntPtr
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=LINE_LEN)>
 			Public Description As String
@@ -1286,10 +1286,10 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DRVINFO_DETAIL_DATA_X86
-			Public cbSize As UInt32
+			Public cbSize As UInteger
 			Public InfDate As System.Runtime.InteropServices.ComTypes.FILETIME
-			Public CompatIDsOffset As UInt32
-			Public CompatIDsLength As UInt32
+			Public CompatIDsOffset As UInteger
+			Public CompatIDsLength As UInteger
 			Public Reserved As IntPtr
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=LINE_LEN)>
 			Public SectionName As String
@@ -1303,24 +1303,24 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<StructLayout(LayoutKind.Sequential, Pack:=1, CharSet:=CharSet.Unicode)>
 		Private Structure SP_DEVINSTALL_PARAMS_X86
-			Public cbSize As UInt32
-			Public Flags As UInt32
-			Public FlagsEx As UInt32
+			Public cbSize As UInteger
+			Public Flags As UInteger
+			Public FlagsEx As UInteger
 			Public hwndParent As IntPtr
 			Public InstallMsgHandler As IntPtr
 			Public InstallMsgHandlerContext As IntPtr
 			Public FileQueue As IntPtr
 			Public ClassInstallReserved As IntPtr
-			Public Reserved As UInt32
+			Public Reserved As UInteger
 			<MarshalAs(UnmanagedType.ByValTStr, SizeConst:=MAX_LEN)>
 			Public DriverPath As String
 		End Structure
 
 		<StructLayout(LayoutKind.Sequential)>
 		Private Structure SP_DEVINFO_DATA
-			Public cbSize As Integer
+			Public cbSize As UInteger
 			Public ClassGuid As Guid
-			Public DevInst As Integer
+			Public DevInst As UInteger
 			Public Reserved As IntPtr
 		End Structure
 
@@ -1336,59 +1336,60 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_Parent(
- <[Out]()> ByRef pdnDevInst As UInt32,
- <[In]()> ByVal dnDevInst As UInt32,
- <[In]()> ByVal ulFlags As UInt32) As UInt32
+ <[Out]()> ByRef pdnDevInst As UInteger,
+ <[In]()> ByVal dnDevInst As UInteger,
+ <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_Child(
-   <[Out]()> ByRef pdnDevInst As UInt32,
-   <[In]()> ByVal dnDevInst As UInt32,
-   <[In]()> ByVal ulFlags As UInt32) As UInt32
+   <[Out]()> ByRef pdnDevInst As UInteger,
+   <[In]()> ByVal dnDevInst As UInteger,
+   <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_Sibling(
-   <[Out]()> ByRef pdnDevInst As UInt32,
-   <[In]()> ByVal DevInst As UInt32,
-   <[In]()> ByVal ulFlags As UInt32) As UInt32
+   <[Out]()> ByRef pdnDevInst As UInteger,
+   <[In]()> ByVal DevInst As UInteger,
+   <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_Device_ID(
-		<[In]()> ByVal dnDevInst As UInt32,
-		<[In]()> ByVal Buffer As IntPtr,
-		<[In]()> ByVal BufferLen As Int32,
-		<[In]()> ByVal ulFlags As UInt32) As UInt32
+			<[In]()> ByVal dnDevInst As UInteger,                     ' DEVINST is typedef’d to ULONG
+			<[Out]()> ByVal Buffer As StringBuilder,                ' PWSTR out-buffer
+			<[In]()> ByVal BufferLen As UInteger,                     ' length of Buffer in characters
+			<[In]()> ByVal ulFlags As UInteger                       ' ULONG flags
+		) As UInteger                                          ' CONFIGRET is a ULONG return code
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_Device_ID_Size(
-  <[Out]()> ByRef pulLen As Integer,
-  <[In]()> ByVal dnDevInst As UInt32,
-  <[In]()> ByVal ulFlags As UInt32) As UInt32
+		<[Out]()> ByRef pulLen As UInteger,
+		<[In]()> ByVal dnDevInst As UInteger,
+		<[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Get_DevNode_Status(
-  <[Out]()> ByRef pulStatus As UInt32,
-  <[Out]()> ByRef pulProblemNumber As UInt32,
-  <[In]()> ByVal dnDevInst As UInt32,
-  <[In]()> ByVal ulFlags As UInt32) As UInt32
+  <[Out]()> ByRef pulStatus As UInteger,
+  <[Out]()> ByRef pulProblemNumber As UInteger,
+  <[In]()> ByVal dnDevInst As UInteger,
+  <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Reenumerate_DevNode(
-  <[In]()> ByVal dnDevInst As UInt32,
-  <[In]()> ByVal ulFlags As UInt32) As UInt32
+  <[In]()> ByVal dnDevInst As UInteger,
+  <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 		<DllImport("CfgMgr32.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function CM_Locate_DevNode(
-   <[Out]()> ByRef dnDevInst As UInt32,
+   <[Out]()> ByRef dnDevInst As UInteger,
    <[In](), [Optional](), MarshalAs(UnmanagedType.LPWStr)> ByVal pDeviceID As String,
-   <[In]()> ByVal ulFlags As UInt32) As UInt32
+   <[In]()> ByVal ulFlags As UInteger) As UInteger
 		End Function
 
 #End Region
@@ -1406,9 +1407,9 @@ Namespace Display_Driver_Uninstaller.Win32
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiClassGuidsFromName(
    <[In]()> ByVal ClassName As String,
-   <[Out]()> ByRef ClassGuidList As Guid,
-   <[In]()> ByRef ClassGuidListSize As UInt32,
-   <[Out]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[Out](), MarshalAs(UnmanagedType.LPArray, SizeParamIndex:=2)> ByVal ClassGuidList() As Guid,
+   <[In]()> ByVal ClassGuidListSize As UInteger,
+   <[Out]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -1419,16 +1420,16 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiGetClassDevs(
-   <[In](), [Optional]()> ByRef ClassGuid As Guid,
+   <[In](), [Optional]()> ByVal ClassGuid As IntPtr,
    <[In](), [Optional](), MarshalAs(UnmanagedType.LPWStr)> ByVal Enumerator As String,
    <[In](), [Optional]()> ByVal hwndParent As IntPtr,
-   <[In]()> ByVal Flags As UInt32) As SafeDeviceHandle
+   <[In]()> ByVal Flags As UInteger) As SafeDeviceHandle
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiEnumDeviceInfo(
   <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
-  <[In]()> ByVal MemberIndex As UInt32,
+  <[In]()> ByVal MemberIndex As UInteger,
   <[Out]()> ByVal DeviceInfoData As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
@@ -1436,8 +1437,8 @@ Namespace Display_Driver_Uninstaller.Win32
 		Private Shared Function SetupDiEnumDriverInfo(
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In](), [Optional]()> ByVal deviceInfoData As IntPtr,
-   <[In]()> ByVal DriverType As UInt32,
-   <[In]()> ByVal MemberIndex As UInt32,
+   <[In]()> ByVal DriverType As UInteger,
+   <[In]()> ByVal MemberIndex As UInteger,
    <[Out]()> ByVal DriverInfoData As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
@@ -1445,18 +1446,18 @@ Namespace Display_Driver_Uninstaller.Win32
 		Private Shared Function SetupDiGetDeviceRegistryProperty(
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In]()> ByVal DeviceInfoData As IntPtr,
-   <[In]()> ByVal [Property] As UInt32,
+   <[In]()> ByVal [Property] As UInteger,
    <[Out](), [Optional]()> ByRef PropertyRegDataType As RegistryValueKind,
    <[In](), Out(), [Optional]()> ByVal PropertyBuffer() As Byte,
-   <[In]()> ByVal PropertyBufferSize As UInt32,
-   <[Out](), [Optional]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal PropertyBufferSize As UInteger,
+   <[Out](), [Optional]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiBuildDriverInfoList(
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In](), [Out]()> ByVal DeviceInfoData As IntPtr,
-   <[In]()> ByVal DriverType As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal DriverType As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -1465,8 +1466,8 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In](), [Optional]()> ByVal DeviceInfoData As IntPtr,
    <[In]()> ByVal DriverInfoData As IntPtr,
    <[In](), [Out]()> ByVal DriverInfoDetailData As IntPtr,
-   <[In]()> ByVal DriverInfoDetailDataSize As UInt32,
-   <[Out](), [Optional]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal DriverInfoDetailDataSize As UInteger,
+   <[Out](), [Optional]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -1474,7 +1475,7 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In](), [Optional]()> ByVal DeviceInfoData As IntPtr,
    <[In](), [Optional]()> ByVal classInstallParams As IntPtr,
-   <[In]()> ByVal ClassInstallParamsSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal ClassInstallParamsSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -1482,8 +1483,8 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In](), [Optional]()> ByVal DeviceInfoData As IntPtr,
    <[Out](), [Optional]()> ByVal ClassInstallParams As IntPtr,
-   <[In]()> ByVal ClassInstallParamsSize As UInt32,
-   <[Out](), [Optional]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal ClassInstallParamsSize As UInteger,
+   <[Out](), [Optional]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -1508,7 +1509,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupDiCallClassInstaller(
-   <[In]()> ByVal InstallFunction As UInt32,
+   <[In]()> ByVal InstallFunction As UInteger,
    <[In]()> ByVal DeviceInfoSet As SafeDeviceHandle,
    <[In](), [Optional]()> ByVal DeviceInfoData As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
@@ -1516,7 +1517,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupUninstallOEMInf(
    <[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal InfFileName As String,
-   <[In]()> ByVal Flags As UInt32,
+   <[In]()> ByVal Flags As UInteger,
    <[In]()> ByVal Reserved As IntPtr) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
@@ -1544,7 +1545,7 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In](), [Optional]()> ByVal hwndParent As IntPtr,
    <[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal HardwareId As String,
    <[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal FullInfPath As String,
-   <[In]()> ByVal InstallFlags As UInt32,
+   <[In]()> ByVal InstallFlags As UInteger,
    <[Out](), [Optional](), MarshalAs(UnmanagedType.Bool)> ByRef bRebootRequired As Boolean) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
@@ -1552,7 +1553,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		Private Shared Function DiUninstallDriver(
 	<[In]()> ByVal hwndParent As IntPtr,
 	<[In](), MarshalAs(UnmanagedType.LPWStr)> ByVal InfPath As String,
-	<[In]()> ByVal Flags As UInt32,
+	<[In]()> ByVal Flags As UInteger,
 	<Out()> ByRef NeedReboot As Boolean
 ) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
@@ -1576,7 +1577,6 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim lowerfilters(0) As String
 				Dim upperfilters(0) As String
@@ -1585,10 +1585,10 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim className As String = Nothing
 				Dim match As Boolean = False
 
-				Dim errCode As UInt32 = 0UI
-				Dim devInst As UInt32 = 0UI
+				Dim errCode As UInteger = 0UI
+				Dim devInst As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -1601,7 +1601,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -1772,14 +1772,13 @@ Namespace Display_Driver_Uninstaller.Win32
 			End If
 
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim found As Boolean = False
 				Dim d As Device = Nothing
-				Dim devInst As UInt32 = 0UI
-				Dim errCode As UInt32 = 0UI
+				Dim devInst As UInteger = 0UI
+				Dim errCode As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -1792,7 +1791,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -1858,7 +1857,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							Return
 						End If
 
-						Dim cfgFlags As UInt32 = GetUInt32Property(infoSet, ptrDevInfo.Ptr, SPDRP.CONFIGFLAGS)
+						Dim cfgFlags As UInteger = GetUInt32Property(infoSet, ptrDevInfo.Ptr, SPDRP.CONFIGFLAGS)
 
 						If Not enable AndAlso ((cfgFlags And CONFIGFLAGS.DISABLED) = CONFIGFLAGS.DISABLED) Then
 							MessageBox.Show("Device is already disabled!", "Device disable")
@@ -1955,14 +1954,13 @@ Namespace Display_Driver_Uninstaller.Win32
 			End If
 
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim found As Boolean = False
 				Dim d As Device = Nothing
-				Dim devInst As UInt32 = 0UI
-				Dim errCode As UInt32 = 0UI
+				Dim devInst As UInteger = 0UI
+				Dim errCode As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -1975,7 +1973,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2022,7 +2020,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							Return
 						End If
 
-						Dim cfgFlags As UInt32 = GetUInt32Property(infoSet, ptrDevInfo.Ptr, SPDRP.CONFIGFLAGS)
+						Dim cfgFlags As UInteger = GetUInt32Property(infoSet, ptrDevInfo.Ptr, SPDRP.CONFIGFLAGS)
 
 						If Not enable AndAlso ((cfgFlags And CONFIGFLAGS.DISABLED) = CONFIGFLAGS.DISABLED) Then
 							Application.Log.AddWarningMessage("Device is already disabled!", "Device disable")
@@ -2099,7 +2097,6 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim lowerfilters(0) As String
 				Dim upperfilters(0) As String
@@ -2109,10 +2106,10 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim className As String = Nothing
 				Dim match As Boolean = False
 
-				Dim errCode As UInt32 = 0UI
-				Dim devInst As UInt32 = 0UI
+				Dim errCode As UInteger = 0UI
+				Dim devInst As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2125,7 +2122,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2252,7 +2249,6 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim lowerfilters(0) As String
 				Dim upperfilters(0) As String
@@ -2262,10 +2258,10 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim className As String = Nothing
 				Dim match As Boolean = False
 
-				Dim errCode As UInt32 = 0UI
-				Dim devInst As UInt32 = 0UI
+				Dim errCode As UInteger = 0UI
+				Dim devInst As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2278,7 +2274,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2414,10 +2410,9 @@ Namespace Display_Driver_Uninstaller.Win32
 				End If
 
 				Dim Devices As List(Of Device) = New List(Of Device)(5)
-				Dim nullGuid As Guid = Nothing
 				Dim typeDevInfo As Type = If(Is64, GetType(SP_DEVINFO_DATA_X64), GetType(SP_DEVINFO_DATA_X86))
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2430,11 +2425,11 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(typeDevInfo))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 						Dim device As Device = Nothing
 						Dim devClass As String = Nothing
-						Dim devInst As UInt32
-						Dim errCode As UInt32 = 0UI
+						Dim devInst As UInteger
+						Dim errCode As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2560,13 +2555,12 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return
 				End If
 
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim found As Boolean = False
-				Dim errCode As UInt32
-				Dim devInst As UInt32 = 0UI
+				Dim errCode As UInteger
+				Dim devInst As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2580,7 +2574,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2631,7 +2625,7 @@ Namespace Display_Driver_Uninstaller.Win32
 						logStatus.Add("HardwareID", String.Join(CRLF, device.HardwareIDs))
 						If device.OemInfs IsNot Nothing AndAlso device.OemInfs.Length > 0 Then
 							Dim oems(device.OemInfs.Length - 1) As String
-							Dim p As Int32 = 0
+							Dim p As Integer = 0
 
 							For Each oem As Inf In device.OemInfs
 								oems(p) = oem.FileName
@@ -2719,7 +2713,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					If DiUninstallDriver(IntPtr.Zero, oem.FileName, If(force, DiUninstallDriverFlags.DIURFLAG_DEFAULT, DiUninstallDriverFlags.DIURFLAG_NO_REMOVE_INF), needReboot) Then
 						logInfs.Message &= CRLF & ">> Success! Driver uninstalled using DiUninstallDriver."
 					Else
-						Dim errCode As UInt32 = GetLastWin32ErrorU()
+						Dim errCode As UInteger = GetLastWin32ErrorU()
 
 						If errCode = Errors.INF_IN_USE Then
 							logInfs.Message &= CRLF & ">> Cancelled! INF is used by device (DiUninstallDriver)."
@@ -2740,7 +2734,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 				' Fallback to SetupUninstallOEMInf
 				If Not SetupUninstallOEMInf(infName, If(force, SetupUOInfFlags.SUOI_FORCEDELETE, SetupUOInfFlags.NONE), IntPtr.Zero) Then
-					Dim errCode As UInt32 = GetLastWin32ErrorU()
+					Dim errCode As UInteger = GetLastWin32ErrorU()
 
 					If errCode = Errors.INF_IN_USE Then
 						logInfs.Message &= CRLF & ">> Cancelled! INF is used by device (SetupUninstallOEMInf)."
@@ -2825,13 +2819,12 @@ Namespace Display_Driver_Uninstaller.Win32
 					Throw New ArgumentException("Empty Hardware ID Filter!", "hardwareIDFilter")
 				End If
 
-				Dim nullGuid As Guid = Guid.Empty
 				Dim hardwareIds(0) As String
 				Dim found As Boolean = False
 				Dim dev As Device = Nothing
-				Dim errCode As UInt32 = 0UI
+				Dim errCode As UInteger = 0UI
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2844,7 +2837,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -2940,8 +2933,8 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		' REVERSED FOR CLEANING FROM CODE
 		Public Shared Sub ReScanDevices()
-			Dim result As UInt32 = 0UI
-			Dim devInstRoot As UInt32
+			Dim result As UInteger = 0UI
+			Dim devInstRoot As UInteger
 
 			Try
 				Application.Log.AddMessage("Scanning for new devices...")
@@ -2964,13 +2957,12 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		Private Shared Sub UpdateDevicesByID(ByVal devList As IEnumerable(Of Device), ByVal driverDetails As Boolean)
 			Try
-				Dim nullGuid As Guid = Guid.Empty
 				Dim device As Device = Nothing
-				Dim devInst As UInt32
-				Dim errCode As UInt32 = 0UI
+				Dim devInst As UInteger
+				Dim errCode As UInteger = 0UI
 				Dim typeDevInfo As Type = If(Is64, GetType(SP_DEVINFO_DATA_X64), GetType(SP_DEVINFO_DATA_X86))
 
-				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(nullGuid, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
 					If infoSet.IsInvalid Then
 						Throw New Win32Exception()
 					End If
@@ -2984,7 +2976,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(typeDevInfo))})
 						End If
 
-						Dim i As UInt32 = 0UI
+						Dim i As UInteger = 0UI
 
 						While True
 							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
@@ -3028,8 +3020,8 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-		Private Shared Function GetProperty(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP, ByRef bytes() As Byte, ByRef regType As RegistryValueKind, ByRef size As Int32) As Boolean
-			Dim requiredSize As UInt32 = 1024UI
+		Private Shared Function GetProperty(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP, ByRef bytes() As Byte, ByRef regType As RegistryValueKind, ByRef size As Integer) As Boolean
+			Dim requiredSize As UInteger = 1024UI
 
 			If Not SetupDiGetDeviceRegistryProperty(infoSet, ptrDevInfo, [property], regType, bytes, GetUInt32(bytes.Length), requiredSize) Then
 
@@ -3058,7 +3050,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		Private Shared Function GetStringProperty(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP) As String
 			Dim buffer(0) As Byte
-			Dim size As Int32 = 0
+			Dim size As Integer = 0
 			Dim regType As RegistryValueKind
 
 			If Not GetProperty(infoSet, ptrDevInfo, [property], buffer, regType, size) Then
@@ -3074,7 +3066,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		Private Shared Function GetMultiStringProperty(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP) As String()
 			Dim buffer(0) As Byte
-			Dim size As Int32 = 0
+			Dim size As Integer = 0
 			Dim regType As RegistryValueKind
 
 			If Not GetProperty(infoSet, ptrDevInfo, [property], buffer, regType, size) Then
@@ -3088,9 +3080,9 @@ Namespace Display_Driver_Uninstaller.Win32
 			End If
 		End Function
 
-		Private Shared Function GetUInt32Property(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP) As UInt32
+		Private Shared Function GetUInt32Property(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr, ByVal [property] As SPDRP) As UInteger
 			Dim buffer(0) As Byte
-			Dim size As Int32 = 0
+			Dim size As Integer = 0
 			Dim regType As RegistryValueKind
 
 			If Not GetProperty(infoSet, ptrDevInfo, [property], buffer, regType, size) Then
@@ -3103,7 +3095,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 
 
-		Private Shared Function GetInstallParamsFlags(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr) As UInt32
+		Private Shared Function GetInstallParamsFlags(ByVal infoSet As SafeDeviceHandle, ByVal ptrDevInfo As IntPtr) As UInteger
 			If (Is64) Then
 				Dim installParams64 As SP_DEVINSTALL_PARAMS_X64 = New SP_DEVINSTALL_PARAMS_X64() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINSTALL_PARAMS_X64)))}
 
@@ -3170,9 +3162,9 @@ Namespace Display_Driver_Uninstaller.Win32
 
 			device.DeviceID = GetDeviceID(device.devInst)
 
-			Dim pulStatus As UInt32 = 0UI
-			Dim pulProblemNumber As UInt32 = 0UI
-			Dim result As UInt32 = CM_Get_DevNode_Status(pulStatus, pulProblemNumber, device.devInst, 0UI)
+			Dim pulStatus As UInteger = 0UI
+			Dim pulProblemNumber As UInteger = 0UI
+			Dim result As UInteger = CM_Get_DevNode_Status(pulStatus, pulProblemNumber, device.devInst, 0UI)
 
 			If result = CR.SUCCESS Then
 
@@ -3212,15 +3204,15 @@ Namespace Display_Driver_Uninstaller.Win32
 			Dim drvInfos As New List(Of DriverInfo)(5)
 			Dim driverKeyName As String = Nothing
 
-			Dim i As UInt32 = 0UI
+			Dim i As UInteger = 0UI
 			Dim bytes(0) As Byte
-			Dim reqSize As UInt32 = 0UI
-			Dim errCode As UInt32 = 0UI
+			Dim reqSize As UInteger = 0UI
+			Dim errCode As UInteger = 0UI
 
 			Dim ptrHardwareID As IntPtr = IntPtr.Zero
 			Dim ptrOffsetHardwareID As IntPtr = IntPtr.Zero
 			Dim OffsetHardwareID As Int64 = 0L
-			Dim HardwareIDLength As Int32 = 0
+			Dim HardwareIDLength As Integer = 0
 
 			Dim typeDrvInfo As Type = If(Is64, GetType(SP_DRVINFO_DATA_X64), GetType(SP_DRVINFO_DATA_X86))
 			Dim typeDrvInfoDetail As Type = If(Is64, GetType(SP_DRVINFO_DETAIL_DATA_X64), GetType(SP_DRVINFO_DETAIL_DATA_X86))
@@ -3391,40 +3383,37 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
-		Private Shared Function GetDeviceID(ByVal devInst As UInt32) As String
-			Dim reqSize As Integer = 0
-
-
-			If CM_Get_Device_ID_Size(reqSize, devInst, 0UI) <> CR.SUCCESS Then
-				Throw New Win32Exception()
+		Private Shared Function GetDeviceID(ByVal devInst As UInteger) As String
+			' 1) Ask for required size
+			Dim reqSize As UInteger = 0UI
+			Dim status As UInteger = CM_Get_Device_ID_Size(reqSize, devInst, 0UI)
+			If status <> CR.SUCCESS Then
+				Throw New Win32Exception(CInt(status))
 			End If
 
 			If reqSize = 0UI Then
 				Throw New Win32Exception(GetInt32(Errors.NO_SUCH_DEVINST))
 			End If
 
-			Dim StrPtr As IntPtr = Marshal.AllocHGlobal((reqSize + 1) * Marshal.SystemDefaultCharSize)
+			' 2) Allocate a StringBuilder that can hold reqSize chars + terminating null
+			Dim sb As New StringBuilder(CInt(reqSize) + 1)
 
-			Dim result As UInteger = CM_Get_Device_ID(devInst, StrPtr, reqSize, 0UI)
-
-			If result <> CR.SUCCESS Then
-				Throw New Win32Exception()
-				'Microsoft.VisualBasic.MsgBox(result)
+			' 3) Call the API to fill it
+			status = CM_Get_Device_ID(devInst, sb, reqSize + 1UI, 0UI)
+			If status <> CR.SUCCESS Then
+				Throw New Win32Exception(CInt(status))
 			End If
 
-			Dim deviceID As String = Marshal.PtrToStringAuto(StrPtr, reqSize)
-
-			Marshal.FreeHGlobal(StrPtr)
-
-			Return deviceID
+			' 4) Pull the result out—and drop the trailing null if you like
+			Return sb.ToString()
 		End Function
 
 		Private Shared Sub GetSiblings(ByVal device As Device)
 			Try
-				Dim result As UInt32
-				Dim devInstParent As UInt32 = 0UI
-				Dim devInstChild As UInt32 = 0UI
-				Dim devInstSibling As UInt32 = 0UI
+				Dim result As UInteger
+				Dim devInstParent As UInteger = 0UI
+				Dim devInstChild As UInteger = 0UI
+				Dim devInstSibling As UInteger = 0UI
 				Dim siblingDevices As New List(Of Device)(5)
 				Dim contains As Boolean = False
 
@@ -3493,9 +3482,9 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		Private Shared Sub GetParents(ByVal device As Device)
 			Try
-				Dim result As UInt32
-				Dim devInstParent As UInt32 = 0UI
-				Dim devInstChild As UInt32 = 0UI
+				Dim result As UInteger
+				Dim devInstParent As UInteger = 0UI
+				Dim devInstChild As UInteger = 0UI
 				Dim parentDevices As New List(Of Device)(5)
 
 				result = CM_Get_Parent(devInstParent, device.devInst, 0UI)
@@ -3526,9 +3515,9 @@ Namespace Display_Driver_Uninstaller.Win32
 
 		Private Shared Sub GetChild(ByVal device As Device)
 			Try
-				Dim result As UInt32
-				Dim devInstChild As UInt32 = 0UI
-				Dim devInstSibling As UInt32 = 0UI
+				Dim result As UInteger
+				Dim devInstChild As UInteger = 0UI
+				Dim devInstSibling As UInteger = 0UI
 				Dim ChildDevices As New List(Of Device)(5)
 				Dim siblingDevices As New List(Of Device)(5)
 				Dim contains As Boolean = False
@@ -3616,7 +3605,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End If
 
 			If infName.Length > 7 AndAlso infName.StartsWith("oem", StringComparison.OrdinalIgnoreCase) AndAlso infName.EndsWith(".inf", StringComparison.OrdinalIgnoreCase) Then
-				For i As Int32 = 3 To infName.Length - 5 Step 1
+				For i As Integer = 3 To infName.Length - 5 Step 1
 					If Not Char.IsDigit(infName(i)) Then
 						Return False
 					End If
@@ -3655,7 +3644,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Class
 
 		Public Class Device
-			Friend devInst As UInt32
+			Friend devInst As UInteger
 			Friend devDetails As Boolean = False
 
 			Private _hasHardwareID As Boolean = False
@@ -3683,12 +3672,12 @@ Namespace Display_Driver_Uninstaller.Win32
 			Private _devProblemStr As String = Nothing
 			Private _devStatusStr As String() = Nothing
 
-			Private _installState As UInt32
-			Private _installFlags As UInt32
-			Private _capabilities As UInt32
-			Private _configFlags As UInt32
-			Private _devProblem As UInt32
-			Private _devStatus As UInt32
+			Private _installState As UInteger
+			Private _installFlags As UInteger
+			Private _capabilities As UInteger
+			Private _configFlags As UInteger
+			Private _devProblem As UInteger
+			Private _devStatus As UInteger
 
 			Private _oemInfs As Inf()
 			Private _extendedInfs As String() = Nothing
@@ -3707,7 +3696,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					_isPresent = value
 				End Set
 			End Property
-			Public ReadOnly Property DevInstID As UInt32
+			Public ReadOnly Property DevInstID As UInteger
 				Get
 					Return devInst
 				End Get
@@ -3852,11 +3841,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return _installStateStr
 				End Get
 			End Property
-			Public Property InstallState As UInt32
+			Public Property InstallState As UInteger
 				Get
 					Return _installState
 				End Get
-				Friend Set(value As UInt32)
+				Friend Set(value As UInteger)
 					_installState = value
 				End Set
 			End Property
@@ -3870,11 +3859,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return _installFlagsStr
 				End Get
 			End Property
-			Public Property InstallFlags As UInt32
+			Public Property InstallFlags As UInteger
 				Get
 					Return _installFlags
 				End Get
-				Friend Set(value As UInt32)
+				Friend Set(value As UInteger)
 					_installFlags = value
 				End Set
 			End Property
@@ -3888,11 +3877,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return _capabilitiesStr
 				End Get
 			End Property
-			Public Property Capabilities As UInt32
+			Public Property Capabilities As UInteger
 				Get
 					Return _capabilities
 				End Get
-				Friend Set(value As UInt32)
+				Friend Set(value As UInteger)
 					_capabilities = value
 				End Set
 			End Property
@@ -3906,11 +3895,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					Return _configFlagsStr
 				End Get
 			End Property
-			Public Property ConfigFlags As UInt32
+			Public Property ConfigFlags As UInteger
 				Get
 					Return _configFlags
 				End Get
-				Friend Set(value As UInt32)
+				Friend Set(value As UInteger)
 					_configFlags = value
 				End Set
 			End Property
@@ -3927,11 +3916,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					_devProblemStr = value
 				End Set
 			End Property
-			Public Property DevProblem As UInt32
+			Public Property DevProblem As UInteger
 				Get
 					Return _devProblem
 				End Get
-				Set(value As UInt32)
+				Set(value As UInteger)
 					_devProblem = value
 				End Set
 			End Property
@@ -3948,11 +3937,11 @@ Namespace Display_Driver_Uninstaller.Win32
 					_devStatusStr = value
 				End Set
 			End Property
-			Public Property DevStatus As UInt32
+			Public Property DevStatus As UInteger
 				Get
 					Return _devStatus
 				End Get
-				Friend Set(value As UInt32)
+				Friend Set(value As UInteger)
 					_devStatus = value
 				End Set
 			End Property

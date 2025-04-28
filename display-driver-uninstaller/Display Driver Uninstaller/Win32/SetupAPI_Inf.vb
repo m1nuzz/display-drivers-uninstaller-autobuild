@@ -7,16 +7,16 @@ Namespace Display_Driver_Uninstaller.Win32
 			Private Const APPLICATION_ERROR_MASK = &H20000000UI
 			Private Const ERROR_SEVERITY_ERROR = &HC0000000UI
 
-			Private Const ERROR_LINE_NOT_FOUND As UInt32 = &H800F0102UI
-			Private Const ERROR_NO_MORE_ITEMS As UInt32 = &H80070103UI
-			Private Const ERROR_INVALID_PARAMETER As UInt32 = &H80070057UI
-			Private Const FACILITY_SETUPAPI As UInt32 = 15UI
-			Private Const FACILITY_WIN32 As UInt32 = 7UI
+			Private Const ERROR_LINE_NOT_FOUND As UInteger = &H800F0102UI
+			Private Const ERROR_NO_MORE_ITEMS As UInteger = &H80070103UI
+			Private Const ERROR_INVALID_PARAMETER As UInteger = &H80070057UI
+			Private Const FACILITY_SETUPAPI As UInteger = 15UI
+			Private Const FACILITY_WIN32 As UInteger = 7UI
 
-			Protected _lastError As UInt32 = 0UI
+			Protected _lastError As UInteger = 0UI
 			Protected _lastMessage As String
 
-			Public ReadOnly Property LastError As UInt32
+			Public ReadOnly Property LastError As UInteger
 				Get
 					Return _lastError
 				End Get
@@ -33,12 +33,12 @@ Namespace Display_Driver_Uninstaller.Win32
 				_lastMessage = Nothing
 			End Sub
 
-			Protected Function GetLastError() As UInt32
+			Protected Function GetLastError() As UInteger
 				Return GetLastError(True)
 			End Function
 
-			Protected Function GetLastError(ByVal setLastError As Boolean) As UInt32
-				Dim hresult As UInt32 = HRESULT_FROM_SETUPAPI(GetLastWin32ErrorU())
+			Protected Function GetLastError(ByVal setLastError As Boolean) As UInteger
+				Dim hresult As UInteger = HRESULT_FROM_SETUPAPI(GetLastWin32ErrorU())
 
 				If setLastError Then
 					_lastError = hresult
@@ -48,13 +48,13 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return hresult
 			End Function
 
-			Private Shared Function HRESULT_FROM_WIN32(ByVal x As UInt32) As UInt32
+			Private Shared Function HRESULT_FROM_WIN32(ByVal x As UInteger) As UInteger
 				Return If(x <= 0,
 				 x,
 				 ((x And &HFFFFUI) Or (FACILITY_WIN32 << 16UI) Or &H80000000UI))
 			End Function
 
-			Private Shared Function HRESULT_FROM_SETUPAPI(ByVal x As UInt32) As UInt32
+			Private Shared Function HRESULT_FROM_SETUPAPI(ByVal x As UInteger) As UInteger
 				Return CUInt(If(((x And (APPLICATION_ERROR_MASK Or ERROR_SEVERITY_ERROR)) = (APPLICATION_ERROR_MASK Or ERROR_SEVERITY_ERROR)),
 				 (((x And &HFFFFUI) Or (FACILITY_SETUPAPI << 16UI) Or &H80000000UI)),
 				 HRESULT_FROM_WIN32(x)))
@@ -96,7 +96,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				_file = path
 			End Sub
 
-			Public Function Open(ByRef errorLineNumber As UInt32) As UInt32
+			Public Function Open(ByRef errorLineNumber As UInteger) As UInteger
 				_handle = SetupOpenInfFile(_file, Nothing, (INF_STYLE_OLDNT Or INF_STYLE_WIN4), errorLineNumber)
 
 				If (_handle = INVALID_HANDLE) Then
@@ -110,8 +110,8 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return LastError
 			End Function
 
-			Public Function Open() As UInt32
-				Dim errLine As UInt32
+			Public Function Open() As UInteger
+				Dim errLine As UInteger
 				Return Open(errLine)
 			End Function
 
@@ -206,7 +206,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Protected Sub New()
 			End Sub
 
-			Public Function GetLineText(ByRef line As String) As UInt32
+			Public Function GetLineText(ByRef line As String) As UInteger
 				_lastError = InternalGetLineText(_lastMessage, line)
 
 				Return LastError
@@ -220,8 +220,8 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return line
 			End Function
 
-			Public Function GetString(ByVal fieldNum As Int32, ByRef strVal As String) As UInt32
-				Dim requiredSize As UInt32 = 0UI
+			Public Function GetString(ByVal fieldNum As Integer, ByRef strVal As String) As UInteger
+				Dim requiredSize As UInteger = 0UI
 				Dim builder As StringBuilder = New StringBuilder(100)
 				Dim lineText As String = Nothing
 				Dim msg As String = Nothing
@@ -231,7 +231,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				Dim setupRetVal As Boolean = SetupGetStringField(_context, fieldNum, builder, builder.Capacity, requiredSize)
 
 				If requiredSize > builder.Capacity Then
-					builder.Capacity = CType(requiredSize, Int32)
+					builder.Capacity = CType(requiredSize, Integer)
 
 					setupRetVal = SetupGetStringField(_context, fieldNum, builder, builder.Capacity, requiredSize)
 				End If
@@ -250,7 +250,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return LastError
 			End Function
 
-			Public Function GetString(ByVal fieldNum As Int32) As String
+			Public Function GetString(ByVal fieldNum As Integer) As String
 				Dim val As String = Nothing
 
 				GetString(fieldNum, val)
@@ -258,15 +258,15 @@ Namespace Display_Driver_Uninstaller.Win32
 				Return val
 			End Function
 
-			Private Function InternalGetLineText(ByRef errorMessage As String, ByRef line As String) As UInt32
-				Dim requiredSize As UInt32 = 0
+			Private Function InternalGetLineText(ByRef errorMessage As String, ByRef line As String) As UInteger
+				Dim requiredSize As UInteger = 0
 				Dim builder As StringBuilder = New StringBuilder(200)
-				Dim rc As UInt32
+				Dim rc As UInteger
 
 				Dim setupRetVal As Boolean = SetupGetLineText(_context, IntPtr.Zero, Nothing, Nothing, builder, GetUInt32(builder.Capacity), requiredSize)
 
 				If requiredSize > builder.Capacity Then
-					builder.Capacity = CType(requiredSize, Int32)
+					builder.Capacity = CType(requiredSize, Integer)
 					setupRetVal = SetupGetLineText(_context, IntPtr.Zero, Nothing, Nothing, builder, GetUInt32(builder.Capacity), requiredSize)
 				End If
 
@@ -290,15 +290,15 @@ Namespace Display_Driver_Uninstaller.Win32
 		End Class
 
 		Private Shared ReadOnly INVALID_HANDLE As IntPtr = New IntPtr(-1)
-		Private Const INF_STYLE_OLDNT As UInt32 = &H1UI
-		Private Const INF_STYLE_WIN4 As UInt32 = &H2UI
+		Private Const INF_STYLE_OLDNT As UInteger = &H1UI
+		Private Const INF_STYLE_WIN4 As UInteger = &H2UI
 
 		<StructLayout(LayoutKind.Sequential)>
 		Friend Structure INFCONTEXT
 			Dim Inf As IntPtr
 			Dim CurrentInf As IntPtr
-			Dim Section As UInt32
-			Dim Line As UInt32
+			Dim Section As UInteger
+			Dim Line As UInteger
 		End Structure
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
@@ -308,25 +308,25 @@ Namespace Display_Driver_Uninstaller.Win32
    <[In]()> ByVal Section As String,
    <[In]()> ByVal [Key] As String,
    <[In](), [Out]()> ByVal ReturnBuffer As StringBuilder,
-   <[In]()> ByVal ReturnBufferSize As UInt32,
-   <[In](), [Out]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal ReturnBufferSize As UInteger,
+   <[In](), [Out]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupGetStringField(
    <[In]()> ByRef context As INFCONTEXT,
-   <[In]()> ByVal fieldIndex As Int32,
+   <[In]()> ByVal fieldIndex As Integer,
    <[In](), [Out]()> ByVal ReturnBuffer As StringBuilder,
-   <[In]()> ByVal ReturnBufferSize As Int32,
-   <[Out]()> ByRef RequiredSize As UInt32) As <MarshalAs(UnmanagedType.Bool)> Boolean
+   <[In]()> ByVal ReturnBufferSize As Integer,
+   <[Out]()> ByRef RequiredSize As UInteger) As <MarshalAs(UnmanagedType.Bool)> Boolean
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
 		Private Shared Function SetupOpenInfFile(
    <[In]()> <MarshalAs(UnmanagedType.LPWStr)> ByVal FileName As String,
    <[In]()> <MarshalAs(UnmanagedType.LPWStr)> ByVal InfClass As String,
-   <[In]()> ByVal InfStyle As UInt32,
-   <[In]()> ByRef ErrorLine As UInt32) As IntPtr
+   <[In]()> ByVal InfStyle As UInteger,
+   <[In]()> ByRef ErrorLine As UInteger) As IntPtr
 		End Function
 
 		<DllImport("setupapi.dll", CharSet:=CharSet.Unicode, SetLastError:=True)>
