@@ -824,6 +824,8 @@ Namespace Display_Driver_Uninstaller
 				info.Add("OS", Application.Settings.WinVersionText)
 				info.Add("Build", Application.Settings.WinBuildText)
 				info.Add("Win 10 1809+ ?", Application.Settings.Win10_1809.ToString())
+				info.Add("NVIDIA App installed ?", Application.Settings.NVIDIA_App_Installed.ToString())
+				info.Add("NVIDIA Broadcast ?", Application.Settings.NVIDIA_Broadcast_Installed.ToString())
 				info.Add("Architecture", If(Application.Settings.WinIs64, "x64", "x86"))
 
 				Try

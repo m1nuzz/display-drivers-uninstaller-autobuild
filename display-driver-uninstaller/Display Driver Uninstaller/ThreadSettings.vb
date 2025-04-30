@@ -13,20 +13,23 @@ Namespace Display_Driver_Uninstaller
 		Public Property SelectedAUDIO As AudioVendor
 		Public Property SelectedType As CleanType
 		Public Property AppName As String
-
 		Public Property WinVersion As OSVersion
 		Public Property WinIs64 As Boolean
+		Public Property NVIDIA_App_Installed As Boolean
+		Public Property NVIDIA_Broadcast_Installed As Boolean
 
 		Public ReadOnly Property IsWinXp As Boolean
 			Get
 				Return (WinVersion = OSVersion.WinXP Or WinVersion = OSVersion.WinXPPro_Server2003)
 			End Get
 		End Property
+
 		Public ReadOnly Property IsWin8Higher As Boolean
 			Get
 				Return WinVersion >= OSVersion.Win8
 			End Get
 		End Property
+
 		Public ReadOnly Property IsWin10 As Boolean
 			Get
 				Return WinVersion = OSVersion.Win10

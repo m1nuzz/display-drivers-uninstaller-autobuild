@@ -93,6 +93,8 @@ Namespace Display_Driver_Uninstaller
 		Private ReadOnly m_processKilled As DependencyProperty = RegDP("ProcessKilled", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_win10_1809 As DependencyProperty = RegDP("Win10_1809", GetType(Boolean), GetType(AppSettings), False)
 		Private ReadOnly m_win11 As DependencyProperty = RegDP("Win11", GetType(Boolean), GetType(AppSettings), False)
+		Private ReadOnly m_nvidia_app_installed As DependencyProperty = RegDP("NVIDIA_App_Installed", GetType(Boolean), GetType(AppSettings), False)
+		Private ReadOnly m_nvidia_broadcast_installed As DependencyProperty = RegDP("NVIDIA_Broadcast_Installed", GetType(Boolean), GetType(AppSettings), False)
 
 		' Removals
 		Private ReadOnly m_remMonitors As DependencyProperty = RegDP("RemoveMonitors", GetType(Boolean), GetType(AppSettings), True)
@@ -193,6 +195,24 @@ Namespace Display_Driver_Uninstaller
 			End Get
 			Set(value As Boolean)
 				SetValue(m_processKilled, value)
+			End Set
+		End Property
+
+		Public Property NVIDIA_App_Installed As Boolean
+			Get
+				Return CBool(GetValue(m_nvidia_app_installed))
+			End Get
+			Set(value As Boolean)
+				SetValue(m_nvidia_app_installed, value)
+			End Set
+		End Property
+
+		Public Property NVIDIA_Broadcast_Installed As Boolean
+			Get
+				Return CBool(GetValue(m_nvidia_broadcast_installed))
+			End Get
+			Set(value As Boolean)
+				SetValue(m_nvidia_broadcast_installed, value)
 			End Set
 		End Property
 
@@ -426,6 +446,7 @@ Namespace Display_Driver_Uninstaller
 				SetValue(m_UseRoamingCfg, value)
 			End Set
 		End Property
+
 		Public Property CheckUpdates As Boolean
 			Get
 				Return CBool(GetValue(m_CheckUpdates))
@@ -434,6 +455,7 @@ Namespace Display_Driver_Uninstaller
 				SetValue(m_CheckUpdates, value)
 			End Set
 		End Property
+
 		Public Property CreateRestorePoint As Boolean
 			Get
 				Return CBool(GetValue(m_createRestorePoint))
@@ -442,6 +464,7 @@ Namespace Display_Driver_Uninstaller
 				SetValue(m_createRestorePoint, value)
 			End Set
 		End Property
+
 		Public Property SaveLogs As Boolean
 			Get
 				Return CBool(GetValue(m_saveLogs))
@@ -450,6 +473,7 @@ Namespace Display_Driver_Uninstaller
 				SetValue(m_saveLogs, value)
 			End Set
 		End Property
+
 		Public Property RemoveVulkan As Boolean
 			Get
 				Return CBool(GetValue(m_removevulkan))
@@ -596,6 +620,26 @@ Namespace Display_Driver_Uninstaller
 
 			AppName = asseemblyName.Name
 			AppVersion = asseemblyName.Version
+			UpdateApp()
+		End Sub
+
+		Private Sub UpdateApp()
+			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
+"Software\Microsoft\Windows\CurrentVersion\Uninstall", True)
+				If regkey IsNot Nothing Then
+					For Each child As String In regkey.GetSubKeyNames()
+						If IsNullOrWhitespace(child) Then Continue For
+						If StrContainsAny(child, True, "_nvidiabroadcast") Then
+							NVIDIA_Broadcast_Installed = True
+							Continue For
+						End If
+						If StrContainsAny(child, True, "_display.nvapp") Then
+							NVIDIA_App_Installed = True
+							Continue For
+						End If
+					Next
+				End If
+			End Using
 		End Sub
 
 		Public Sub Save()

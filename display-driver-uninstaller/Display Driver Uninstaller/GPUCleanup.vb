@@ -5533,19 +5533,33 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 			Dim removephysx As Boolean = config.RemovePhysX
 			Dim driverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\driverfiles.cfg")
 			Dim gfedriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\gfedriverfiles.cfg")
+			Dim rtxAud As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\rtxaud.cfg")
 			Dim nvbdriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\nvbdriverfiles.cfg")
 			Dim TaskList = New List(Of Task)()
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			Dim thread1 As Task = Task.Run(Sub() Threaddata1(driverfiles))
 			TaskList.Add(thread1)
+
 			If config.RemoveGFE Then
 				Dim thread2 As Task = Task.Run(Sub() Threaddata1(gfedriverfiles))
 				TaskList.Add(thread2)
 			End If
+
 			If config.RemoveNVBROADCAST Then
 				Dim thread3 As Task = Task.Run(Sub() Threaddata1(nvbdriverfiles))
+				TaskList.Add(thread3)
+			End If
+
+			' Check if both apps are either not installed or set to be removed
+			Dim shouldRemoveBoth As Boolean =
+	((Not config.NVIDIA_App_Installed) OrElse config.RemoveGFE) AndAlso
+	((Not config.NVIDIA_Broadcast_Installed) OrElse config.RemoveNVBROADCAST)
+
+			If shouldRemoveBoth Then
+				Dim thread3 As Task = Task.Run(Sub() Threaddata1(rtxAud))
 				TaskList.Add(thread3)
 			End If
 
@@ -5590,8 +5604,17 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 				If filePath IsNot Nothing Then
 					For Each child As String In _fileIo.GetFiles(filePath, "*.lnk")
 						If IsNullOrWhitespace(child) Then Continue For
-						If (StrContainsAny(DesktopIconRemover.GetShortcutTargetPath(child), True, "GeForce Experience.exe", "NVIDIA App.exe") AndAlso config.RemoveGFE) Or
-(StrContainsAny(DesktopIconRemover.GetShortcutTargetPath(child), True, "3d vision photo viewer")) Then
+						If StrContainsAny(DesktopIconRemover.GetShortcutTargetPath(child), True, "GeForce Experience.exe", "NVIDIA App.exe") AndAlso config.RemoveGFE Then
+							Delete(child)
+							Continue For
+						End If
+
+						If StrContainsAny(DesktopIconRemover.GetShortcutTargetPath(child), True, "3d vision photo viewer") Then
+							Delete(child)
+							Continue For
+						End If
+
+						If (StrContainsAny(DesktopIconRemover.GetShortcutTargetPath(child), True, "NVIDIA Broadcast.exe") AndAlso config.RemoveNVBROADCAST) Then
 							Delete(child)
 						End If
 					Next
