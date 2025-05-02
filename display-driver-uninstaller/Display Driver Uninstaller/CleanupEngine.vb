@@ -1893,12 +1893,13 @@ Namespace Display_Driver_Uninstaller
 
 		End Sub
 
-		Public Sub Pnplockdownfiles(ByVal driverfiles As String())
+		Public Sub PnpLockdownFiles(ByVal driverfiles As String())
 
 			Dim winxp = FrmMain.IsWindowsXp
 			Dim win8higher = FrmMain.IsWindows8OrHigher
 			Dim processinfo As New ProcessStartInfo
 			Dim process As New Process
+			Dim fileIO As New FileIO
 
 			Try
 				If Not winxp Then  'this does not exist on winxp so we skip if winxp detected
@@ -1907,12 +1908,17 @@ Namespace Display_Driver_Uninstaller
 							If regkey IsNot Nothing Then
 								For Each child As String In regkey.GetSubKeyNames()
 									If IsNullOrWhitespace(child) Then Continue For
-									If StrContainsAny(child.Replace("/", "\"), True, driverfiles) Then
-										Try
-											Deletesubregkey(regkey, child)
-										Catch ex As Exception
-											Application.Log.AddException(ex)
-										End Try
+
+									Dim normalizedPath As String = child.Replace("/", "\")
+									normalizedPath = Environment.ExpandEnvironmentVariables(normalizedPath)
+									If Not fileIO.ExistsFile(normalizedPath) Then
+										If StrContainsAny(normalizedPath, True, driverfiles) Then
+											Try
+												Deletesubregkey(regkey, child)
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
 									End If
 								Next
 							End If
@@ -1924,12 +1930,15 @@ Namespace Display_Driver_Uninstaller
 							If regkey IsNot Nothing Then
 								For Each child As String In regkey.GetValueNames()
 									If IsNullOrWhitespace(child) Then Continue For
-									If StrContainsAny(child, True, driverfiles) Then
-										Try
-											Deletevalue(regkey, child)
-										Catch ex As Exception
-											Application.Log.AddException(ex)
-										End Try
+
+									If Not fileIO.ExistsFile(child) Then
+										If StrContainsAny(child, True, driverfiles) Then
+											Try
+												Deletevalue(regkey, child)
+											Catch ex As Exception
+												Application.Log.AddException(ex)
+											End Try
+										End If
 									End If
 								Next
 							End If

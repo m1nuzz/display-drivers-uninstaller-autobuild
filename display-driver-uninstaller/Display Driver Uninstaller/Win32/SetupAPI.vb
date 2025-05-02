@@ -1735,8 +1735,9 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includeparents Then
+									Dim allDevices = GetAllDeviceParent(driverDetails)
 									For Each dev As Device In Devices
-										GetChild(dev)
+										GetChildv2(dev, allDevices)
 										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
 											UpdateDevicesByID(dev.ChildDevices, driverDetails)
 										End If
@@ -2093,6 +2094,114 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Sub
 
+		Private Shared Function GetAllDeviceParent(driverDetails As Boolean) As List(Of Device)
+			Dim Devices As List(Of Device) = New List(Of Device)(500)
+
+			Try
+				Dim hardwareIds(0) As String
+				Dim lowerfilters(0) As String
+				Dim upperfilters(0) As String
+				Dim friendlyname As String
+				Dim desc As String = Nothing
+				Dim className As String = Nothing
+
+				Dim errCode As UInteger = 0UI
+				Dim devInst As UInteger = 0UI
+
+				Using infoSet As SafeDeviceHandle = SetupDiGetClassDevs(IntPtr.Zero, Nothing, IntPtr.Zero, DIGCF.ALLCLASSES)
+					If infoSet.IsInvalid Then
+						Throw New Win32Exception()
+					End If
+
+					Dim ptrDevInfo As StructPtr = Nothing
+					Try
+						If Is64 Then
+							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X64() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X64)))})
+						Else
+							ptrDevInfo = New StructPtr(New SP_DEVINFO_DATA_X86() With {.cbSize = GetUInt32(Marshal.SizeOf(GetType(SP_DEVINFO_DATA_X86)))})
+						End If
+
+						Dim i As UInteger = 0UI
+
+						While True
+							If Not SetupDiEnumDeviceInfo(infoSet, i, ptrDevInfo.Ptr) Then
+								errCode = GetLastWin32ErrorU()
+
+								If errCode = Errors.NO_MORE_ITEMS Then
+									Exit While
+								Else
+									Throw New Win32Exception(GetInt32(errCode))
+								End If
+							End If
+
+							i += 1UI
+							desc = Nothing
+							className = Nothing
+							hardwareIds = Nothing
+							lowerfilters = Nothing
+							upperfilters = Nothing
+							friendlyname = Nothing
+
+							className = GetStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.CLASS)
+
+							desc = GetStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.DEVICEDESC)
+
+							hardwareIds = GetMultiStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.HARDWAREID)
+
+
+							lowerfilters = GetMultiStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.LOWERFILTERS)
+
+
+							upperfilters = GetMultiStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.UPPERFILTERS)
+
+							friendlyname = GetStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.FRIENDLYNAME)
+
+							If Is64 Then
+								devInst = DirectCast(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X64)), SP_DEVINFO_DATA_X64).DevInst
+							Else
+								devInst = DirectCast(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X86)), SP_DEVINFO_DATA_X86).DevInst
+							End If
+
+							Dim d As Device = New Device() With
+							{
+							 .devInst = devInst,
+							 .Description = desc,
+							 .ClassName = className,
+							 .HardwareIDs = hardwareIds,
+							 .LowerFilters = lowerfilters,
+							 .UpperFilters = upperfilters,
+							 .FriendlyName = friendlyname
+							}
+
+							GetDeviceDetails(infoSet, ptrDevInfo.Ptr, d, True)
+
+							Devices.Add(d)
+
+
+						End While
+
+						For Each device In Devices
+							GetParents(device)
+							If device.ParentDevices IsNot Nothing AndAlso device.ParentDevices.Length > 0 Then
+								UpdateDevicesByID(device.ParentDevices, driverDetails)
+							End If
+						Next
+
+						Return Devices
+					Finally
+						If ptrDevInfo IsNot Nothing Then
+							ptrDevInfo.Dispose()
+						End If
+					End Try
+				End Using
+
+			Catch ex As Exception
+				ShowException(ex)
+			End Try
+
+			Return Nothing
+		End Function
+
 		Public Shared Function GetDevicesByCHID(ByVal text As String, ByVal includeSiblings As Boolean, ByVal includeParents As Boolean, ByVal includechilds As Boolean, Optional ByVal driverDetails As Boolean = False) As List(Of Device)  'Get devices by Compatible Hardware IDs
 			Dim Devices As List(Of Device) = New List(Of Device)(500)
 
@@ -2212,7 +2321,8 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includechilds Then
-									ExtractChilds(driverDetails, Devices)
+									Dim allDevicesWithParents = GetAllDeviceParent(driverDetails)
+									ExtractChilds(driverDetails, Devices, allDevicesWithParents)
 								End If
 
 								UpdateDevicesByID(Devices, driverDetails)
@@ -2364,8 +2474,9 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includechilds Then
+									Dim allDevices = GetAllDeviceParent(driverDetails)
 									For Each dev As Device In Devices
-										GetChild(dev)
+										GetChildv2(dev, allDevices)
 										If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
 											UpdateDevicesByID(dev.ChildDevices, driverDetails)
 										End If
@@ -2490,7 +2601,7 @@ Namespace Display_Driver_Uninstaller.Win32
 								End If
 
 								If includeChilds Then
-									ExtractChilds(driverDetails, Devices)
+									ExtractChilds(driverDetails, Devices, GetAllDeviceParent(driverDetails))
 								End If
 
 								UpdateDevicesByID(Devices, driverDetails)
@@ -2523,12 +2634,13 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Try
 		End Function
 
-		Private Shared Sub ExtractChilds(driverDetails As Boolean, Devices As List(Of Device), Optional updateDevice As Boolean = False)
+		Private Shared Sub ExtractChilds(driverDetails As Boolean, Devices As List(Of Device), allDevices As List(Of Device), Optional updateDevice As Boolean = False)
+
 			For Each dev As Device In Devices
-				GetChild(dev)
+				GetChildv2(dev, allDevices)
 				If dev.ChildDevices IsNot Nothing AndAlso dev.ChildDevices.Length > 0 Then
 					UpdateDevicesByID(dev.ChildDevices, driverDetails)
-					ExtractChilds(driverDetails, dev.ChildDevices.ToList(), True)
+					ExtractChilds(driverDetails, dev.ChildDevices.ToList(), allDevices, True)
 				End If
 			Next
 
@@ -3510,6 +3622,37 @@ Namespace Display_Driver_Uninstaller.Win32
 
 			Catch ex As Exception
 				Application.Log.AddException(ex, "Getting device's parents has failed!")
+			End Try
+		End Sub
+
+		Private Shared Sub GetChildv2(ByVal device As Device, allDevices As List(Of Device))
+			Try
+				Dim devInstChild As UInteger = 0UI
+				Dim childDevices As New List(Of Device)(5)
+
+				For Each instDevice In allDevices
+
+					If instDevice.ParentDevices Is Nothing OrElse Not instDevice.ParentDevices.Length > 0 Then
+						Continue For
+					End If
+
+					For Each parentDevice In instDevice.ParentDevices
+						If parentDevice.DevInstID = device.DevInstID Then
+							childDevices.Add(
+							 New Device() With {
+							  .devInst = instDevice.devInst
+							 })
+						End If
+					Next
+				Next
+
+				If childDevices.Count > 0 Then
+					device.ChildDevices = childDevices.ToArray()
+				Else : device.ChildDevices = Nothing
+				End If
+
+			Catch ex As Exception
+				Application.Log.AddException(ex, "Getting device's child(s) has failed!")
 			End Try
 		End Sub
 

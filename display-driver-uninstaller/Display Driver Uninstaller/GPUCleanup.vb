@@ -977,6 +977,7 @@ Namespace Display_Driver_Uninstaller
 				End If
 			Next
 		End Sub
+
 		Private Sub Cleanamdserviceprocess(ByVal config As ThreadSettings)
 			Dim cleanupEngine As New CleanupEngine
 			Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\AMD\services.cfg")
@@ -1419,13 +1420,13 @@ regkey.GetValue(child).ToString.ToLower.Contains("display cpl extension") Then
 			'-----------------------------
 
 			Application.Log.AddMessage("Pnplockdownfiles region cleanUP")
-			CleanupEngine.Pnplockdownfiles(driverfiles)   '// add each line as String Array.
+			CleanupEngine.PnpLockdownFiles(driverfiles)   '// add each line as String Array.
 
 			If config.RemoveAMDKMPFD AndAlso config.NotPresentAMDKMPFD Then
-				CleanupEngine.Pnplockdownfiles(driverfilesKMPFD)
+				CleanupEngine.PnpLockdownFiles(driverfilesKMPFD)
 			End If
 			If config.RemoveAudioBus AndAlso FrmMain.DoNotRemoveAmdHdAudioBusFiles = False Then
-				CleanupEngine.Pnplockdownfiles(driverfilesKMAFD)
+				CleanupEngine.PnpLockdownFiles(driverfilesKMAFD)
 			End If
 			If config.RemoveVulkan Then
 				Try
@@ -3664,10 +3665,10 @@ child2.ToLower.Contains("hdaudio.driver") Then
 
 			'end of deleting dcom stuff
 			Application.Log.AddMessage("Pnplockdownfiles region cleanUP")
-			CleanupEngine.Pnplockdownfiles(driverfiles)  '// add each line as String Array.
+			CleanupEngine.PnpLockdownFiles(driverfiles)  '// add each line as String Array.
 
 			If removegfe Then
-				CleanupEngine.Pnplockdownfiles(gfedriverfiles) '// add each line as String Array.
+				CleanupEngine.PnpLockdownFiles(gfedriverfiles) '// add each line as String Array.
 			End If
 
 			'Cleaning PNPRessources.  'Will fix this later, its not efficent clean at all. (Wagnard)
@@ -6612,7 +6613,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 					ImpersonateLoggedOnUser.Taketoken()
 				End If
 
-				CleanupEngine.Pnplockdownfiles(driverfiles) '// add each line as String Array.
+				CleanupEngine.PnpLockdownFiles(driverfiles) '// add each line as String Array.
 
 				CleanupEngine.ClassRoot(classroot, config) '// add each line as String Array.
 

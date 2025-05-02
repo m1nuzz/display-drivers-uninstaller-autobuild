@@ -155,7 +155,7 @@
 			<Options1>---Válaszd ki az eszközt---</Options1>
 			<Options2>NVIDIA</Options2>
 			<Options3>AMD</Options3>
-			<Options4>INTEL</Options4>
+			<Options4>Intel®</Options4>
 		</Options_GPU>
 		<Options_AUDIO>
 			<Options1>---Válaszd ki az eszközt---</Options1>
@@ -222,7 +222,7 @@
 			<Text>AMD specifikus beállítások</Text>
 		</lblAmdspecific>
 		<lblINTELspecific>
-			<Text>INTEL specifikus beállítások</Text>
+			<Text>Intel® specifikus beállítások</Text>
 		</lblINTELspecific>
 		<lblAdvancedO>
 			<Text>További beállítások (csak saját felelősségre változtasd meg)</Text>
@@ -289,6 +289,12 @@
 		<lblRemINTELIGS>
 			<Text>Intel Arc vezérlőpult / Intel® Grafikus Szoftver eltávolítása</Text>
 		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>Intel® oneAPI Level Zero SDK eltávolítása</Text>
+		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>Intel® Endurance Gaming eltávolítása</Text>
+		</lblRemEnduranceGaming>
 		<lblRemAMDCP>
 			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített AMD Vezérlőpult eltávolítása</Text>
 		</lblRemAMDCP>
@@ -433,7 +439,9 @@
 				-Peter Le
 				-Kater Willschie
 				-Duke Hanson
-				
+				-Sam Gooding
+				-Zero Chung
+
 			</Text>
 		</lblPatron>
 	</frmAbout>
