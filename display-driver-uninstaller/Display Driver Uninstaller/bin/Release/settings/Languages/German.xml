@@ -106,6 +106,9 @@
 		<VisitDDUHomeMenuItem>
 			<Text>Offizielle DDU-Website besuchen</Text>
 		</VisitDDUHomeMenuItem>
+		<VisitDiscord>
+			<Text>Unserem Discord beitreten</Text>
+		</VisitDiscord>
 		<VisitSVNMenuItem>
 			<Text>SVN-Website besuchen</Text>
 		</VisitSVNMenuItem>
@@ -255,7 +258,7 @@
 			<Text>Treiberordner "C:\AMD" entfernen</Text>
 		</lblRemAMDDirs>
 		<lblRemAMDKMPFD>
-			<Text>Entfernen des Treibers/Filters AMDKMPFD (für AMD-Chipsatz wird ein Backup empfohlen)</Text>
+			<Text>Entfernen des Treibers/Filters AMDKMPFD (für AMD-Chipsätze wird ein Backup empfohlen)</Text>
 		</lblRemAMDKMPFD>
 		<lblShowSafeModeMsg>
 			<Text>Dialog Abgesicherter Modus aktivieren (nicht empfohlen, bis Sie den abgesicherten Modus manuell getestet haben)</Text>
@@ -468,7 +471,7 @@
 
 				- Wir würden gerne Feedback von allen sammeln, sagen Sie uns, ob es erfolgreich war oder nicht.
 
-				- Erstellen Sie ein Backup oder einen Systemwiederherstellungspunkt (normalerweise sollte es aber ziemlich sicher sein).
+				- Legen Sie ein Backup oder einen Systemwiederherstellungspunkt an (aber normalerweise sollte es ziemlich sicher sein).
 
 				- Wenn Sie ein Treiberproblem haben oder hatten und dieses Tool Ihnen bei einigen Problemen geholfen hat, die
 				  Sie hatten oder derzeit haben, teilen Sie bitte Ihr Resultat mit.
@@ -521,7 +524,7 @@
 
 		<Translator2>
 			<User>_rk_</User>
-			<LastUpdate>02/05/2025</LastUpdate>
+			<LastUpdate>03/05/2025</LastUpdate>
 		</Translator2>
 	</LanguageTranslators>
 
