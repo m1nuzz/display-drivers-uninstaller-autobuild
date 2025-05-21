@@ -2,6 +2,7 @@
 Imports System.IO
 Imports System.Linq
 Imports System.Security.Principal
+Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Display_Driver_Uninstaller.Win32
@@ -1557,42 +1558,67 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 												End Try
 											End If
 											If child.Contains("Path") Then
-												If Not IsNullOrWhitespace(regkey.GetValue(child, String.Empty).ToString) Then
-													wantedvalue = regkey.GetValue(child, String.Empty).ToString.ToLower
-													If Not IsNullOrWhitespace(wantedvalue) Then
-														Try
-															Select Case True
-																Case wantedvalue.Contains(";" + _sysdrv & "program files (x86)\amd app\bin\x86_64")
-																	wantedvalue = wantedvalue.Replace(";" + _sysdrv & "program files (x86)\amd app\bin\x86_64", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(_sysdrv & "program files (x86)\amd app\bin\x86_64;")
-																	wantedvalue = wantedvalue.Replace(_sysdrv & "program files (x86)\amd app\bin\x86_64;", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(";" + _sysdrv & "program files (x86)\amd app\bin\x86")
-																	wantedvalue = wantedvalue.Replace(";" + _sysdrv & "program files (x86)\amd app\bin\x86", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(_sysdrv & "program files (x86)\amd app\bin\x86;")
-																	wantedvalue = wantedvalue.Replace(_sysdrv & "program files (x86)\amd app\bin\x86;", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(";" + _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static")
-																	wantedvalue = wantedvalue.Replace(";" + _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(_sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static;")
-																	wantedvalue = wantedvalue.Replace(_sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static;", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(";" + _sysdrv & "program Files (x86)\amd\ati.ace\core-static")
-																	wantedvalue = wantedvalue.Replace(";" + _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static", "")
-																	regkey.SetValue(child, wantedvalue)
-																Case wantedvalue.Contains(_sysdrv & "program Files (x86)\amd\ati.ace\core-static;")
-																	wantedvalue = wantedvalue.Replace(_sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static;", "")
-																	regkey.SetValue(child, wantedvalue)
-															End Select
-														Catch ex As Exception
-															Application.Log.AddException(ex)
-														End Try
-													End If
+												wantedvalue = CType(regkey.GetValue(child, String.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames), String)
+												If Not IsNullOrWhitespace(wantedvalue) Then
+													Dim changed As Boolean = False
+													Dim originalKind As RegistryValueKind
+													originalKind = regkey.GetValueKind(child)
+
+													Try
+														If wantedvalue.IndexOf(";" & _sysdrv & "program files (x86)\amd app\bin\x86_64", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, ";" & _sysdrv & "program files (x86)\amd app\bin\x86_64", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(_sysdrv & "program files (x86)\amd app\bin\x86_64;", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, _sysdrv & "program files (x86)\amd app\bin\x86_64;", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(";" & _sysdrv & "program files (x86)\amd app\bin\x86", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, ";" & _sysdrv & "program files (x86)\amd app\bin\x86", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(_sysdrv & "program files (x86)\amd app\bin\x86;", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, _sysdrv & "program files (x86)\amd app\bin\x86;", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(";" & _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, ";" & _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(_sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static;", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, _sysdrv & "program Files (x86)\ati technologies\ati.ace\core-static;", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(";" & _sysdrv & "program Files (x86)\amd\ati.ace\core-static", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, ";" & _sysdrv & "program Files (x86)\amd\ati.ace\core-static", "")
+															changed = True
+														End If
+
+														If wantedvalue.IndexOf(_sysdrv & "program Files (x86)\amd\ati.ace\core-static;", StringComparison.OrdinalIgnoreCase) >= 0 Then
+															wantedvalue = ReplaceIgnoreCase(wantedvalue, _sysdrv & "program Files (x86)\amd\ati.ace\core-static;", "")
+															changed = True
+														End If
+
+														If changed Then
+															Try
+																regkey.SetValue(child, wantedvalue, originalKind)
+															Catch ex As Exception
+																Application.Log.AddException(ex)
+															End Try
+														End If
+
+													Catch ex As Exception
+														Application.Log.AddException(ex)
+													End Try
 												End If
 											End If
+
 										Next
 									End If
 								End Using
@@ -1605,6 +1631,8 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 			End Try
 
 			'end system environement patch cleanup
+
+			FixBrokenPathIfNeeded()
 
 			'-----------------------
 			'remove event view stuff
@@ -3275,7 +3303,7 @@ child.ToLower.Contains("\dem.") Then
 		End Sub
 
 		Private Sub CleanEnvironementPath(ByVal valuesToRemove() As String)
-			Dim value As String = Nothing
+			Dim value As String
 			Dim paths() As String = Nothing
 			Dim newPaths As List(Of String)
 			Dim removedPaths As List(Of String)
@@ -3297,8 +3325,10 @@ child.ToLower.Contains("\dem.") Then
 										For Each child As String In regkey.GetValueNames()
 											If IsNullOrWhitespace(child) Then Continue For
 											If child.Equals("Path", StringComparison.OrdinalIgnoreCase) Then
-												value = regkey.GetValue(child, String.Empty).ToString()
+												value = CType(regkey.GetValue(child, String.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames), String)
 												If Not IsNullOrWhitespace(value) Then
+													Dim originalKind As RegistryValueKind
+													originalKind = regkey.GetValueKind(child)
 													paths = If(value.Contains(";"), value.Split(New Char() {";"c}, StringSplitOptions.None), New String() {value})
 													newPaths = New List(Of String)(paths.Length)
 													removedPaths = New List(Of String)(paths.Length)
@@ -3313,48 +3343,13 @@ child.ToLower.Contains("\dem.") Then
 													logEntry.Add(child2, String.Join(Environment.NewLine, paths))
 													logEntry.Add(KvP.Empty)
 													If removedPaths.Count > 0 Then  'Change regkey's value only if modified
-														regkey.SetValue(child, String.Join(";", newPaths.ToArray()))
+														regkey.SetValue(child, String.Join(";", newPaths.ToArray()), originalKind)
 														logEntry.Add(">> Removed", String.Join(Environment.NewLine, removedPaths.ToArray()))    'Log removed values
 													Else
 														logEntry.Add(">> Not modified")
 													End If
 													logEntry.Add(KvP.Empty)
 													logEntry.Add(KvP.Empty)
-
-													'	Select Case True
-													'		Case value.Contains(";" + filepath & "\amd app\bin\x86_64")
-													'			value = value.Replace(";" + filepath & "\amd app\bin\x86_64", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(filepath & "\amd app\bin\x86_64;")
-													'			value = value.Replace(filepath & "\amd app\bin\x86_64;", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(";" + filepath & "\amd app\bin\x86")
-													'			value = value.Replace(";" + filepath & "\amd app\bin\x86", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(filepath & "\amd app\bin\x86;")
-													'			value = value.Replace(filepath & "\amd app\bin\x86;", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(";" + filepath & "\ati.ace\core-static")
-													'			value = value.Replace(";" + filepath & "\ati.ace\core-static", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(filepath & "\ati.ace\core-static;")
-													'			value = value.Replace(filepath & "\ati.ace\core-static;", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(";" + filepath & "\ati.ace\core-static")
-													'			value = value.Replace(";" + filepath & "\ati.ace\core-static", "")
-													'			regkey.SetValue(child, value)
-
-													'		Case value.Contains(filepath & "\ati.ace\core-static;")
-													'			value = value.Replace(filepath & "\ati.ace\core-static;", "")
-													'			regkey.SetValue(child, value)
-
-													'	End Select
 												End If
 											End If
 										Next
@@ -3923,21 +3918,30 @@ child2.ToLower.Contains("hdaudio.driver") Then
 											For Each child As String In regkey.GetValueNames()
 												If IsNullOrWhitespace(child) Then Continue For
 												If StrContainsAny(child, True, "Path") Then
-													wantedvalue = regkey.GetValue(child, String.Empty).ToString.ToLower
+													wantedvalue = CType(regkey.GetValue(child, String.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames), String)
 													If IsNullOrWhitespace(wantedvalue) Then Continue For
+													Dim originalKind As RegistryValueKind
+													originalKind = regkey.GetValueKind(child)
 													Try
 														Select Case True
 															Case StrContainsAny(wantedvalue, True, _sysdrv & "program files (x86)\nvidia corporation\physx\common;")
-																wantedvalue = wantedvalue.Replace(_sysdrv.ToLower & "program files (x86)\nvidia corporation\physx\common;", "")
+																wantedvalue = Regex.Replace(wantedvalue,
+													Regex.Escape(_sysdrv & "program files (x86)\nvidia corporation\physx\common;"),
+													"",
+													RegexOptions.IgnoreCase)
 																Try
-																	regkey.SetValue(child, wantedvalue)
+																	regkey.SetValue(child, wantedvalue, originalKind)
 																Catch ex As Exception
 																	Application.Log.AddException(ex)
 																End Try
+
 															Case StrContainsAny(wantedvalue, True, ";" & _sysdrv & "program files (x86)\nvidia corporation\physx\common")
-																wantedvalue = wantedvalue.Replace(";" & _sysdrv.ToLower & "program files (x86)\nvidia corporation\physx\common", "")
+																wantedvalue = Regex.Replace(wantedvalue,
+													Regex.Escape(";" & _sysdrv & "program files (x86)\nvidia corporation\physx\common"),
+													"",
+													RegexOptions.IgnoreCase)
 																Try
-																	regkey.SetValue(child, wantedvalue)
+																	regkey.SetValue(child, wantedvalue, originalKind)
 																Catch ex As Exception
 																	Application.Log.AddException(ex)
 																End Try
@@ -3958,10 +3962,17 @@ child2.ToLower.Contains("hdaudio.driver") Then
 				End Try
 				Application.Log.AddMessage("End System environement path cleanup")
 			End If
+
 			'-------------------------------------
 			'end system environement patch cleanup
 			'-------------------------------------
 
+
+			'----------------------------------------------
+			'Fix, if needed, for previously corrupted environement Path
+			'----------------------------------------------
+
+			FixBrokenPathIfNeeded()
 
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
@@ -7227,6 +7238,8 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
+			FixBrokenPathIfNeeded()
 
 			'-----------------------
 			'remove event view stuff
