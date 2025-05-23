@@ -301,94 +301,98 @@ Namespace Display_Driver_Uninstaller
 		Public Sub FixBrokenPathIfNeeded()
 			Const VALUE_NAME As String = "Path"
 
-			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
-				If subregkey IsNot Nothing Then
-					For Each child As String In subregkey.GetSubKeyNames()
-						If IsNullOrWhitespace(child) Then Continue For
-						If child.ToLower.Contains("controlset") Then
-							Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\" & child & "\Control\Session Manager\Environment", True)
+			Using topLevelKey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", Writable:=False)
 
-								' 1) Does the value exist?
-								If Not regkey.GetValueNames().Contains(VALUE_NAME) Then
-									Continue For
-								End If
+				If topLevelKey Is Nothing Then Return
 
-								' 2) Check the kind; we only want to touch ExpandString (REG_EXPAND_SZ).
-								Dim kind As RegistryValueKind = regkey.GetValueKind(VALUE_NAME)
-								If kind <> RegistryValueKind.ExpandString Then
-									' Not an ExpandString (e.g. REG_SZ or something else), so skip it.
-									Continue For
-								End If
+				For Each childName As String In topLevelKey.GetSubKeyNames()
+					If String.IsNullOrWhiteSpace(childName) Then Continue For
 
-								' 3) Read the raw (unexpanded) string, so we can see any literal "%SystemRoot%" or "C:\Windows" that’s stored.
-								Dim rawValueObj As Object = regkey.GetValue(VALUE_NAME, String.Empty, RegistryValueOptions.DoNotExpandEnvironmentNames)
-								If rawValueObj Is Nothing Then
-									Continue For
-								End If
-
-								Dim rawPath As String = rawValueObj.ToString()
-								If String.IsNullOrWhiteSpace(rawPath) Then
-									Continue For
-								End If
-
-								' 4) Look for any hard-coded "\Windows" references at the start of a segment.
-								'    We'll replace:
-								'      - c:\windows\ → %SystemRoot%\
-								'      - c:\windows       → %SystemRoot%
-								'
-								'    Do this in a case-insensitive way, but preserve the rest of the string exactly.
-
-								' Pattern to match “c:\windows” (in any casing) optionally followed by “\something…”
-								' We’ll do two passes:
-								'  (A) "c:\windows\"
-								'  (B) "c:\windows" (at end of segment or before semicolon)
-								'
-								' Note: We only want to replace actual segment prefixes, not e.g. "C:\WindowsApps" 
-								' (so we check for “c:\windows” followed by either “\” or “;” or end-of-string).
-
-								Dim fixedPath As String = rawPath
-
-								' Replace any "c:\windows\system32\wbem" (any casing) with "%SystemRoot%\System32\Wbem"
-								fixedPath = Regex.Replace(fixedPath,
-												"(?i)\bc:\\windows\\system32\\wbem",
-												"%SystemRoot%\System32\Wbem",
-												RegexOptions.IgnoreCase)
-
-								' Replace any "c:\windows\" (or variants of casing) with "%SystemRoot%\" 
-								fixedPath = Regex.Replace(fixedPath,
-											  "(?i)\bc:\\windows\\",
-											  "%SystemRoot%\",
-											  RegexOptions.IgnoreCase)
-
-								' Replace any standalone "c:\windows" at segment boundaries with "%SystemRoot%"
-								' (look for either end-of-string or semicolon right after "c:\windows")
-								fixedPath = Regex.Replace(fixedPath,
-											  "(?i)\bc:\\windows(?=(;|$))",
-											  "%SystemRoot%",
-											  RegexOptions.IgnoreCase)
-
-								' If nothing changed, we can skip writing:
-								If String.Equals(rawPath, fixedPath, StringComparison.Ordinal) Then
-									Continue For
-								End If
-
-								' 5) Write it back as REG_EXPAND_SZ (ExpandString). 
-								'    Even though SetValue(…) often preserves the kind, specifying it explicitly 
-								'    avoids chance of downgrading to REG_SZ.
-								Try
-									regkey.SetValue(VALUE_NAME, fixedPath, RegistryValueKind.ExpandString)
-									Application.Log.AddMessage($"Fixed broken Path in registry. Old value: 
-		{rawPath}
-		New value: 
-		{fixedPath}")
-
-								Catch ex As Exception
-									Application.Log.AddException(ex)
-								End Try
-							End Using
+					Dim lc As String = childName.ToLowerInvariant()
+					' Only match exactly "CurrentControlSet" or "ControlSet" + digits:
+					Dim isControlSet As Boolean = False
+					If lc = "currentcontrolset" Then
+						isControlSet = True
+					ElseIf lc.StartsWith("controlset") Then
+						Dim suffix As String = lc.Substring("controlset".Length)
+						If suffix.All(AddressOf Char.IsDigit) Then
+							isControlSet = True
 						End If
-					Next
-				End If
+					End If
+
+					If Not isControlSet Then
+						Continue For
+					End If
+
+					Using envKey As RegistryKey = topLevelKey.OpenSubKey($"{childName}\Control\Session Manager\Environment", writable:=True)
+
+						If envKey Is Nothing Then
+							Continue For
+						End If
+
+						' 1) Does the value "Path" exist (case-insensitive)? 
+						Dim allNames = envKey.GetValueNames()
+						Dim hasPath = allNames.Any(
+							Function(n)
+								Return String.Equals(n, VALUE_NAME, StringComparison.OrdinalIgnoreCase)
+							End Function)
+
+						If Not hasPath Then
+							Continue For
+						End If
+
+						' 2) Is it REG_EXPAND_SZ? (only then proceed)
+						Dim kind As RegistryValueKind = envKey.GetValueKind(VALUE_NAME)
+						If kind <> RegistryValueKind.ExpandString Then
+							Continue For
+						End If
+
+						' 3) Read the raw (unexpanded) value
+						Dim rawObj As Object = envKey.GetValue(VALUE_NAME, defaultValue:=String.Empty, options:=RegistryValueOptions.DoNotExpandEnvironmentNames)
+
+						If rawObj Is Nothing Then Continue For
+
+						Dim rawPath As String = rawObj.ToString()
+						If String.IsNullOrWhiteSpace(rawPath) Then Continue For
+
+						' 4) Perform your “c:\windows → %SystemRoot%” replacements:
+						Dim fixedPath As String = rawPath
+
+						' a) Replace any "c:\windows\system32\wbem" → "%SystemRoot%\System32\Wbem"
+						fixedPath = Regex.Replace(
+								fixedPath,
+								"(?i)\bc:\\windows\\system32\\wbem",
+								"%SystemRoot%\System32\Wbem",
+								RegexOptions.IgnoreCase)
+
+						' b) Replace "c:\windows\" everywhere with "%SystemRoot%\"
+						fixedPath = Regex.Replace(
+								fixedPath,
+								"(?i)\bc:\\windows\\",
+								"%SystemRoot%\",
+								RegexOptions.IgnoreCase)
+
+						' c) Replace standalone "c:\windows" at a segment boundary:
+						fixedPath = Regex.Replace(
+								fixedPath,
+								"(?i)\bc:\\windows(?=(;|$))",
+								"%SystemRoot%",
+								RegexOptions.IgnoreCase)
+
+						If String.Equals(rawPath, fixedPath, StringComparison.Ordinal) Then
+							Continue For
+						End If
+
+						' 5) Write it back as REG_EXPAND_SZ
+						Try
+							envKey.SetValue(VALUE_NAME, fixedPath, RegistryValueKind.ExpandString)
+							Application.Log.AddMessage(
+					  $"Fixed broken Path in registry. Old value: {rawPath} New value: {fixedPath}")
+						Catch ex As Exception
+							Application.Log.AddException(ex)
+						End Try
+					End Using
+				Next
 			End Using
 		End Sub
 
