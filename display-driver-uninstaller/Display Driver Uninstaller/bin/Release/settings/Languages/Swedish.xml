@@ -106,6 +106,9 @@
 		<VisitDDUHomeMenuItem>
 			<Text>Besök officiell DDU webbplats</Text>
 		</VisitDDUHomeMenuItem>
+		<VisitDiscord>
+			<Text>Gå med i vår Discord</Text>
+		</VisitDiscord>
 		<VisitSVNMenuItem>
 			<Text>Besök SVN webbplats</Text>
 		</VisitSVNMenuItem>
@@ -289,6 +292,12 @@
 		<lblRemINTELIGS>
 			<Text>Ta bort Intel® Arc Control / Intel® Graphics Software</Text>
 		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>Ta bort Intel® oneAPI Level Zero SDK</Text>
+		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>Remove Intel® Endurance Gaming</Text>
+		</lblRemEnduranceGaming>
 		<lblRemAMDCP>
 			<Text>(DCH-drivrutin) Ta bort AMD Kontrollpanel installerad från Microsoft Store</Text>
 		</lblRemAMDCP>
@@ -433,7 +442,9 @@
 				-Peter Le
 				-Kater Willschie
 				-Duke Hanson
-				
+				-Sam Gooding
+				-Zero Chung
+				-Remy Starshade
 			</Text>
 		</lblPatron>
 	</frmAbout>
@@ -508,7 +519,7 @@ Tack till Helge Klein (http://helgeklein.com/setacl/) : för tillståndet att an
 		<Translator>
 			<User>Hans Eriksson</User>
 			<Details>hanseriksson980@gmail.com</Details>
-			<LastUpdate>08/12/2024</LastUpdate>
+			<LastUpdate>02/06/2025</LastUpdate>
 		</Translator>
 	</LanguageTranslators>
 

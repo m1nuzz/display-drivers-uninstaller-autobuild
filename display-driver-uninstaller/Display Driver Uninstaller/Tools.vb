@@ -396,6 +396,19 @@ Namespace Display_Driver_Uninstaller
 			End Using
 		End Sub
 
+		Public Function IsIntelNpuPresent() As Boolean
+			Try
+				Dim found As List(Of SetupAPI.Device) = SetupAPI.GetDevices("ComputeAccelerator", "VEN_8086", False, driverDetails:=False, logging:=False)
+				If found IsNot Nothing AndAlso found.Count > 0 Then
+					Return True
+				End If
+				Return False
+			Catch ex As Exception
+				Application.Log.AddException(ex)
+				Return False
+				'MessageBox.Show(Languages.GetTranslation("frmMain", "Messages", "Text6"), config.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error)
+			End Try
+		End Function
 
 		Public Sub AdjustWindow(ByRef window As Window)
 			Dim parent As Window = window.Owner

@@ -36,6 +36,7 @@ Namespace Display_Driver_Uninstaller
 		Private Shared _isWindowsXp As Boolean = Application.Settings.WinVersion < OSVersion.WinVista
 		Private Shared _sharedLogBox As ListBox
 		Private Shared _donotremoveamdhdaudiobusfiles As Boolean = True
+		Private Shared _intelNpuPresent As Boolean = IsIntelNpuPresent()
 
 		Private _checkUpdate As New CheckUpdate
 		Private _cleanupEngine As New CleanupEngine
@@ -68,6 +69,15 @@ Namespace Display_Driver_Uninstaller
 			End Get
 			Set(value As Boolean)
 				_donotremoveamdhdaudiobusfiles = value
+			End Set
+		End Property
+
+		Public Shared Property IntelNpuPresent As Boolean
+			Get
+				Return _intelNpuPresent
+			End Get
+			Set(value As Boolean)
+				_intelNpuPresent = value
 			End Set
 		End Property
 
@@ -413,7 +423,6 @@ Namespace Display_Driver_Uninstaller
 						Await _checkUpdate.CheckUpdatesAsync()
 					End If
 				End If
-
 
 				' ----------------------------------------------------------------------------
 				' Trying to get the installed GPU info 
@@ -826,6 +835,7 @@ Namespace Display_Driver_Uninstaller
 				info.Add("Win 10 1809+ ?", Application.Settings.Win10_1809.ToString())
 				info.Add("NVIDIA App installed ?", Application.Settings.NVIDIA_App_Installed.ToString())
 				info.Add("NVIDIA Broadcast ?", Application.Settings.NVIDIA_Broadcast_Installed.ToString())
+				info.Add("Intel NPU Present ?", IntelNpuPresent.ToString())
 				info.Add("Architecture", If(Application.Settings.WinIs64, "x64", "x86"))
 
 				Try

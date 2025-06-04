@@ -2513,7 +2513,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			Return Nothing
 		End Function
 
-		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False, Optional ByVal driverDetails As Boolean = False) As List(Of Device)
+		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False, Optional ByVal driverDetails As Boolean = False, Optional ByVal logging As Boolean = True) As List(Of Device)
 
 			Try
 				If IsNullOrWhitespace(className) Then
@@ -2607,18 +2607,20 @@ Namespace Display_Driver_Uninstaller.Win32
 								UpdateDevicesByID(Devices, driverDetails)
 							End If
 
-							Dim logEntry As LogEntry = Application.Log.CreateEntry()
-							logEntry.Message = String.Format("Device(s) found: {0}", Devices.Count.ToString())
-							logEntry.Add("-> className", className)
-							logEntry.Add("-> vendorID", If(IsNullOrWhitespace(vendorID), "<empty>", vendorID))
-							logEntry.Add("-> includeSiblings", includeSiblings.ToString())
+							If logging Then
+								Dim logEntry As LogEntry = Application.Log.CreateEntry()
+								logEntry.Message = String.Format("Device(s) found: {0}", Devices.Count.ToString())
+								logEntry.Add("-> className", className)
+								logEntry.Add("-> vendorID", If(IsNullOrWhitespace(vendorID), "<empty>", vendorID))
+								logEntry.Add("-> includeSiblings", includeSiblings.ToString())
 
-							If Devices.Count > 0 Then
-								logEntry.Add(KvP.Empty)
-								logEntry.AddDevices(False, Devices.ToArray())
+								If Devices.Count > 0 Then
+									logEntry.Add(KvP.Empty)
+									logEntry.AddDevices(False, Devices.ToArray())
+								End If
+
+								Application.Log.Add(logEntry)
 							End If
-
-							Application.Log.Add(logEntry)
 						End If
 
 						Return Devices

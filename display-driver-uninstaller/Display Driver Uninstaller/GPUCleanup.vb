@@ -7418,7 +7418,8 @@ child.ToLower.Equals("oneapp_igcc") Then
 
 		Private Sub CleanIntelFolders(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
-			Dim driverfiles As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
+			Dim driverFiles As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\driverfiles.cfg")
+			Dim sharedDriverFiles As String() = IO.File.ReadAllLines(Application.Paths.AppBase & "settings\INTEL\shareddriverfiles.cfg")
 			UpdateTextMethod(UpdateTextTranslated(4))
 
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
@@ -7426,7 +7427,12 @@ child.ToLower.Equals("oneapp_igcc") Then
 			End If
 
 			Application.Log.AddMessage("Cleaning Directory")
-			CleanupEngine.Folderscleanup(driverfiles)      '// add each line as String Array.
+
+			CleanupEngine.Folderscleanup(driverFiles)      '// add each line as String Array.
+
+			If Not FrmMain.IntelNpuPresent Then
+				CleanupEngine.Folderscleanup(sharedDriverFiles)
+			End If
 
 			Dim filePath As String = System.Environment.SystemDirectory
 			Dim files() As String = IO.Directory.GetFiles(filePath + "\", "igfxcoin*.*")

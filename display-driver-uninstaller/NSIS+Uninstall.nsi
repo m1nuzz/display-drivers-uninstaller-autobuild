@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME            "Display Driver Uninstaller"
-!define PRODUCT_VERSION         "18.1.1.3"
+!define PRODUCT_VERSION         "18.1.1.4"
 
 !define PRODUCT_PUBLISHER       "Wagnardsoft"
 !define PRODUCT_WEB_SITE        "https://www.wagnardsoft.com"
@@ -251,6 +251,7 @@ Section "MainSection" SEC01
   File "${SOURCE_PATH}\Settings\INTEL\services.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\servicesigs.cfg"
   File "${SOURCE_PATH}\Settings\INTEL\servicesaudio.cfg"
+  File "${SOURCE_PATH}\Settings\INTEL\shareddriverfiles.cfg"
   SetOutPath "$INSTDIR\Settings\Languages"
   File "${SOURCE_PATH}\Settings\Languages\Arabic.xml"
   File "${SOURCE_PATH}\Settings\Languages\Bulgarian.xml"
@@ -430,6 +431,7 @@ Section Uninstall
   Delete "$INSTDIR\Settings\Languages\Chinese (Simplified).xml"
   Delete "$INSTDIR\Settings\Languages\Bulgarian.xml"
   Delete "$INSTDIR\Settings\Languages\Arabic.xml"
+  Delete "$INSTDIR\Settings\INTEL\shareddriverfiles.cfg"
   Delete "$INSTDIR\Settings\INTEL\services.cfg"
   Delete "$INSTDIR\Settings\INTEL\servicesaudio.cfg"
   Delete "$INSTDIR\Settings\INTEL\servicesigs.cfg"
