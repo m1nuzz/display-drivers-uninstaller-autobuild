@@ -78,11 +78,12 @@
 					<Separator DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="1" />
 					<Label DockPanel.Dock="Top" x:Name="lblIntelspecific" Content="lblIntelspecific" FontWeight="Bold" FontSize="14" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
 
-					<UniformGrid DockPanel.Dock="Top" Rows="4">
+					<UniformGrid DockPanel.Dock="Top" Rows="5">
 						<CheckBox x:Name="lblRemINTELCP" IsChecked="{Binding RemoveINTELCP, Converter={StaticResource NulBoolToBool}}" Content="lblRemINTELCP" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
 						<CheckBox x:Name="lblRemINTELIGS" IsChecked="{Binding RemoveINTELIGS, Converter={StaticResource NulBoolToBool}}" Content="lblRemINTELIGS" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
 						<CheckBox x:Name="lblRemOneAPI" IsChecked="{Binding RemoveOneAPI, Converter={StaticResource NulBoolToBool}}" Content="lblRemOneAPI" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
 						<CheckBox x:Name="lblRemEnduranceGaming" IsChecked="{Binding RemoveEnduranceGaming, Converter={StaticResource NulBoolToBool}}" Content="lblRemEnduranceGaming" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
+						<CheckBox x:Name="lblRemIntelNpu" IsChecked="{Binding RemoveIntelNpu, Converter={StaticResource NulBoolToBool}}" Content="lblRemIntelNpu" HorizontalAlignment="Left" FlowDirection="{Binding FlowControl}"/>
 					</UniformGrid>
 				</DockPanel>
 

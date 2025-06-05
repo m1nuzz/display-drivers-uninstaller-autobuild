@@ -251,6 +251,40 @@ Namespace Display_Driver_Uninstaller
 
 				If config.SelectedGPU = GPUVendor.Intel Then
 
+					If config.RemoveIntelNpu Then
+						Application.Log.AddMessage("Executing SetupAPI: Intel NPU and it's childrens") 'PCI Upstream
+						Dim npus = SetupAPI.GetDevices("ComputeAccelerator", vendIdExpected, False, includeChilds:=True)
+						If npus IsNot Nothing AndAlso npus.Count > 0 Then
+
+							' Create a list to track devices already removed
+							Dim removedDevices As New List(Of String)
+							For Each npu As SetupAPI.Device In npus
+								If npu IsNot Nothing AndAlso Not IsNullOrWhitespace(npu.DeviceID) Then
+
+									' Check if the device has already been removed
+									If removedDevices.Contains(npu.ToString) Then
+										Exit For
+									End If
+
+									If npu.ChildDevices IsNot Nothing AndAlso npu.ChildDevices.Length > 0 Then
+										Application.Log.AddMessage("SetupAPI: Removing childrens associated to the Intel NPU")
+										RemoveChiendrensFromDevices(npu.ChildDevices, removedDevices)
+										Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the Intel NPU completed.")
+									End If
+
+									' Uninstall the current device
+									SetupAPI.UninstallDevice(npu)
+									removedDevices.Add(npu.ToString)
+									Exit For
+								End If
+							Next
+							npus.Clear()
+							removedDevices.Clear()
+						End If
+						Application.Log.AddMessage("SetupAPI: Removal of Intel NPUs and it's childrens completed") 'PCI Upstream
+						FrmMain.IntelNpuPresent = Tools.IsIntelNpuPresent()
+					End If
+
 					Dim PCIEUPORT As String() =
 						{"PCI\VEN_8086&DEV_4910",
 						"PCI\VEN_8086&DEV_4FA0",
@@ -912,6 +946,7 @@ Namespace Display_Driver_Uninstaller
 				CleanAmd(config)
 				Cleanamdfolders(config)
 			End If
+
 			If config.SelectedGPU = GPUVendor.Nvidia Then
 				Checkpcieroot(config)
 				Cleannvidiaserviceprocess(config)
@@ -919,11 +954,13 @@ Namespace Display_Driver_Uninstaller
 				CleanNvidiaFolders(config)
 				cleanupEngine.RemoveRegDeviceSoftware("NVIDIA CoInstaller Display.Driver")
 			End If
+
 			If config.SelectedGPU = GPUVendor.Intel Then
 				CleanIntelServiceProcess(config)
 				CleanIntel(config)
 				CleanIntelFolders(config)
 			End If
+
 			cleanupEngine.Cleandriverstore(config)
 			cleanupEngine.Fixregistrydriverstore(config)
 			config.Success = True
@@ -6734,19 +6771,18 @@ child.ToLower.Contains("nvidia.gfe") Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Intel Corporation", True)
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
-							If IsNullOrWhitespace(child) = False Then
-								If config.RemoveEnduranceGaming AndAlso StrContainsAny(child, True, "Intel Endurance Gaming") Then
-									Try
-										Deletesubregkey(regkey, child)
-									Catch ex As Exception
-										Application.Log.AddException(ex)
-									End Try
-								End If
+							If IsNullOrWhitespace(child) Then Continue For
+							If config.RemoveEnduranceGaming AndAlso StrContainsAny(child, True, "Intel Endurance Gaming") Then
+								Try
+									Deletesubregkey(regkey, child)
+								Catch ex As Exception
+									Application.Log.AddException(ex)
+								End Try
 							End If
 						Next
 						If regkey.SubKeyCount = 0 Then
 							Try
-								Deletesubregkey(MyRegistry.OpenSubKey(Registry.LocalMachine, "Software", True), "Intel")
+								Deletesubregkey(MyRegistry.OpenSubKey(Registry.LocalMachine, "Software", True), "Intel Corporation")
 							Catch ex As Exception
 								Application.Log.AddException(ex)
 							End Try
