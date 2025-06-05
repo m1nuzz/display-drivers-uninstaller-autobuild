@@ -998,6 +998,7 @@ Namespace Display_Driver_Uninstaller
 "EncoderServer",
 "nvidiaInspector")
 		End Sub
+
 		Private Sub RemoveChiendrensFromDevices(devices As SetupAPI.Device(), removedDevices As List(Of String))
 			For Each device As SetupAPI.Device In devices
 				If device IsNot Nothing Then

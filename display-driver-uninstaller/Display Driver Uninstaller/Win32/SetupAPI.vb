@@ -1897,6 +1897,37 @@ Namespace Display_Driver_Uninstaller.Win32
 								})
 							End If
 
+							Try
+								If Is64 Then
+									Dim actualDevInfo64 As SP_DEVINFO_DATA_X64 =
+				CType(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X64)), SP_DEVINFO_DATA_X64)
+									Debug.WriteLine("SP_DEVINFO_DATA_X64.cbSize", actualDevInfo64.cbSize.ToString())
+								Else
+									Dim actualDevInfo32 As SP_DEVINFO_DATA_X86 =
+				CType(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X86)), SP_DEVINFO_DATA_X86)
+									Debug.WriteLine("SP_DEVINFO_DATA_X86.cbSize", actualDevInfo32.cbSize.ToString())
+								End If
+							Catch ex As Exception
+								Debug.WriteLine("Read SP_DEVINFO_DATA failed", ex.Message)
+							End Try
+
+							' Read back SP_CLASSINSTALL_HEADER.cbSize inside the PROPCHANGE_PARAMS
+							Try
+								If Is64 Then
+									Dim actualParams64 As SP_PROPCHANGE_PARAMS_X64 =
+				CType(Marshal.PtrToStructure(ptrSetParams.Ptr, GetType(SP_PROPCHANGE_PARAMS_X64)), SP_PROPCHANGE_PARAMS_X64)
+									Debug.WriteLine("SP_CLASSINSTALL_HEADER_X64.cbSize", actualParams64.ClassInstallHeader.cbSize.ToString())
+									Debug.WriteLine("Passed ClassInstallParamsSize (ObjSizeU)", ptrSetParams.ObjSizeU.ToString())
+								Else
+									Dim actualParams32 As SP_PROPCHANGE_PARAMS_X86 =
+				CType(Marshal.PtrToStructure(ptrSetParams.Ptr, GetType(SP_PROPCHANGE_PARAMS_X86)), SP_PROPCHANGE_PARAMS_X86)
+									Debug.WriteLine("SP_CLASSINSTALL_HEADER_X86.cbSize", actualParams32.ClassInstallHeader.cbSize.ToString())
+									Debug.WriteLine("Passed ClassInstallParamsSize (ObjSizeU)", ptrSetParams.ObjSizeU.ToString())
+								End If
+							Catch ex As Exception
+								Debug.WriteLine("Read SP_PROPCHANGE_PARAMS failed", ex.Message)
+							End Try
+
 							If Not SetupDiSetClassInstallParams(infoSet, ptrDevInfo.Ptr, ptrSetParams.Ptr, ptrSetParams.ObjSizeU) Then
 								Throw New Win32Exception()
 							End If
@@ -2072,6 +2103,38 @@ Namespace Display_Driver_Uninstaller.Win32
 
 							If Not SetupDiSetClassInstallParams(infoSet, ptrDevInfo.Ptr, ptrSetParams.Ptr, ptrSetParams.ObjSizeU) Then
 								logStatus.Add("Status: ", " Failed !")
+								' Read back SP_DEVINFO_DATA.cbSize
+								Try
+									If Is64 Then
+										Dim actualDevInfo64 As SP_DEVINFO_DATA_X64 =
+				CType(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X64)), SP_DEVINFO_DATA_X64)
+										logStatus.Add("SP_DEVINFO_DATA_X64.cbSize", actualDevInfo64.cbSize.ToString())
+									Else
+										Dim actualDevInfo32 As SP_DEVINFO_DATA_X86 =
+				CType(Marshal.PtrToStructure(ptrDevInfo.Ptr, GetType(SP_DEVINFO_DATA_X86)), SP_DEVINFO_DATA_X86)
+										logStatus.Add("SP_DEVINFO_DATA_X86.cbSize", actualDevInfo32.cbSize.ToString())
+									End If
+								Catch ex As Exception
+									logStatus.Add("Read SP_DEVINFO_DATA failed", ex.Message)
+								End Try
+
+								' Read back SP_CLASSINSTALL_HEADER.cbSize inside the PROPCHANGE_PARAMS
+								Try
+									If Is64 Then
+										Dim actualParams64 As SP_PROPCHANGE_PARAMS_X64 =
+				CType(Marshal.PtrToStructure(ptrSetParams.Ptr, GetType(SP_PROPCHANGE_PARAMS_X64)), SP_PROPCHANGE_PARAMS_X64)
+										logStatus.Add("SP_CLASSINSTALL_HEADER_X64.cbSize", actualParams64.ClassInstallHeader.cbSize.ToString())
+										logStatus.Add("Passed ClassInstallParamsSize (ObjSizeU)", ptrSetParams.ObjSizeU.ToString())
+									Else
+										Dim actualParams32 As SP_PROPCHANGE_PARAMS_X86 =
+				CType(Marshal.PtrToStructure(ptrSetParams.Ptr, GetType(SP_PROPCHANGE_PARAMS_X86)), SP_PROPCHANGE_PARAMS_X86)
+										logStatus.Add("SP_CLASSINSTALL_HEADER_X86.cbSize", actualParams32.ClassInstallHeader.cbSize.ToString())
+										logStatus.Add("Passed ClassInstallParamsSize (ObjSizeU)", ptrSetParams.ObjSizeU.ToString())
+									End If
+								Catch ex As Exception
+									logStatus.Add("Read SP_PROPCHANGE_PARAMS failed", ex.Message)
+								End Try
+
 								Throw New Win32Exception()
 							End If
 
@@ -2090,7 +2153,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					End Try
 				End Using
 			Catch ex As Exception
-				ShowException(ex)
+				Application.Log.AddException(ex, "EnableDevice failed!")
 			End Try
 		End Sub
 
@@ -2773,6 +2836,19 @@ Namespace Display_Driver_Uninstaller.Win32
 
 								RemoveInf(inf, False, True)
 							Next
+						End If
+
+						If device.ExtendedInfs IsNot Nothing AndAlso device.ExtendedInfs.Length > 0 Then
+							If Not IsNullOrWhitespace(device.ExtendedInfs(0)) Then
+								Dim inf As Inf = GetOemInf(Application.Paths.WinDir & "inf\", device.ExtendedInfs(0))
+
+								If StrContainsAny(inf.Class, True, "Extension") Then
+
+									If inf IsNot Nothing Then
+										RemoveInf(inf, False, True)
+									End If
+								End If
+							End If
 						End If
 
 					Finally

@@ -3066,6 +3066,7 @@ Namespace Display_Driver_Uninstaller
 
 							If config.SelectedType = CleanType.GPU AndAlso config.SelectedGPU = GPUVendor.Intel Then
 								If StrContainsAny(oem.Class, True, "Extension") AndAlso StrContainsAny(oem.Catalog, True, "HdBusExt.cat") Then
+									Dim oemRemoved = False
 									'For some special cases, we need to disable the device before removing the inf.
 									Dim audiobusList As List(Of SetupAPI.Device) = SetupAPI.GetDevicesByCHID("PCI\VEN_8086&CC_040", False, False, False, True)
 									If audiobusList IsNot Nothing AndAlso audiobusList.Count > 0 Then
@@ -3083,12 +3084,18 @@ Namespace Display_Driver_Uninstaller
 										Next
 
 										SetupAPI.RemoveInf(oem, True)
-
+										oemRemoved = True
 										If disabledAudiobusList IsNot Nothing AndAlso disabledAudiobusList.Count > 0 Then
 											For Each disabledAudiobus As SetupAPI.Device In disabledAudiobusList
-												SetupAPI.EnableDevice(disabledAudiobus, True)
+												If disabledAudiobus IsNot Nothing Then
+													SetupAPI.EnableDevice(disabledAudiobus, True)
+												End If
 											Next
 										End If
+									End If
+
+									If Not oemRemoved Then
+										SetupAPI.RemoveInf(oem, False)
 									End If
 									Continue For
 								End If
