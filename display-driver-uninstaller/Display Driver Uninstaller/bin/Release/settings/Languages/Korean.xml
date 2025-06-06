@@ -298,6 +298,9 @@
 		<lblRemEnduranceGaming>
 			<Text>Intel® 인듀어런스 게이밍 제거</Text>
 		</lblRemEnduranceGaming>
+		<lblRemIntelNpu>
+			<Text>Intel® NPU 제거</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>(DCH 드라이버) Microsoft Store에서 설치된 AMD 제어판 제거</Text>
 		</lblRemAMDCP>

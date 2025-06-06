@@ -295,6 +295,9 @@
 		<lblRemEnduranceGaming>
 			<Text>Intel® Endurance Gaming eltávolítása</Text>
 		</lblRemEnduranceGaming>
+		<lblRemIntelNpu>
+			<Text>Intel® NPU eltávolítása</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>(DCH illesztőprogram) A Microsoft Store-ból telepített AMD Vezérlőpult eltávolítása</Text>
 		</lblRemAMDCP>

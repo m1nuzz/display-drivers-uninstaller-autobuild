@@ -298,6 +298,9 @@
 		<lblRemEnduranceGaming>
 			<Text>Intel® Endurance Gaming entfernen</Text>
 		</lblRemEnduranceGaming>
+		<lblRemIntelNpu>
+			<Text>Intel® NPU entfernen</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>(DCH Driver) Entfernen des aus dem Microsoft Store installierten AMD Control Panel</Text>
 		</lblRemAMDCP>

@@ -265,8 +265,20 @@
 			<Text>(仅适用于 DCH 驱动程序) 卸载从 Microsoft Store 安装的 NVIDIA 控制面板</Text>
 		</lblRemNVCP>
 		<lblRemINTELCP>
-			<Text>(仅适用于 DCH 驱动程序) 卸载从 Microsoft Store 安装的英特尔显卡控制中心</Text>
+			<Text>(DCH 驱动程序) 移除通过 Microsoft Store 安装的 Intel® 控制面板</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>移除 Intel® Arc Control / Intel® 图形软件</Text>
+		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>移除 Intel® oneAPI Level Zero SDK</Text>
+		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>移除 Intel® Endurance Gaming</Text>
+		</lblRemEnduranceGaming>
+		<lblRemIntelNpu>
+			<Text>移除 Intel® NPU</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>(仅适用于 DCH 驱动程序) 卸载从 Microsoft Store 安装的 AMD Radeon Settings</Text>
 		</lblRemAMDCP>

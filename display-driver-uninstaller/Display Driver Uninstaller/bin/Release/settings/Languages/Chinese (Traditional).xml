@@ -288,8 +288,20 @@
 			</Tooltip>
 		</lblKeepNVCPopt>
 		<lblRemINTELCP>
-			<Text>(DCH 驅動程式) 移除從 Microsoft Store 安裝的 Intel® 控制台</Text>
+			<Text>(DCH 驅動程式) 移除透過 Microsoft Store 安裝的 Intel® 控制面板</Text>
 		</lblRemINTELCP>
+		<lblRemINTELIGS>
+			<Text>移除 Intel® Arc Control / Intel® 圖形軟體</Text>
+		</lblRemINTELIGS>
+		<lblRemOneAPI>
+			<Text>移除 Intel® oneAPI Level Zero SDK</Text>
+		</lblRemOneAPI>
+		<lblRemEnduranceGaming>
+			<Text>移除 Intel® Endurance Gaming</Text>
+		</lblRemEnduranceGaming>
+		<lblRemIntelNpu>
+			<Text>移除 Intel® NPU</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>(DCH 驅動程式) 移除從 Microsoft Store 安裝的 AMD 控制台</Text>
 		</lblRemAMDCP>

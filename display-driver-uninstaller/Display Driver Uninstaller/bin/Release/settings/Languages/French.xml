@@ -298,6 +298,9 @@
 		<lblRemEnduranceGaming>
 			<Text>Supprimer Intel® Endurance Gaming</Text>
 		</lblRemEnduranceGaming>
+				<lblRemIntelNpu>
+			<Text>Supprimer Intel® NPU</Text>
+		</lblRemIntelNpu>
 		<lblRemAMDCP>
 			<Text>Supprimer AMD (Pilote DCH) du Panneau de Configuration du Microsoft Store</Text>
 		</lblRemAMDCP>
