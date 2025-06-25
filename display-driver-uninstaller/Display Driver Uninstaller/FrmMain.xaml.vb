@@ -327,14 +327,6 @@ Namespace Display_Driver_Uninstaller
 			WinAPI.OpenVisitLink(" -visitsvn")
 		End Sub
 
-		Private Sub VisitGuru3DNvidiaMenuItem_Click(sender As Object, e As RoutedEventArgs) Handles VisitGuru3DNvidiaMenuItem.Click
-			WinAPI.OpenVisitLink(" -visitguru3dnvidia")
-		End Sub
-
-		Private Sub VisitGuru3DAMDMenuItem_Click(sender As Object, e As RoutedEventArgs) Handles VisitGuru3DAMDMenuItem.Click
-			WinAPI.OpenVisitLink(" -visitguru3damd")
-		End Sub
-
 		Private Sub VisitGeforceMenuItem_Click(sender As Object, e As RoutedEventArgs) Handles VisitGeforceMenuItem.Click
 			WinAPI.OpenVisitLink(" -visitgeforce")
 		End Sub
