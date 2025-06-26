@@ -36,17 +36,17 @@ jobs:
       shell: pwsh
 
     - name: Restore NuGet packages
-      run: nuget restore "display-drivers-uninstaller.sln"
+      run: nuget restore "display-driver-uninstaller/Display Driver Uninstaller.sln"
       shell: pwsh
 
     - name: Build solution
-      run: msbuild "display-drivers-uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU"
+      run: msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU"
       shell: pwsh
 
     - name: Create artifact
       run: |
         mkdir artifact
-        Copy-Item "bin/Release/*" -Destination "artifact/" -Recurse
+        Copy-Item "display-driver-uninstaller/Display Driver Uninstaller/bin/Release/*" -Destination "artifact/" -Recurse
       shell: pwsh
 
     - name: Upload build artifacts
