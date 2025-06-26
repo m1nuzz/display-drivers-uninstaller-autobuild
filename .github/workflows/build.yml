@@ -70,7 +70,6 @@ jobs:
 
     - name: Create GitHub Release and Upload zip
       uses: softprops/action-gh-release@v2
-      if: github.ref_type == 'tag'
       with:
         files: DDU-Build.zip
       env:
