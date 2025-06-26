@@ -1,0 +1,79 @@
+name: Build DDU
+
+on:
+  push:
+    branches: [ WPF ]
+  pull_request:
+    branches: [ WPF ]
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC to check for updates
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  sync-and-build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Sync with upstream
+      run: |
+        git remote add upstream https://github.com/Wagnard/display-drivers-uninstaller.git
+        git fetch upstream
+        git checkout WPF
+        git merge upstream/WPF
+      shell: pwsh
+
+    - name: Restore NuGet packages
+      run: nuget restore "display-drivers-uninstaller.sln"
+      shell: pwsh
+
+    - name: Build solution
+      run: msbuild "display-drivers-uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU"
+      shell: pwsh
+
+    - name: Create artifact
+      run: |
+        mkdir artifact
+        Copy-Item "bin/Release/*" -Destination "artifact/" -Recurse
+      shell: pwsh
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: DDU-Build
+        path: artifact
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      if: github.event_name != 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: build-${{ github.run_number }}
+        release_name: Automated Build ${{ github.run_number }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      if: github.event_name != 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifact/display-drivers-uninstaller.exe
+        asset_name: DDU.exe
+        asset_content_type: application/octet-stream
