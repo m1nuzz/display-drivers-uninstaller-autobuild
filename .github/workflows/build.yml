@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ WPF ]
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight UTC to check for updates
+    - cron: '*/15 * * * *'  # Run every 15 minutes to check for updates
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
