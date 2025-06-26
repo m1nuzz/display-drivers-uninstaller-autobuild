@@ -40,7 +40,13 @@ jobs:
       shell: pwsh
 
     - name: Build solution
-      run: msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU"
+      run: |
+        msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU" /verbosity:diag
+      shell: pwsh
+
+    - name: List output directory
+      run: |
+        Get-ChildItem -Recurse "display-driver-uninstaller/Display Driver Uninstaller/bin/Release"
       shell: pwsh
 
     - name: Create artifact
