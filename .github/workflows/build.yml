@@ -12,10 +12,12 @@ on:
 jobs:
   sync-and-build:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -23,7 +25,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
 
@@ -41,7 +43,7 @@ jobs:
 
     - name: Build solution
       run: |
-        msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU" /verbosity:diag
+        msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
       shell: pwsh
 
     - name: List output directory
@@ -61,25 +63,10 @@ jobs:
         name: DDU-Build
         path: artifact
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      if: github.event_name != 'pull_request'
+    - name: Create GitHub Release and Upload .exe
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        files: artifact/Display Driver Uninstaller.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: build-${{ github.run_number }}
-        release_name: Automated Build ${{ github.run_number }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      if: github.event_name != 'pull_request'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: artifact/display-drivers-uninstaller.exe
-        asset_name: DDU.exe
-        asset_content_type: application/octet-stream
