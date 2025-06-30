@@ -3407,6 +3407,7 @@ child.ToLower.Contains("\dem.") Then
 
 			'end system environement patch cleanup
 		End Sub
+
 		Private Function Checkamdkmpfd() As Boolean
 			Try
 				Application.Log.AddMessage("Checking if AMDKMPFD is present before Service removal")
@@ -3447,6 +3448,7 @@ child.ToLower.Contains("\dem.") Then
 			End Try
 			Return False
 		End Function
+
 		Private Sub Checkpcieroot(ByVal config As ThreadSettings)   'This is for Nvidia Optimus to prevent the yellow mark on the PCI-E controler. We must remove the UpperFilters.
 			Dim win10 As Boolean = FrmMain.IsWindows10
 			If WindowsIdentity.GetCurrent().IsSystem Then
@@ -3485,6 +3487,7 @@ child.ToLower.Contains("\dem.") Then
 			End Try
 			UpdateTextMethod(UpdateTextTranslated(28))
 		End Sub
+
 		Private Sub Cleannvidiaserviceprocess(ByVal config As ThreadSettings)
 			Dim CleanupEngine As New CleanupEngine
 			Dim services As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\services.cfg")
@@ -3533,6 +3536,7 @@ child.ToLower.Contains("\dem.") Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub Old_TemporaryNvidiaSpeedup(ByVal config As ThreadSettings)   'we do this to speedup the removal of the nividia display driver because of the huge time the nvidia installer files take to do unknown stuff.
 			Dim filePath As String = Nothing
 			Try
@@ -3587,6 +3591,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 				Application.Log.AddException(ex)
 			End Try
 		End Sub
+
 		Private Sub CleanNvidia(ByVal config As ThreadSettings, ByVal Optional preclean As Boolean = False)
 			Dim CleanupEngine As New CleanupEngine
 			Dim TaskList = New List(Of Task)()
@@ -4042,6 +4047,7 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				If IntPtr.Size = 8 Then
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
@@ -4074,12 +4080,15 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If config.RemoveVulkan Then
 				CleanVulkan(config)
 			End If
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
+
 			Try
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If Not IsNullOrWhitespace(users) Then
@@ -4157,6 +4166,7 @@ child2.ToLower.Contains("nvidia control panel") Then
 								Next
 							End If
 						End Using
+
 						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, users & "\SOFTWARE\Microsoft\Windows\CurrentVersion\UFH\SHC", True)
 							If regkey IsNot Nothing Then
 								For Each child As String In regkey.GetValueNames()
@@ -4191,6 +4201,7 @@ child2.ToLower.Contains("nvidia control panel") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\UFH\ARP", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetValueNames()
@@ -4213,6 +4224,7 @@ child2.ToLower.Contains("nvidia control panel") Then
 					Next
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Try
 					Dim CanRemove As Boolean = True
@@ -4293,6 +4305,7 @@ child.ToLower.Contains("_virtualaudio.driver") AndAlso removegfe Then
 					Application.Log.AddException(ex)
 				End Try
 			End If
+
 			Try
 				Dim CanRemove As Boolean = True
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
@@ -4396,12 +4409,14 @@ child.ToLower.Contains("_nvcontainer") AndAlso config.RemoveGFE Then
 								End Try
 							End If
 						Next
+
 						For Each child As String In regkey.GetSubKeyNames()
 							If IsNullOrWhitespace(child) Then Continue For
 							If StrContainsAny(child, True, "B2FE1952-0186-46C3-BAEC-A80AA35AC5B8") AndAlso Not StrContainsAny(child, True, "_installer") Then
 								CanRemove = False
 							End If
 						Next
+
 						If CanRemove Then
 							For Each child As String In regkey.GetSubKeyNames()
 								If IsNullOrWhitespace(child) Then Continue For
@@ -4423,6 +4438,7 @@ child.ToLower.Contains("_nvcontainer") AndAlso config.RemoveGFE Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, ".DEFAULT\Software", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetSubKeyNames()
@@ -4441,6 +4457,7 @@ child.ToLower.Contains("_nvcontainer") AndAlso config.RemoveGFE Then
 											End Try
 										End If
 									Next
+
 									If regkey2.SubKeyCount = 0 Then
 										Try
 											Deletesubregkey(regkey, child)
@@ -4453,12 +4470,14 @@ child.ToLower.Contains("_nvcontainer") AndAlso config.RemoveGFE Then
 											Application.Log.AddWarningMessage("Remaining Key(s) found " + " : " + regkey2.ToString + "\ --> " + data)
 										Next
 									End If
+
 								End If
 							End Using
 						End If
 					Next
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetSubKeyNames()
@@ -4638,6 +4657,7 @@ StrContainsAny(child3, True, "nvbroadcast") AndAlso Not removenvbroadcast Then
 					Next
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node", True)
 					If regkey IsNot Nothing Then
@@ -4729,6 +4749,7 @@ StrContainsAny(child3, True, "nvbroadcast") AndAlso Not removenvbroadcast Then
 					End If
 				End Using
 			End If
+
 			Using regkey = MyRegistry.OpenSubKey(Registry.CurrentUser,
 "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store", True)
 				If regkey IsNot Nothing Then
@@ -4741,6 +4762,7 @@ StrContainsAny(child3, True, "nvbroadcast") AndAlso Not removenvbroadcast Then
 					Next
 				End If
 			End Using
+
 			Using regkey = MyRegistry.OpenSubKey(Registry.CurrentUser,
 "Software\Microsoft\.NETFramework\SQM\Apps", True)
 				If regkey IsNot Nothing Then
@@ -4752,6 +4774,7 @@ StrContainsAny(child3, True, "nvbroadcast") AndAlso Not removenvbroadcast Then
 					Next
 				End If
 			End Using
+
 			Try
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If IsNullOrWhitespace(users) Then Continue For
@@ -4770,6 +4793,7 @@ users + "\Software\Microsoft\.NETFramework\SQM\Apps", True)
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If IsNullOrWhitespace(users) Then Continue For
@@ -4788,6 +4812,7 @@ users + "\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibil
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 "Software\Microsoft\Windows NT\CurrentVersion\ProfileList", True)
 				If regkey IsNot Nothing Then
@@ -4813,6 +4838,7 @@ users + "\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibil
 					Next
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 "Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel\NameSpace", True)
 				If regkey IsNot Nothing Then
@@ -4869,6 +4895,7 @@ wantedvalue.ToLower.Contains("nvidia nview desktop manager") Then
 					Next
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v2.0.50727\NGenService\Roots", True)
 					If regkey IsNot Nothing Then
@@ -4909,6 +4936,7 @@ wantedvalue.ToLower.Contains("nvidia nview desktop manager") Then
 					Next
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Wow6432Node\MozillaPlugins", True)
 					If regkey IsNot Nothing Then
@@ -4959,6 +4987,7 @@ child.ToLower.StartsWith("nview") Then
 					Next
 				End If
 			End Using
+
 			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
 				If subregkey IsNot Nothing Then
 					For Each child2 As String In subregkey.GetSubKeyNames()
@@ -5041,6 +5070,7 @@ child.ToLower.StartsWith("nview") Then
 					End If
 				End If
 			End Using
+
 			Try
 				For Each users As String In Registry.Users.GetSubKeyNames()
 					If Not IsNullOrWhitespace(users) Then
@@ -5074,6 +5104,7 @@ child.ToLower.StartsWith("nview") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				For Each child As String In Registry.Users.GetSubKeyNames()
 					If IsNullOrWhitespace(child) Then Continue For
@@ -5108,6 +5139,7 @@ child.ToLower.StartsWith("nview") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "SOFTWARE\NVIDIA Corporation", True)
 				If regkey IsNot Nothing Then
 					Try
@@ -5134,6 +5166,7 @@ child.ToLower.StartsWith("nview") Then
 					End If
 				End If
 			End Using
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 "Software\Microsoft\Windows\CurrentVersion\Run", True)
@@ -5149,6 +5182,7 @@ child.ToLower.StartsWith("nview") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				If IntPtr.Size = 8 Then
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
@@ -5166,6 +5200,7 @@ child.ToLower.StartsWith("nview") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If config.Remove3DTVPlay Then
 				If MyRegistry.OpenSubKey(Registry.ClassesRoot, "mpegfile\shellex\ContextMenuHandlers\NvPlayOnMyTV", False) IsNot Nothing Then
 					Try
@@ -5214,6 +5249,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Controls Folder\" &
 "Display\shellex\PropertySheetHandlers", True)
 				If regkey IsNot Nothing Then
@@ -5252,6 +5288,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Using
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "SOFTWARE\Microsoft\Windows\CurrentVersion\Controls Folder\" &
 "Display\shellex\PropertySheetHandlers", True)
 				If regkey IsNot Nothing Then
@@ -5262,6 +5299,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\Extended Properties", False)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetSubKeyNames()
@@ -5283,6 +5321,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					Next
 				End If
 			End Using
+
 			If IntPtr.Size = 8 Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved", True)
 					If regkey IsNot Nothing Then
@@ -5322,6 +5361,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Classes\Directory\background\shellex\ContextMenuHandlers", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "NvCplDesktopContext") IsNot Nothing Then
@@ -5340,6 +5380,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, ".avi\shellex", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}") IsNot Nothing Then
@@ -5351,6 +5392,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, ".mpe\shellex", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}") IsNot Nothing Then
@@ -5361,6 +5403,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, ".mpeg\shellex", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}") IsNot Nothing Then
@@ -5372,6 +5415,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, ".mpg\shellex", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}") IsNot Nothing Then
@@ -5383,6 +5427,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, ".wmv\shellex", True)
 				If regkey IsNot Nothing Then
 					If MyRegistry.OpenSubKey(regkey, "{3D1975AF-0FC3-463d-8965-4DC6B5A840F4}") IsNot Nothing Then
@@ -5407,6 +5452,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "mpofile\shell\open\command", True)
 				If regkey IsNot Nothing Then
 					If (Not IsNullOrWhitespace(regkey.GetValue("", String.Empty).ToString)) AndAlso StrContainsAny(regkey.GetValue("", String.Empty).ToString, True, "nvstview") Then
@@ -5418,6 +5464,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "pnsfile\shell\open\command", True)
 				If regkey IsNot Nothing Then
 					If (Not IsNullOrWhitespace(regkey.GetValue("", String.Empty).ToString)) AndAlso StrContainsAny(regkey.GetValue("", String.Empty).ToString, True, "nvstview") Then
@@ -5429,6 +5476,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			End Using
+
 			If MyRegistry.OpenSubKey(Registry.ClassesRoot, ".tvp") IsNot Nothing Then
 				Try
 					Deletesubregkey(Registry.ClassesRoot, ".tvp")  'CrazY_Milojko
@@ -5454,6 +5502,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					Next
 				End If
 			End Using
+
 			Using schedule As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache", True)
 				If schedule IsNot Nothing Then
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(schedule, "Tree", True)
@@ -5492,6 +5541,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Using
 				End If
 			End Using
+
 			Dim filePath As String = config.Paths.System32 + "Tasks"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5578,6 +5628,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
 		End Sub
+
 		Private Sub CleanNvidiaFolders(ByVal config As ThreadSettings)
 			Dim filePath As String = Nothing
 			Dim removephysx As Boolean = config.RemovePhysX
@@ -5586,6 +5637,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 			Dim rtxAud As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\rtxaud.cfg")
 			Dim nvbdriverfiles As String() = IO.File.ReadAllLines(config.Paths.AppBase & "settings\NVIDIA\nvbdriverfiles.cfg")
 			Dim TaskList = New List(Of Task)()
+
 			If Not WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.Taketoken()
 			End If
@@ -5626,8 +5678,10 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 				users.Remove(newuser)
 			Catch ex As Exception
 			End Try
+
 			UpdateTextMethod(UpdateTextTranslated(4))
 			Application.Log.AddMessage("Cleaning Directory")
+
 			If config.RemoveNvidiaDirs = True Then
 				filePath = _sysdrv + "NVIDIA"
 				Delete(filePath)
@@ -5649,6 +5703,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End If
 				End If
 			Next
+
 			filePath = config.Paths.UserPath + "Public\Desktop"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5670,6 +5725,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					Next
 				End If
 			End If
+
 			filePath = config.Paths.UserPath + "Public\Pictures\NVIDIA Corporation"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5694,6 +5750,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End If
+
 			filePath = config.Paths.System32 + "drivers\NVIDIA Corporation"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5718,6 +5775,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End If
+
 			filePath = config.Paths.System32 + "config\systemprofile\AppData\Local\NVIDIA"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5742,6 +5800,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End If
+
 			filePath = config.Paths.System32 + "config\systemprofile\AppData\LocalLow\NVIDIA"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5766,6 +5825,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End If
+
 			filePath = config.Paths.WinDir + "ServiceProfiles\LocalService\AppData\Local\NVIDIA"
 			If _fileIo.ExistsDir(filePath) Then
 				If filePath IsNot Nothing Then
@@ -5790,6 +5850,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 					End Try
 				End If
 			End If
+
 			For Each filepaths As String In _fileIo.GetDirectories(config.Paths.UserPath)
 				If IsNullOrWhitespace(filepaths) Then Continue For
 				filePath = filepaths + "\AppData\LocalLow\NVIDIA"
@@ -5814,6 +5875,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 						Application.Log.AddMessage("Possible permission issue detected on : " + filePath)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\NVIDIA"
 				Try
 					For Each child As String In _fileIo.GetDirectories(filePath)
@@ -5837,6 +5899,7 @@ regkey.GetValue(child).ToString.ToLower.Contains("nvidia play on my tv context m
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
+
 				filePath = filepaths + "\AppData\Roaming\NVIDIA"
 				Try
 					For Each child As String In _fileIo.GetDirectories(filePath)
@@ -5861,6 +5924,7 @@ child.ToLower.Contains("glcache") Then
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
+
 				filePath = filepaths + "\AppData\Local\NVIDIA Corporation"
 				If config.RemoveGFE Then
 					Try
@@ -5914,10 +5978,12 @@ child.ToLower.Contains("glcache") Then
 						Application.Log.AddException(ex)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\D3DSCache"
 				If _winxp Then
 					filePath = filepaths + "\Local Settings\Application Data\D3DSCache"
 				End If
+
 				If _fileIo.ExistsDir(filePath) Then
 					Try
 						For Each child As String In _fileIo.GetDirectories(filePath)
@@ -5938,6 +6004,7 @@ child.ToLower.Contains("glcache") Then
 					End Try
 				End If
 			Next
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\NVIDIA"
 			Try
@@ -5988,6 +6055,7 @@ child.ToLower.Contains("streamline") Or
 						End If
 					End If
 				Next
+
 				Try
 					If _fileIo.CountDirectories(filePath) = 0 AndAlso config.RemoveGFE Then
 						Delete(filePath)
@@ -5999,9 +6067,11 @@ child.ToLower.Contains("streamline") Or
 					End If
 				Catch ex As Exception
 				End Try
+
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\NVIDIA Corporation"
 			Try
@@ -6041,6 +6111,7 @@ StrContainsAny(child, True, "nv_cache", "umdlogs", "nvtopps", "GameSessionTeleme
 						End If
 					End If
 				Next
+
 				If _fileIo.CountDirectories(filePath) = 0 Then
 					Delete(filePath)
 				Else
@@ -6253,6 +6324,7 @@ child2.ToLower.Contains("hdaudio.driver") AndAlso config.RemoveGFE Then
 						End If
 					End If
 				Next
+
 				If _fileIo.CountDirectories(filePath) = 0 Then
 					Delete(filePath)
 				Else
@@ -6262,6 +6334,7 @@ child2.ToLower.Contains("hdaudio.driver") AndAlso config.RemoveGFE Then
 					Next
 				End If
 			End If
+
 			If config.RemovePhysX Then
 				filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.ProgramFiles) + "\AGEIA Technologies"
@@ -6269,6 +6342,7 @@ child2.ToLower.Contains("hdaudio.driver") AndAlso config.RemoveGFE Then
 					Delete(filePath)
 				End If
 			End If
+
 			If IntPtr.Size = 8 Then
 				filePath = config.Paths.ProgramFilesx86 & "NVIDIA Corporation"
 				If _fileIo.ExistsDir(filePath) Then
@@ -6322,6 +6396,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 					End If
 				End If
 			End If
+
 			If config.RemovePhysX Then
 				If IntPtr.Size = 8 Then
 					filePath = Environment.GetFolderPath _
@@ -6331,6 +6406,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 					End If
 				End If
 			End If
+
 			filePath = config.Paths.System32
 			Dim files() As String = IO.Directory.GetFiles(filePath, "nvdisp*.*")
 			For i As Integer = 0 To files.Length - 1
@@ -6338,6 +6414,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 					Delete(files(i))
 				End If
 			Next
+
 			filePath = config.Paths.System32
 			files = IO.Directory.GetFiles(filePath, "nvhdagenco*.*")
 			For i As Integer = 0 To files.Length - 1
@@ -6345,12 +6422,14 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 					Delete(files(i))
 				End If
 			Next
+
 			filePath = config.Paths.WinDir
 			Try
 				Delete(filePath + "Help\nvcpl")
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				filePath = config.Paths.WinDir + "Temp"
 				For Each child As String In _fileIo.GetDirectories(filePath)
@@ -6363,6 +6442,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				filePath = config.Paths.SystemDrive & "Temp"
 				If _fileIo.ExistsDir(filePath) Then
@@ -6377,6 +6457,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			For Each filepaths As String In _fileIo.GetDirectories(config.Paths.UserPath)
 				If IsNullOrWhitespace(filepaths) Then Continue For
 				filePath = filepaths + "\AppData\Local\Temp\NvidiaLogging"
@@ -6403,6 +6484,7 @@ child.ToLower.Contains("update core") AndAlso config.RemoveGFE Then
 						Application.Log.AddException(ex)
 					End Try
 				End If
+
 				filePath = filepaths + "\AppData\Local\Temp\NVIDIA Corporation"
 				If _fileIo.ExistsDir(filePath) Then
 					Try
@@ -6581,6 +6663,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 							Next
 						End If
 					End Using
+
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.Users, regusers & "\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store", True)
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetValueNames()
@@ -6600,6 +6683,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				For Each regusers As String In Registry.Users.GetSubKeyNames
 					If IsNullOrWhitespace(regusers) Then Continue For
@@ -6622,7 +6706,9 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Task.WaitAll(TaskList.ToArray())
+
 			If WindowsIdentity.GetCurrent().IsSystem Then
 				ImpersonateLoggedOnUser.ReleaseToken()
 			End If
@@ -6833,6 +6919,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If IntPtr.Size = 8 Then
 				Try
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node\Intel", True)
@@ -6863,6 +6950,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 				Catch ex As Exception
 					Application.Log.AddException(ex)
 				End Try
+
 				If config.RemoveINTELIGS Then
 					Try
 						Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Run", True)
@@ -6888,6 +6976,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 					End Try
 				End If
 			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Microsoft\Windows\CurrentVersion\Run", True)
 					If regkey IsNot Nothing Then
@@ -6926,6 +7015,7 @@ child.ToLower.Contains("nvidia.gfe") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Directory\background\shellex\ContextMenuHandlers", True)
 					If regkey IsNot Nothing Then
@@ -6943,6 +7033,7 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.ClassesRoot, "Directory\background\shell", True)
 					If regkey IsNot Nothing Then
@@ -7053,6 +7144,7 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If IntPtr.Size = 8 Then
 				Try
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall", True)
@@ -7133,6 +7225,7 @@ child.ToLower.Contains("igfxdtcm") Then
 					Application.Log.AddException(ex)
 				End Try
 			End If
+
 			If config.RemoveINTELIGS Then
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", True)
 					If regkey IsNot Nothing Then
@@ -7149,6 +7242,7 @@ child.ToLower.Contains("igfxdtcm") Then
 						Next
 					End If
 				End Using
+
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32", True)
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetValueNames()
@@ -7164,6 +7258,7 @@ child.ToLower.Contains("igfxdtcm") Then
 					End If
 				End Using
 			End If
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\Cpls", True)
 					If regkey IsNot Nothing Then
@@ -7208,6 +7303,7 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Notify", True)
 					If regkey IsNot Nothing Then
@@ -7237,6 +7333,7 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
+
 			If MyRegistry.OpenSubKey(Registry.ClassesRoot, ".igp", False) IsNot Nothing Then
 				Try
 					Deletesubregkey(Registry.ClassesRoot, ".igp")
@@ -7315,6 +7412,7 @@ child.ToLower.Equals("oneapp_igcc") Then
 					Next
 				End If
 			End Using
+
 			Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM", False)
 				If subregkey IsNot Nothing Then
 					For Each child2 As String In subregkey.GetSubKeyNames()
@@ -7346,6 +7444,7 @@ child.ToLower.Equals("oneapp_igcc") Then
 					Next
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT", False)
 				If regkey IsNot Nothing Then
 					Using subregkey As RegistryKey = MyRegistry.OpenSubKey(regkey, "Channels", True)
@@ -7378,6 +7477,7 @@ child.ToLower.Equals("oneapp_igcc") Then
 					End Using
 				End If
 			End Using
+
 			Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\WMI\Autologger", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetSubKeyNames()
