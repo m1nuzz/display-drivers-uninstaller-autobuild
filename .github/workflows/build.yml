@@ -21,6 +21,12 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Set up git user
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      shell: pwsh
+
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
 
