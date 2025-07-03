@@ -119,7 +119,7 @@ Namespace Display_Driver_Uninstaller
 					If regkey IsNot Nothing Then
 						Dim wantedValue As String() = CType(regkey.GetValue("PreferredUILanguages"), String())
 
-						If wantedValue IsNot Nothing AndAlso wantedValue.Length > 0 AndAlso Not IsNullOrWhitespace(wantedValue(0)) Then
+						If wantedValue IsNot Nothing AndAlso wantedValue.Length > 0 AndAlso Not String.IsNullOrWhiteSpace(wantedValue(0)) Then
 							Return wantedValue(0)
 						Else
 							Return Globalization.CultureInfo.InstalledUICulture.Name    'Return en-US, en-GB, fr-FR etc.
@@ -132,7 +132,7 @@ Namespace Display_Driver_Uninstaller
 							If regkey2 IsNot Nothing Then
 								Dim wantedValue As String() = CType(regkey.GetValue("MachinePreferredUILanguages"), String())
 
-								If wantedValue IsNot Nothing AndAlso wantedValue.Length > 0 AndAlso Not IsNullOrWhitespace(wantedValue(0)) Then
+								If wantedValue IsNot Nothing AndAlso wantedValue.Length > 0 AndAlso Not String.IsNullOrWhiteSpace(wantedValue(0)) Then
 									Return wantedValue(0)
 								Else
 									Return Globalization.CultureInfo.InstalledUICulture.Name    'Return en-US, en-GB, fr-FR etc.
@@ -148,9 +148,9 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Function
 
-		Public Function IsNullOrWhitespace(ByVal str As String) As Boolean
-			Return If(str IsNot Nothing, String.IsNullOrEmpty(str.Trim(whiteSpaceChars)), True)
-		End Function
+		'Public Function String.IsNullOrWhiteSpace(ByVal str As String) As Boolean
+		'	Return If(str IsNot Nothing, String.IsNullOrEmpty(str.Trim(whiteSpaceChars)), True)
+		'End Function
 
 		''' <summary>Concats all given parameters to single text</summary>
 		Public Function StrAppend(ByVal sb As StringBuilder, ParamArray str As String()) As StringBuilder
@@ -170,7 +170,7 @@ Namespace Display_Driver_Uninstaller
 
 		''' <summary>Replaces all given parameters from text (Case Sensitive!)</summary>
 		Public Function StrReplace(ByVal sb As StringBuilder, ByRef oldStr As String, ByRef newStr As String) As StringBuilder
-			If IsNullOrWhitespace(oldStr) Then
+			If String.IsNullOrWhiteSpace(oldStr) Then
 				Return sb
 			End If
 
@@ -187,7 +187,7 @@ Namespace Display_Driver_Uninstaller
 			If Str IsNot Nothing And Str.Length > 0 Then
 				If ignoreCase Then
 					For Each s As String In Str
-						If Not IsNullOrWhitespace(s) Then
+						If Not String.IsNullOrWhiteSpace(s) Then
 							text = Strings.Replace(text, s, String.Empty, 1, -1, CompareMethod.Text)
 						End If
 					Next
@@ -199,7 +199,7 @@ Namespace Display_Driver_Uninstaller
 					Dim sb As New StringBuilder(text)
 
 					For Each s As String In Str
-						If Not IsNullOrWhitespace(s) Then
+						If Not String.IsNullOrWhiteSpace(s) Then
 							sb.Replace(s, String.Empty)
 						End If
 					Next
@@ -213,13 +213,13 @@ Namespace Display_Driver_Uninstaller
 
 		''' <summary>Check if text contains any of the given parameters</summary>
 		Public Function StrContainsAny(ByVal text As String, ByVal ignoreCase As Boolean, ParamArray Str As String()) As Boolean
-			If IsNullOrWhitespace(text) Then Return False
+			If String.IsNullOrWhiteSpace(text) Then Return False
 
 			If Str IsNot Nothing And Str.Length > 0 Then
 				Dim comparison As StringComparison = If(ignoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
 
 				For Each s As String In Str
-					If Not IsNullOrWhitespace(s) Then
+					If Not String.IsNullOrWhiteSpace(s) Then
 						If text.IndexOf(s, comparison) <> -1 Then   ' -1 = NOT FOUND
 							Return True
 						End If
@@ -232,12 +232,12 @@ Namespace Display_Driver_Uninstaller
 
 		''' <summary>Check if text contains Equal of the given parameters</summary>
 		Public Function StrEqual(ByVal text As String, ByVal ignoreCase As Boolean, ParamArray Str As String()) As Boolean
-			If IsNullOrWhitespace(text) Then Return False
+			If String.IsNullOrWhiteSpace(text) Then Return False
 
 			If Str IsNot Nothing And Str.Length > 0 Then
 
 				For Each s As String In Str
-					If Not IsNullOrWhitespace(s) Then
+					If Not String.IsNullOrWhiteSpace(s) Then
 						If String.Equals(text, s, If(ignoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)) Then
 							Return True
 						End If
@@ -320,7 +320,7 @@ Namespace Display_Driver_Uninstaller
 
 				For Each childName As String In topLevelKey.GetSubKeyNames()
 					' ... your existing control set checks ...
-					If IsNullOrWhitespace(childName) Then Continue For
+					If String.IsNullOrWhiteSpace(childName) Then Continue For
 
 					Using envKey As RegistryKey = topLevelKey.OpenSubKey($"{childName}\Control\Session Manager\Environment", writable:=True)
 						If envKey Is Nothing Then Continue For

@@ -122,13 +122,13 @@ Namespace Display_Driver_Uninstaller
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Enum\PCI")
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames
-							If IsNullOrWhitespace(child) OrElse Not StrContainsAny(child, True, "ven_8086", "ven_1002", "ven_10de") Then Continue For
+							If String.IsNullOrWhiteSpace(child) OrElse Not StrContainsAny(child, True, "ven_8086", "ven_1002", "ven_10de") Then Continue For
 
 							Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child)
 								If regkey2 Is Nothing Then Continue For
 
 								For Each child2 As String In regkey2.GetSubKeyNames
-									If IsNullOrWhitespace(child2) Then Continue For
+									If String.IsNullOrWhiteSpace(child2) Then Continue For
 
 									Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey2, child2)
 										If regkey3 Is Nothing Then Continue For
@@ -139,7 +139,7 @@ Namespace Display_Driver_Uninstaller
 											isGpu = False
 
 											For Each id As String In compatibleIDs
-												If IsNullOrWhitespace(id) Then Continue For
+												If String.IsNullOrWhiteSpace(id) Then Continue For
 												If StrContainsAny(id, True, "pci\cc_03") Then
 													isGpu = True
 													Exit For
@@ -148,7 +148,7 @@ Namespace Display_Driver_Uninstaller
 
 											If isGpu Then
 												For Each id As String In compatibleIDs
-													If IsNullOrWhitespace(id) Then Continue For
+													If String.IsNullOrWhiteSpace(id) Then Continue For
 													If StrContainsAny(id, True, "ven_8086") Then
 														Return GPUVendor.Intel
 													ElseIf StrContainsAny(id, True, "ven_1002") Then
@@ -432,7 +432,7 @@ Namespace Display_Driver_Uninstaller
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Enum\PCI")
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
-								If IsNullOrWhitespace(child) Then Continue For
+								If String.IsNullOrWhiteSpace(child) Then Continue For
 
 								If StrContainsAny(child, True, "ven_8086") Then
 									Try
@@ -440,13 +440,13 @@ Namespace Display_Driver_Uninstaller
 											If subRegKey IsNot Nothing Then
 
 												For Each childs As String In subRegKey.GetSubKeyNames()
-													If IsNullOrWhitespace(childs) Then Continue For
+													If String.IsNullOrWhiteSpace(childs) Then Continue For
 
 													Using childRegKey As RegistryKey = MyRegistry.OpenSubKey(subRegKey, childs)
 														If childRegKey IsNot Nothing Then
 															Dim regValue As String = childRegKey.GetValue("Service", String.Empty).ToString
 
-															If Not IsNullOrWhitespace(regValue) AndAlso StrContainsAny(regValue, True, "amdkmdap") Then
+															If Not String.IsNullOrWhiteSpace(regValue) AndAlso StrContainsAny(regValue, True, "amdkmdap") Then
 																_enduro = True
 																UpdateTextMethod("System seems to be an AMD Enduro (Intel)")
 															End If
@@ -858,7 +858,7 @@ Namespace Display_Driver_Uninstaller
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}")
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames
-							If IsNullOrWhitespace(child) Then Continue For
+							If String.IsNullOrWhiteSpace(child) Then Continue For
 
 							If Not StrContainsAny(child, True, "properties") Then
 
@@ -866,14 +866,14 @@ Namespace Display_Driver_Uninstaller
 									If subRegkey IsNot Nothing Then
 										Dim regValue As String = subRegkey.GetValue("Device Description", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}{1} - {2}: {3}", UpdateTextTranslated(11), child, UpdateTextTranslated(12), regValue))
 											If firstLaunch Then info.Add(String.Format("GPU #{0}", child), regValue)
 										Else
 
 											regValue = subRegkey.GetValue("DriverDesc", String.Empty).ToString()
 
-											If Not IsNullOrWhitespace(regValue) Then
+											If Not String.IsNullOrWhiteSpace(regValue) Then
 												If subRegkey.GetValueKind("DriverDesc") = RegistryValueKind.Binary Then
 													regValue = HexToString(GetREG_BINARY(subRegkey, "DriverDesc").Replace("00", ""))
 
@@ -882,7 +882,7 @@ Namespace Display_Driver_Uninstaller
 												End If
 											End If
 
-											If IsNullOrWhitespace(regValue) Then Continue For
+											If String.IsNullOrWhiteSpace(regValue) Then Continue For
 
 											UpdateTextMethod(String.Format("{0}{1} - {2}: {3}", UpdateTextTranslated(11), child, UpdateTextTranslated(12), regValue))
 											If firstLaunch Then info.Add(String.Format("GPU #{0}", child), regValue)
@@ -891,7 +891,7 @@ Namespace Display_Driver_Uninstaller
 
 										regValue = subRegkey.GetValue("MatchingDeviceId", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(13), regValue))
 											If firstLaunch Then info.Add("GPU DeviceID", regValue)
 										End If
@@ -899,7 +899,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											regValue = subRegkey.GetValue("HardwareInformation.BiosString", String.Empty).ToString()
 
-											If Not IsNullOrWhitespace(regValue) Then
+											If Not String.IsNullOrWhiteSpace(regValue) Then
 												If subRegkey.GetValueKind("HardwareInformation.BiosString") = RegistryValueKind.Binary Then
 													regValue = HexToString(GetREG_BINARY(subRegkey, "HardwareInformation.BiosString").Replace("00", ""))
 
@@ -932,21 +932,21 @@ Namespace Display_Driver_Uninstaller
 
 										regValue = subRegkey.GetValue("DriverVersion", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(14), regValue))
 											If firstLaunch Then info.Add("Detected Driver(s) Version(s)", regValue)
 										End If
 
 										regValue = subRegkey.GetValue("InfPath", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(15), regValue))
 											If firstLaunch Then info.Add("INF name", regValue)
 										End If
 
 										regValue = subRegkey.GetValue("InfSection", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(16), regValue))
 											If firstLaunch Then info.Add("INF section", regValue)
 										End If

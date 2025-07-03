@@ -161,16 +161,16 @@ Namespace Display_Driver_Uninstaller
 			"Software\Microsoft\Windows\CurrentVersion\Uninstall", True)
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
-							If IsNullOrWhitespace(child) Then Continue For
+							If String.IsNullOrWhiteSpace(child) Then Continue For
 
 							Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "Software\Microsoft\Windows\CurrentVersion\Uninstall\" & child)
 
 								If subregkey IsNot Nothing Then
-									If IsNullOrWhitespace(subregkey.GetValue("DisplayName", String.Empty).ToString) Then Continue For
+									If String.IsNullOrWhiteSpace(subregkey.GetValue("DisplayName", String.Empty).ToString) Then Continue For
 									wantedvalue = subregkey.GetValue("DisplayName", String.Empty).ToString
-									If IsNullOrWhitespace(wantedvalue) Then Continue For
+									If String.IsNullOrWhiteSpace(wantedvalue) Then Continue For
 									For i As Integer = 0 To packages.Length - 1
-										If IsNullOrWhitespace(packages(i)) Then Continue For
+										If String.IsNullOrWhiteSpace(packages(i)) Then Continue For
 										If StrContainsAny(wantedvalue, True, packages(i)) Then
 											Try
 												Deletesubregkey(regkey, child)
@@ -195,15 +195,15 @@ Namespace Display_Driver_Uninstaller
 				 "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall", True)
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
-								If IsNullOrWhitespace(child) Then Continue For
+								If String.IsNullOrWhiteSpace(child) Then Continue For
 								Using subregkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
 								 "Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & child, True)
 									If subregkey IsNot Nothing Then
-										If IsNullOrWhitespace(subregkey.GetValue("DisplayName", String.Empty).ToString) Then Continue For
+										If String.IsNullOrWhiteSpace(subregkey.GetValue("DisplayName", String.Empty).ToString) Then Continue For
 										wantedvalue = subregkey.GetValue("DisplayName", String.Empty).ToString
-										If IsNullOrWhitespace(wantedvalue) Then Continue For
+										If String.IsNullOrWhiteSpace(wantedvalue) Then Continue For
 										For i As Integer = 0 To packages.Length - 1
-											If IsNullOrWhitespace(packages(i)) Then Continue For
+											If String.IsNullOrWhiteSpace(packages(i)) Then Continue For
 											If StrContainsAny(wantedvalue, True, packages(i)) Then
 												Try
 													Deletesubregkey(regkey, child)
@@ -226,12 +226,12 @@ Namespace Display_Driver_Uninstaller
 			"Software", True)
 				If regkey IsNot Nothing Then
 					For Each child As String In regkey.GetSubKeyNames()
-						If IsNullOrWhitespace(child) Then Continue For
+						If String.IsNullOrWhiteSpace(child) Then Continue For
 						If StrContainsAny(child, True, "realtek", "ASIO") Then
 							Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child, True)
 								If regkey2 IsNot Nothing Then
 									For Each child2 As String In regkey2.GetSubKeyNames()
-										If IsNullOrWhitespace(child2) Then Continue For
+										If String.IsNullOrWhiteSpace(child2) Then Continue For
 										If StrContainsAny(child2, True, "aecbf", "audio", "realtekeffects", "realtekoptions", "smartampcmd", "spkprotection", "Realtek ASIO") Then
 											Try
 												Deletesubregkey(regkey2, child2)
@@ -247,7 +247,7 @@ Namespace Display_Driver_Uninstaller
 										End Try
 									Else
 										For Each data As String In regkey2.GetSubKeyNames()
-											If IsNullOrWhitespace(data) Then Continue For
+											If String.IsNullOrWhiteSpace(data) Then Continue For
 											Application.Log.AddWarningMessage("Remaining Key(s) found " + " : " + regkey2.ToString + "\ --> " + data)
 										Next
 									End If
@@ -263,12 +263,12 @@ Namespace Display_Driver_Uninstaller
 	"Software\WOW6432Node", True)
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
-							If IsNullOrWhitespace(child) Then Continue For
+							If String.IsNullOrWhiteSpace(child) Then Continue For
 							If StrContainsAny(child, True, "realtek", "ASIO") Then
 								Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child, True)
 									If regkey2 IsNot Nothing Then
 										For Each child2 As String In regkey2.GetSubKeyNames()
-											If IsNullOrWhitespace(child2) Then Continue For
+											If String.IsNullOrWhiteSpace(child2) Then Continue For
 											If StrContainsAny(child2, True, "aecbf", "audio", "realtekeffects", "realtekoptions", "smartampcmd", "spkprotection", "Realtek ASIO") Then
 												Try
 													Deletesubregkey(regkey2, child2)
@@ -284,7 +284,7 @@ Namespace Display_Driver_Uninstaller
 											End Try
 										Else
 											For Each data As String In regkey2.GetSubKeyNames()
-												If IsNullOrWhitespace(data) Then Continue For
+												If String.IsNullOrWhiteSpace(data) Then Continue For
 												Application.Log.AddWarningMessage("Remaining Key(s) found " + " : " + regkey2.ToString + "\ --> " + data)
 											Next
 										End If
@@ -323,7 +323,7 @@ Namespace Display_Driver_Uninstaller
 			If _fileIO.ExistsDir(filePath) Then
 
 				For Each child As String In _fileIO.GetDirectories(filePath)
-					If IsNullOrWhitespace(child) = False Then
+					If String.IsNullOrWhiteSpace(child) = False Then
 						If StrContainsAny(child, True, "audio") Then
 
 							Delete(child)
@@ -337,7 +337,7 @@ Namespace Display_Driver_Uninstaller
 
 				Else
 					For Each data As String In _fileIO.GetDirectories(filePath)
-						If IsNullOrWhitespace(data) Then Continue For
+						If String.IsNullOrWhiteSpace(data) Then Continue For
 						Application.Log.AddWarningMessage("Remaining folders found " + " : " + filePath + "\ --> " + data)
 					Next
 				End If
@@ -350,7 +350,7 @@ Namespace Display_Driver_Uninstaller
 						Delete(filePath)
 					Else
 						For Each data As String In _fileIO.GetDirectories(filePath)
-							If IsNullOrWhitespace(data) Then Continue For
+							If String.IsNullOrWhiteSpace(data) Then Continue For
 							Application.Log.AddWarningMessage("Remaining folders found " + " : " + filePath + "\ --> " + data)
 						Next
 					End If
@@ -365,7 +365,7 @@ Namespace Display_Driver_Uninstaller
 					If filePath IsNot Nothing Then
 
 						For Each child As String In _fileIO.GetDirectories(filePath)
-							If IsNullOrWhitespace(child) = False Then
+							If String.IsNullOrWhiteSpace(child) = False Then
 								If StrContainsAny(child, True, "Audio") Then
 
 									Delete(child)
@@ -379,7 +379,7 @@ Namespace Display_Driver_Uninstaller
 
 						Else
 							For Each data As String In _fileIO.GetDirectories(filePath)
-								If IsNullOrWhitespace(data) Then Continue For
+								If String.IsNullOrWhiteSpace(data) Then Continue For
 								Application.Log.AddWarningMessage("Remaining folders found " + " : " + filePath + "\ --> " + data)
 							Next
 
