@@ -377,6 +377,92 @@ Namespace Display_Driver_Uninstaller
 
 				End If
 
+				If config.SelectedGPU = GPUVendor.AMD Then
+					Dim PCIEUPORT As String() =
+						{"PCI\VEN_1002&DEV_1478"}
+
+					Dim PCIEDPORT As String() =
+						{"PCI\VEN_1002&DEV_1479"}
+
+					'Removing Intel(R) Graphics System Controller Auxiliary Firmware Interface.
+					Application.Log.AddMessage("Executing SetupAPI: PCI-E Upstream Switch port and it's childrens") 'PCI Upstream
+					Dim found = SetupAPI.GetDevices("system", Nothing, False, includeChilds:=True)
+					If found IsNot Nothing AndAlso found.Count > 0 Then
+
+						' Create a list to track devices already removed
+						Dim removedDevices As New List(Of String)
+						For Each d As SetupAPI.Device In found
+							If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
+								If d.HasHardwareID Then
+									For Each hardwareid As String In d.HardwareIDs
+										If String.IsNullOrWhiteSpace(hardwareid) Then Continue For
+										If StrContainsAny(hardwareid, True, PCIEUPORT) Then
+
+											' Check if the device has already been removed
+											If removedDevices.Contains(d.ToString) Then
+												Exit For
+											End If
+											If d.ChildDevices IsNot Nothing AndAlso d.ChildDevices.Length > 0 Then
+												Application.Log.AddMessage("SetupAPI: Removing childrens associated to the PCI-E Upstream Switch port")
+												RemoveChiendrensFromDevices(d.ChildDevices, removedDevices)
+												Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the PCI-E Upstream Switch port completed.")
+											End If
+
+											' Uninstall the current device
+											SetupAPI.UninstallDevice(d)
+											removedDevices.Add(d.ToString)
+											Exit For
+										End If
+									Next
+								End If
+							End If
+						Next
+						found.Clear()
+						removedDevices.Clear()
+					End If
+					Application.Log.AddMessage("SetupAPI: Removal of PCI-E Upstream Switch port and it's childrens completed") 'PCI Upstream
+
+					Application.Log.AddMessage("Executing SetupAPI: (Leftover) PCI-E Downstream Switch port and it's childrens") 'PCI Upstream
+
+					found = SetupAPI.GetDevices("system", Nothing, False, includeChilds:=True)  'PCI Downpstream
+					If found IsNot Nothing AndAlso found.Count > 0 Then
+
+						' Create a list to track devices already removed
+						Dim removedDevices As New List(Of String)
+						For Each d As SetupAPI.Device In found
+							If d IsNot Nothing AndAlso d.HardwareIDs IsNot Nothing AndAlso d.HardwareIDs.Length > 0 Then
+								If d.HasHardwareID Then
+									For Each hardwareid As String In d.HardwareIDs
+										If String.IsNullOrWhiteSpace(hardwareid) Then Continue For
+										If StrContainsAny(hardwareid, True, PCIEDPORT) Then
+
+											' Check if the device has already been removed
+											If removedDevices.Contains(d.ToString) Then
+												Exit For
+											End If
+											If d.ChildDevices IsNot Nothing AndAlso d.ChildDevices.Length > 0 Then
+												Application.Log.AddMessage("SetupAPI: Removing childrens associated to the PCI-E Downstream Switch port")
+												RemoveChiendrensFromDevices(d.ChildDevices, removedDevices)
+												Application.Log.AddMessage("SetupAPI: Removal of the childrens associated to the PCI-E Downstream Switch port completed.")
+											End If
+
+											' Uninstall the current device
+											SetupAPI.UninstallDevice(d)
+											removedDevices.Add(d.ToString)
+											Exit For
+										End If
+									Next
+								End If
+							End If
+						Next
+						found.Clear()
+						removedDevices.Clear()
+					End If
+
+					Application.Log.AddMessage("SetupAPI: Removal of (Leftover) PCI-E Downstream Switch port and it's childrens completed") 'PCI Upstream
+
+				End If
+
 				'------------------------------------------------------------------------------------
 				' Removing the Audio associated with the GPU + AudioEndpoint+SoftwareComponent(DCH)--
 				'------------------------------------------------------------------------------------
@@ -1798,7 +1884,7 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
 								If String.IsNullOrWhiteSpace(child) Then Continue For
-								If StrContainsAny(child, True, "AIM", "CN", "DVR", "HKIDs", "MOBILE", "SCENE", "SA") Then
+								If StrContainsAny(child, True, "AIM", "CN", "DVR", "HKIDs", "MOBILE", "SCENE", "SA", "AMDInstallManager") Then
 									Deletesubregkey(regkey, child)
 								End If
 							Next
@@ -1945,7 +2031,7 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 											For Each child2 As String In regkey2.GetSubKeyNames()
 												If String.IsNullOrWhiteSpace(child2) Then Continue For
 												If StrContainsAny(child2, True, "A464", "ati catalyst", "ati mcat", "avt", "ccc", "cnext", "amd app sdk", "packages", "distribution", "ppc",
-"wirelessdisplay", "hydravision", "avivo", "ati display driver", "installed drivers", "steadyvideo", "amd dvr", "ati problem report wizard", "amd problem report wizard", "cnbranding") Then
+"wirelessdisplay", "hydravision", "avivo", "ati display driver", "installed drivers", "steadyvideo", "amd dvr", "ati problem report wizard", "amd problem report wizard", "cnbranding", "WVR64") Then
 													Try
 														Deletesubregkey(regkey2, child2)
 													Catch ex As Exception
@@ -2000,22 +2086,29 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames()
 							If String.IsNullOrWhiteSpace(child) = False Then
-								If StrContainsAny(child, True, "eeu", "fuel", "cn", "chill", "mftvdecoder", "dvr", "gpu", "amdanalytics", "ppc", "DU", "DUTrack") Then
+								If StrContainsAny(child, True, "eeu", "fuel", "cn", "chill", "mftvdecoder", "dvr", "gpu", "amdanalytics", "ppc", "DU", "DUTrack", "SmartDC") Then
 									Try
 										Deletesubregkey(regkey, child)
 									Catch ex As Exception
 										Application.Log.AddException(ex)
 									End Try
 								End If
-								If StrContainsAny(child, True, "install") Then  'Just a safety here....
-									If MyRegistry.OpenSubKey(regkey, child).SubKeyCount = 0 Then
-										Try
-											Deletesubregkey(regkey, child)
-										Catch ex As Exception
-											Application.Log.AddException(ex)
-										End Try
-									End If
+								If StrContainsAny(child, True, "AMDInstallManager") Then  'Just a safety here....
+									Try
+										Deletesubregkey(regkey, child)
+									Catch ex As Exception
+										Application.Log.AddException(ex)
+									End Try
 								End If
+								'If StrContainsAny(child, True, "install") Then  'Just a safety here....
+								'	If MyRegistry.OpenSubKey(regkey, child).SubKeyCount = 0 Then
+								'		Try
+								'			Deletesubregkey(regkey, child)
+								'		Catch ex As Exception
+								'			Application.Log.AddException(ex)
+								'		End Try
+								'	End If
+								'End If
 							End If
 						Next
 						If regkey.SubKeyCount = 0 Then
@@ -2852,7 +2945,7 @@ child.ToLower.Contains("hydravision") Then
 							If String.IsNullOrWhiteSpace(child) = False Then
 								If StrContainsAny(child, True, "acrdumps", "mmddumps", "real", "amdfendr", "EeuDumps", "Persistent", "ANR") Or
 (child.ToLower.Contains("amdkmpfd") AndAlso config.NotPresentAMDKMPFD AndAlso config.RemoveAMDKMPFD) Or
-(child.ToLower.Contains("amdkmafd") AndAlso config.RemoveAudioBus) Then
+(StrContainsAny(child, True, "amdkmafd", "amdafd") AndAlso config.RemoveAudioBus AndAlso FrmMain.DoNotRemoveAmdHdAudioBusFiles = False) Then
 									Try
 										Delete(child)
 									Catch ex As Exception
