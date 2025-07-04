@@ -11,6 +11,7 @@ Namespace Display_Driver_Uninstaller
 		Nvidia
 		AMD
 		Intel
+		All
 	End Enum
 
 	Public Enum CleanType As Int32

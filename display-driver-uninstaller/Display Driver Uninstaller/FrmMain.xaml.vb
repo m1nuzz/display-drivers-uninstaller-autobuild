@@ -206,8 +206,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Async Sub BtnClean_Click(sender As Object, e As RoutedEventArgs) Handles btnClean.Click
@@ -218,8 +217,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Async Sub BtnCleanShutdown_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanShutdown.Click
@@ -230,8 +228,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Sub BtnWuRestore_Click(sender As Object, e As EventArgs) Handles btnWuRestore.Click
@@ -262,7 +259,8 @@ Namespace Display_Driver_Uninstaller
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options1"),
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options2"),
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options3"),
-			Languages.GetTranslation("frmMain", "Options_GPU", "Options4")
+			Languages.GetTranslation("frmMain", "Options_GPU", "Options4"),
+			Languages.GetTranslation("frmMain", "Options_GPU", "Options5")
 		} ' The order is important, check Appsettings.vb
 					Case CleanType.Audio
 						cbSelectedGPU.ItemsSource = {
@@ -486,7 +484,7 @@ Namespace Display_Driver_Uninstaller
 					'WorkTask = New Task(Sub() ThreadTask(config))
 
 					'WorkTask.Start()
-					ThreadTaskAsync(config)
+					Await ThreadTaskAsync(config)
 				End If
 
 			Catch ex As Exception
@@ -656,83 +654,34 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Sub
 
-		Private Async Sub ThreadTaskAsync(ByVal config As ThreadSettings)
+		Private Async Function ThreadTaskAsync(ByVal config As ThreadSettings) As Task
 
 			Try
-				config.PreventClose = True
 
 				PreCleaning()
 
-				If config.HasCleanArg Then
-					If config.CleanAmd Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.AMD
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-
-					If config.CleanNvidia Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.Nvidia
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanIntel Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.Intel
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanRealtek Then
-						config.Success = False
-						config.SelectedType = CleanType.Audio
-						config.SelectedGPU = GPUVendor.None
-						config.SelectedAUDIO = AudioVendor.Realtek
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanSoundBlaster Then
-						config.Success = False
-						config.SelectedType = CleanType.Audio
-						config.SelectedGPU = GPUVendor.None
-						config.SelectedAUDIO = AudioVendor.SoundBlaster
-
-						Await StartThreadAsync(config, False)
-					End If
-
+				If Not config.HasCleanArg AndAlso Not config.SelectedGPU = GPUVendor.All Then
+					Await StartThreadAsync(config)
+					Return
 				End If
+
+				config.PreventClose = True
+
+				Await ProcessCleaningArgumentsAsync(config)
 
 				If config.Restart Then
 					Application.RestartComputer()
-					Exit Sub
+					Return
 				End If
 
 				If config.Shutdown Then
 					Application.ShutdownComputer()
-					Exit Sub
+					Return
 				End If
 
 				If config.Silent Then
 					CloseDDU()
-					Exit Sub
+					Return
 				End If
 
 				If Not config.Restart And Not config.Shutdown Then
@@ -746,7 +695,66 @@ Namespace Display_Driver_Uninstaller
 			Finally
 				EnableControls(True)
 			End Try
-		End Sub
+		End Function
+
+		Private Async Function ProcessCleaningArgumentsAsync(config As ThreadSettings) As Task
+
+			Dim cleanAllGpus As Boolean = config.SelectedGPU = GPUVendor.All
+
+			If config.CleanAmd OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.AMD
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanNvidia OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.Nvidia
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanIntel OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.Intel
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanRealtek Then
+				config.Success = False
+				config.SelectedType = CleanType.Audio
+				config.SelectedGPU = GPUVendor.None
+				config.SelectedAUDIO = AudioVendor.Realtek
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanSoundBlaster Then
+				config.Success = False
+				config.SelectedType = CleanType.Audio
+				config.SelectedGPU = GPUVendor.None
+				config.SelectedAUDIO = AudioVendor.SoundBlaster
+
+				Await StartThreadAsync(config, False)
+			End If
+
+		End Function
 
 		Private Sub PreCleaning()
 			If Not Me.Dispatcher.CheckAccess() Then
@@ -1324,6 +1332,11 @@ Namespace Display_Driver_Uninstaller
 							cbSelectedGPU.IsEnabled = True
 							ButtonsPanel.IsEnabled = True
 							Application.Settings.LastSelectedGPUIndex = cbSelectedGPU.SelectedIndex
+						Case 4
+							Application.Settings.SelectedGPU = GPUVendor.All
+							cbSelectedGPU.IsEnabled = True
+							ButtonsPanel.IsEnabled = True
+							Application.Settings.LastSelectedGPUIndex = cbSelectedGPU.SelectedIndex
 					End Select
 
 			End Select
@@ -1338,7 +1351,7 @@ Namespace Display_Driver_Uninstaller
 				Case 0
 					Application.Settings.SelectedType = CleanType.None
 					cbSelectedGPU.IsEnabled = True
-					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4")} 'the order is important, check Appsettings.vb
+					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4"), Languages.GetTranslation("frmMain", "Options_GPU", "Options5")} 'the order is important, check Appsettings.vb
 					cbSelectedGPU.SelectedIndex = 0
 					cbSelectedGPU.IsEnabled = False
 
@@ -1353,7 +1366,7 @@ Namespace Display_Driver_Uninstaller
 				Case 2
 					Application.Settings.SelectedType = CleanType.GPU
 					cbSelectedGPU.IsEnabled = True
-					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4")} 'the order is important, check Appsettings.vb
+					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4"), Languages.GetTranslation("frmMain", "Options_GPU", "Options5")} 'the order is important, check Appsettings.vb
 					cbSelectedGPU.SelectedIndex = 0
 					cbSelectedGPU.SelectedIndex = If(Application.Settings.RememberLastChoice, Application.Settings.LastSelectedGPUIndex, GPUIdentify())
 

@@ -43,10 +43,11 @@ Namespace Display_Driver_Uninstaller
 					vendidSC = {"VEN8086_MSDK", "VEN8086_GFXUI"}
 					audioServices = IO.File.ReadAllLines(config.Paths.AppBase & "settings\INTEL\servicesaudio.cfg")
 				Case GPUVendor.None : vendIdExpected = "NONE"
+				Case GPUVendor.All : vendIdExpected = "ALL"
 			End Select
 
-			If vendIdExpected = "NONE" Then
-				Application.Log.AddWarningMessage("VendID is NONE, this is unexpected, cleaning aborted.")
+			If vendIdExpected = "NONE" OrElse vendIdExpected = "ALL" Then
+				Application.Log.AddWarningMessage($"VendID is {vendIdExpected}, this is unexpected, cleaning aborted.")
 				Exit Sub
 			End If
 
@@ -3943,6 +3944,13 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			'--------------------------
 			Application.Log.AddMessage("End Power Settings Cleanup")
 
+			'----------------------------------------------------------
+			'Fix, if needed, for previously corrupted environement Path
+			'----------------------------------------------------------
+
+			FixBrokenPathIfNeeded()
+
+
 			'--------------------------------
 			'System environement path cleanup
 			'--------------------------------
@@ -4009,13 +4017,6 @@ child2.ToLower.Contains("hdaudio.driver") Then
 			'-------------------------------------
 			'end system environement patch cleanup
 			'-------------------------------------
-
-
-			'----------------------------------------------
-			'Fix, if needed, for previously corrupted environement Path
-			'----------------------------------------------
-
-			FixBrokenPathIfNeeded()
 
 			Try
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine,
@@ -7341,6 +7342,9 @@ child.ToLower.Contains("igfxdtcm") Then
 				End Try
 			End If
 
+
+			FixBrokenPathIfNeeded()
+
 			'--------------------------------
 			'System environement path cleanup
 			'--------------------------------
@@ -7372,8 +7376,6 @@ child.ToLower.Contains("igfxdtcm") Then
 			Catch ex As Exception
 				Application.Log.AddException(ex)
 			End Try
-
-			FixBrokenPathIfNeeded()
 
 			'-----------------------
 			'remove event view stuff
