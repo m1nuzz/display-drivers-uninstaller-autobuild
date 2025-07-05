@@ -2093,22 +2093,35 @@ child.ToLower.Contains("legacy_amdacpksd") Then
 										Application.Log.AddException(ex)
 									End Try
 								End If
-								If StrContainsAny(child, True, "AMDInstallManager") Then  'Just a safety here....
-									Try
-										Deletesubregkey(regkey, child)
-									Catch ex As Exception
-										Application.Log.AddException(ex)
-									End Try
-								End If
-								'If StrContainsAny(child, True, "install") Then  'Just a safety here....
-								'	If MyRegistry.OpenSubKey(regkey, child).SubKeyCount = 0 Then
-								'		Try
-								'			Deletesubregkey(regkey, child)
-								'		Catch ex As Exception
-								'			Application.Log.AddException(ex)
-								'		End Try
-								'	End If
+								'If StrContainsAny(child, True, "AMDInstallManager") Then  'Just a safety here....
+								'	Try
+								'		Deletesubregkey(regkey, child)
+								'	Catch ex As Exception
+								'		Application.Log.AddException(ex)
+								'	End Try
 								'End If
+								If StrContainsAny(child, True, "install") Then  'Just a safety here....
+									Using installKey As RegistryKey = regkey.OpenSubKey(child, True)
+										If installKey IsNot Nothing Then
+											For Each key As String In installKey.GetSubKeyNames()
+												If StrContainsAny(key, True, "autoupdate", "checkforupdates", "lastrun", "progress") Then
+													Try
+														Deletesubregkey(installKey, key)
+													Catch ex As Exception
+														Application.Log.AddException(ex)
+													End Try
+												End If
+											Next
+										End If
+									End Using
+									If MyRegistry.OpenSubKey(regkey, child).SubKeyCount = 0 Then
+										Try
+											Deletesubregkey(regkey, child)
+										Catch ex As Exception
+											Application.Log.AddException(ex)
+										End Try
+									End If
+								End If
 							End If
 						Next
 						If regkey.SubKeyCount = 0 Then
@@ -3015,6 +3028,12 @@ child.ToLower.Contains("hydravision") Then
 			End If
 
 			filePath = Environment.GetFolderPath _
+(Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\AMDInstallManager"
+			If _fileIo.ExistsDir(filePath) Then
+				Delete(filePath)
+			End If
+
+			filePath = Environment.GetFolderPath _
 (Environment.SpecialFolder.CommonApplicationData) + "\Microsoft\Windows\Start Menu\Programs\Catalyst Control Center"
 			If _fileIo.ExistsDir(filePath) Then
 				Delete(filePath)
@@ -3317,7 +3336,7 @@ removedxcache AndAlso child.ToLower.Contains("glcache") Then
 			If _fileIo.ExistsDir(filePath) Then
 				For Each child As String In _fileIo.GetDirectories(filePath)
 					If String.IsNullOrWhiteSpace(child) = False Then
-						If StrContainsAny(child, True, "ccc2", "prw", "cnext", "steadyvideo", "920dec42-4ca5-4d1d-9487-67be645cddfc", "cim", "performance profile client", "wvr", "installuep") Then
+						If StrContainsAny(child, True, "ccc2", "prw", "cnext", "steadyvideo", "920dec42-4ca5-4d1d-9487-67be645cddfc", "cim", "performance profile client", "wvr", "installuep", "AMDInstallManager") Then
 							Delete(child)
 						End If
 						If (config.RemoveAudioBus AndAlso FrmMain.DoNotRemoveAmdHdAudioBusFiles = False) AndAlso StrContainsAny(child, True, "amdkmafd") Then
