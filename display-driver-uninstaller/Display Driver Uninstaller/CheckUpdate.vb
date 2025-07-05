@@ -69,7 +69,7 @@ Namespace Display_Driver_Uninstaller
 				Dim newestVersion As Integer
 				Dim applicationVersion As Integer
 
-				If IsNullOrWhitespace(newestVersionStr) OrElse
+				If String.IsNullOrWhiteSpace(newestVersionStr) OrElse
 		   Not Integer.TryParse(newestVersionStr.Replace(".", ""), newestVersion) OrElse
 		   Not Integer.TryParse(currentVersion.ToString().Replace(".", ""), applicationVersion) Then
 

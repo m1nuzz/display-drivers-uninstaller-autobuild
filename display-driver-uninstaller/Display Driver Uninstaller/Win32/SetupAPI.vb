@@ -2099,7 +2099,7 @@ Namespace Display_Driver_Uninstaller.Win32
 								})
 							End If
 
-							logStatus.Add("Description", If(IsNullOrWhitespace(device.Description), "<empty>", device.Description))
+							logStatus.Add("Description", If(String.IsNullOrWhiteSpace(device.Description), "<empty>", device.Description))
 
 							If Not SetupDiSetClassInstallParams(infoSet, ptrDevInfo.Ptr, ptrSetParams.Ptr, ptrSetParams.ObjSizeU) Then
 								logStatus.Add("Status: ", " Failed !")
@@ -2392,7 +2392,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							End If
 							Dim logEntry As LogEntry = Application.Log.CreateEntry()
 							logEntry.Message = String.Format("Devices found: {0}", Devices.Count.ToString())
-							logEntry.Add("-> vendorID", If(IsNullOrWhitespace(text), "<empty>", text))
+							logEntry.Add("-> vendorID", If(String.IsNullOrWhiteSpace(text), "<empty>", text))
 							logEntry.Add("-> includeSiblings", includeSiblings.ToString())
 
 							If Devices.Count > 0 Then
@@ -2550,7 +2550,7 @@ Namespace Display_Driver_Uninstaller.Win32
 							End If
 							Dim logEntry As LogEntry = Application.Log.CreateEntry()
 							logEntry.Message = String.Format("Devices found: {0}", Devices.Count.ToString())
-							logEntry.Add("-> vendorID", If(IsNullOrWhitespace(text), "<empty>", text))
+							logEntry.Add("-> vendorID", If(String.IsNullOrWhiteSpace(text), "<empty>", text))
 							logEntry.Add("-> includeSiblings", includeSiblings.ToString())
 
 							If Devices.Count > 0 Then
@@ -2579,7 +2579,7 @@ Namespace Display_Driver_Uninstaller.Win32
 		Public Shared Function GetDevices(ByVal className As String, Optional ByVal vendorID As String = Nothing, Optional ByVal includeSiblings As Boolean = True, Optional ByVal includeParents As Boolean = False, Optional ByVal includeChilds As Boolean = False, Optional ByVal driverDetails As Boolean = False, Optional ByVal logging As Boolean = True) As List(Of Device)
 
 			Try
-				If IsNullOrWhitespace(className) Then
+				If String.IsNullOrWhiteSpace(className) Then
 					Throw New ArgumentNullException("className")
 				End If
 
@@ -2620,7 +2620,7 @@ Namespace Display_Driver_Uninstaller.Win32
 
 							devClass = GetStringProperty(infoSet, ptrDevInfo.Ptr, SPDRP.CLASS)
 
-							If Not IsNullOrWhitespace(devClass) AndAlso devClass.Equals(className, StringComparison.OrdinalIgnoreCase) Then
+							If Not String.IsNullOrWhiteSpace(devClass) AndAlso devClass.Equals(className, StringComparison.OrdinalIgnoreCase) Then
 								If Is64 Then
 									devInst = DirectCast(Marshal.PtrToStructure(ptrDevInfo.Ptr, typeDevInfo), SP_DEVINFO_DATA_X64).DevInst
 								Else
@@ -2674,7 +2674,7 @@ Namespace Display_Driver_Uninstaller.Win32
 								Dim logEntry As LogEntry = Application.Log.CreateEntry()
 								logEntry.Message = String.Format("Device(s) found: {0}", Devices.Count.ToString())
 								logEntry.Add("-> className", className)
-								logEntry.Add("-> vendorID", If(IsNullOrWhitespace(vendorID), "<empty>", vendorID))
+								logEntry.Add("-> vendorID", If(String.IsNullOrWhiteSpace(vendorID), "<empty>", vendorID))
 								logEntry.Add("-> includeSiblings", includeSiblings.ToString())
 
 								If Devices.Count > 0 Then
@@ -2794,8 +2794,8 @@ Namespace Display_Driver_Uninstaller.Win32
 
 						Dim logStatus As LogEntry = Application.Log.CreateEntry()
 						logStatus.Message = "Uninstalling device..."
-						logStatus.Add("Description", If(IsNullOrWhitespace(device.Description), "<empty>", device.Description))
-						logStatus.Add("FriendlyName", If(IsNullOrWhitespace(device.FriendlyName), "<empty>", device.FriendlyName))
+						logStatus.Add("Description", If(String.IsNullOrWhiteSpace(device.Description), "<empty>", device.Description))
+						logStatus.Add("FriendlyName", If(String.IsNullOrWhiteSpace(device.FriendlyName), "<empty>", device.FriendlyName))
 						logStatus.Add("DeviceID", device.DeviceID)
 						logStatus.Add("Service", device.Service)
 						logStatus.Add("DevInst", device.devInst.ToString())
@@ -2839,7 +2839,7 @@ Namespace Display_Driver_Uninstaller.Win32
 						End If
 
 						If device.ExtendedInfs IsNot Nothing AndAlso device.ExtendedInfs.Length > 0 Then
-							If Not IsNullOrWhitespace(device.ExtendedInfs(0)) Then
+							If Not String.IsNullOrWhiteSpace(device.ExtendedInfs(0)) Then
 								Dim inf As Inf = GetOemInf(Application.Paths.WinDir & "inf\", device.ExtendedInfs(0))
 
 								If StrContainsAny(inf.Class, True, "Extension") Then
@@ -3005,7 +3005,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					Throw New ArgumentException("Empty infFile or infFile doesn't exists!", "infFile")
 				End If
 
-				If device.HardwareIDs Is Nothing OrElse device.HardwareIDs.Length = 0 OrElse IsNullOrWhitespace(device.HardwareIDs(0)) Then
+				If device.HardwareIDs Is Nothing OrElse device.HardwareIDs.Length = 0 OrElse String.IsNullOrWhiteSpace(device.HardwareIDs(0)) Then
 					Throw New ArgumentException("Empty Hardware ID Filter!", "hardwareIDFilter")
 				End If
 
@@ -3930,7 +3930,7 @@ Namespace Display_Driver_Uninstaller.Win32
 				Friend Set(value As String())
 					_hardwareIDs = value
 
-					If _hardwareIDs IsNot Nothing AndAlso _hardwareIDs.Length > 0 AndAlso Not IsNullOrWhitespace(_hardwareIDs(0)) Then
+					If _hardwareIDs IsNot Nothing AndAlso _hardwareIDs.Length > 0 AndAlso Not String.IsNullOrWhiteSpace(_hardwareIDs(0)) Then
 						_hasHardwareID = True
 					Else
 						_hasHardwareID = False
@@ -4287,7 +4287,7 @@ Namespace Display_Driver_Uninstaller.Win32
 			End Sub
 
 			Public Overrides Function ToString() As String
-				Return String.Format("{0} - (inf: {1})", _description, If(_infFile IsNot Nothing AndAlso Not IsNullOrWhitespace(_infFile.FileName), Path.GetFileName(_infFile.FileName), "<empty>"))
+				Return String.Format("{0} - (inf: {1})", _description, If(_infFile IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(_infFile.FileName), Path.GetFileName(_infFile.FileName), "<empty>"))
 			End Function
 		End Class
 

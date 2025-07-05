@@ -579,7 +579,7 @@ Namespace Display_Driver_Uninstaller
 				webAddress = URL_OFFER
 			End If
 
-			If Not IsNullOrWhitespace(webAddress) Then
+			If Not String.IsNullOrWhiteSpace(webAddress) Then
 
 				Using process As Process = New Process() With
 			 {
@@ -613,7 +613,7 @@ Namespace Display_Driver_Uninstaller
 				If regkey IsNot Nothing Then
 					regOSValue = regkey.GetValue("CurrentVersion", String.Empty).ToString()
 
-					If Not IsNullOrWhitespace(regOSValue) Then
+					If Not String.IsNullOrWhiteSpace(regOSValue) Then
 						Try
 							For Each os As [Enum] In [Enum].GetValues(GetType(OSVersion))
 								If GetDescription(os).Equals(regOSValue) Then
