@@ -670,12 +670,17 @@ Namespace Display_Driver_Uninstaller
 				Await ProcessCleaningArgumentsAsync(config)
 
 				If config.Restart Then
-					Application.RestartComputer()
+
+					'Application.RestartComputer()
+					WinAPI.OpenVisitLink(" -CleanComplete -Restart")
+					CloseDDU()
 					Return
 				End If
 
 				If config.Shutdown Then
-					Application.ShutdownComputer()
+					'Application.ShutdownComputer()
+					WinAPI.OpenVisitLink(" -CleanComplete -Shutdown")
+					CloseDDU()
 					Return
 				End If
 
