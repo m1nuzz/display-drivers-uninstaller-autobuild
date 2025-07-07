@@ -37,7 +37,7 @@ Namespace Display_Driver_Uninstaller.Win32
 					logEntry.Add("Number of process to check", procs.Length.ToString)
 
 					For Each proc As Process In procs
-						If IsNullOrWhitespace(proc.ToString) OrElse StrContainsAny(proc.ProcessName, True, "searchfilterhost", "smss") Then Continue For
+						If String.IsNullOrWhiteSpace(proc.ToString) OrElse StrContainsAny(proc.ProcessName, True, "searchfilterhost", "smss") Then Continue For
 						Try
 							If OpenProcessToken(proc.Handle, TOKEN_QUERY Or TOKEN_IMPERSONATE Or TOKEN_DUPLICATE, hToken) <> 0 Then
 								Dim newId As Principal.WindowsIdentity = New Principal.WindowsIdentity(hToken)

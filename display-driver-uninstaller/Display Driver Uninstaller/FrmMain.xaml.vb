@@ -122,13 +122,13 @@ Namespace Display_Driver_Uninstaller
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Enum\PCI")
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames
-							If IsNullOrWhitespace(child) OrElse Not StrContainsAny(child, True, "ven_8086", "ven_1002", "ven_10de") Then Continue For
+							If String.IsNullOrWhiteSpace(child) OrElse Not StrContainsAny(child, True, "ven_8086", "ven_1002", "ven_10de") Then Continue For
 
 							Using regkey2 As RegistryKey = MyRegistry.OpenSubKey(regkey, child)
 								If regkey2 Is Nothing Then Continue For
 
 								For Each child2 As String In regkey2.GetSubKeyNames
-									If IsNullOrWhitespace(child2) Then Continue For
+									If String.IsNullOrWhiteSpace(child2) Then Continue For
 
 									Using regkey3 As RegistryKey = MyRegistry.OpenSubKey(regkey2, child2)
 										If regkey3 Is Nothing Then Continue For
@@ -139,7 +139,7 @@ Namespace Display_Driver_Uninstaller
 											isGpu = False
 
 											For Each id As String In compatibleIDs
-												If IsNullOrWhitespace(id) Then Continue For
+												If String.IsNullOrWhiteSpace(id) Then Continue For
 												If StrContainsAny(id, True, "pci\cc_03") Then
 													isGpu = True
 													Exit For
@@ -148,7 +148,7 @@ Namespace Display_Driver_Uninstaller
 
 											If isGpu Then
 												For Each id As String In compatibleIDs
-													If IsNullOrWhitespace(id) Then Continue For
+													If String.IsNullOrWhiteSpace(id) Then Continue For
 													If StrContainsAny(id, True, "ven_8086") Then
 														Return GPUVendor.Intel
 													ElseIf StrContainsAny(id, True, "ven_1002") Then
@@ -206,8 +206,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Async Sub BtnClean_Click(sender As Object, e As RoutedEventArgs) Handles btnClean.Click
@@ -218,8 +217,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Async Sub BtnCleanShutdown_Click(sender As Object, e As RoutedEventArgs) Handles btnCleanShutdown.Click
@@ -230,8 +228,7 @@ Namespace Display_Driver_Uninstaller
 
 			KillGPUStatsProcesses()
 
-			PreCleaning()
-			Await StartThreadAsync(config)
+			Await ThreadTaskAsync(config)
 		End Sub
 
 		Private Sub BtnWuRestore_Click(sender As Object, e As EventArgs) Handles btnWuRestore.Click
@@ -262,7 +259,8 @@ Namespace Display_Driver_Uninstaller
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options1"),
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options2"),
 			Languages.GetTranslation("frmMain", "Options_GPU", "Options3"),
-			Languages.GetTranslation("frmMain", "Options_GPU", "Options4")
+			Languages.GetTranslation("frmMain", "Options_GPU", "Options4"),
+			Languages.GetTranslation("frmMain", "Options_GPU", "Options5")
 		} ' The order is important, check Appsettings.vb
 					Case CleanType.Audio
 						cbSelectedGPU.ItemsSource = {
@@ -432,7 +430,7 @@ Namespace Display_Driver_Uninstaller
 					Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Enum\PCI")
 						If regkey IsNot Nothing Then
 							For Each child As String In regkey.GetSubKeyNames()
-								If IsNullOrWhitespace(child) Then Continue For
+								If String.IsNullOrWhiteSpace(child) Then Continue For
 
 								If StrContainsAny(child, True, "ven_8086") Then
 									Try
@@ -440,13 +438,13 @@ Namespace Display_Driver_Uninstaller
 											If subRegKey IsNot Nothing Then
 
 												For Each childs As String In subRegKey.GetSubKeyNames()
-													If IsNullOrWhitespace(childs) Then Continue For
+													If String.IsNullOrWhiteSpace(childs) Then Continue For
 
 													Using childRegKey As RegistryKey = MyRegistry.OpenSubKey(subRegKey, childs)
 														If childRegKey IsNot Nothing Then
 															Dim regValue As String = childRegKey.GetValue("Service", String.Empty).ToString
 
-															If Not IsNullOrWhitespace(regValue) AndAlso StrContainsAny(regValue, True, "amdkmdap") Then
+															If Not String.IsNullOrWhiteSpace(regValue) AndAlso StrContainsAny(regValue, True, "amdkmdap") Then
 																_enduro = True
 																UpdateTextMethod("System seems to be an AMD Enduro (Intel)")
 															End If
@@ -486,7 +484,7 @@ Namespace Display_Driver_Uninstaller
 					'WorkTask = New Task(Sub() ThreadTask(config))
 
 					'WorkTask.Start()
-					ThreadTaskAsync(config)
+					Await ThreadTaskAsync(config)
 				End If
 
 			Catch ex As Exception
@@ -656,83 +654,39 @@ Namespace Display_Driver_Uninstaller
 			End Try
 		End Sub
 
-		Private Async Sub ThreadTaskAsync(ByVal config As ThreadSettings)
+		Private Async Function ThreadTaskAsync(ByVal config As ThreadSettings) As Task
 
 			Try
-				config.PreventClose = True
 
 				PreCleaning()
 
-				If config.HasCleanArg Then
-					If config.CleanAmd Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.AMD
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-
-					If config.CleanNvidia Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.Nvidia
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanIntel Then
-						config.Success = False
-						config.SelectedType = CleanType.GPU
-						config.SelectedAUDIO = AudioVendor.None
-						config.SelectedGPU = GPUVendor.Intel
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanRealtek Then
-						config.Success = False
-						config.SelectedType = CleanType.Audio
-						config.SelectedGPU = GPUVendor.None
-						config.SelectedAUDIO = AudioVendor.Realtek
-
-						Await StartThreadAsync(config, False)
-
-						CleaningTask = Nothing
-					End If
-
-					If config.CleanSoundBlaster Then
-						config.Success = False
-						config.SelectedType = CleanType.Audio
-						config.SelectedGPU = GPUVendor.None
-						config.SelectedAUDIO = AudioVendor.SoundBlaster
-
-						Await StartThreadAsync(config, False)
-					End If
-
+				If Not config.HasCleanArg AndAlso Not config.SelectedGPU = GPUVendor.All Then
+					Await StartThreadAsync(config)
+					Return
 				End If
 
+				config.PreventClose = True
+
+				Await ProcessCleaningArgumentsAsync(config)
+
 				If config.Restart Then
-					Application.RestartComputer()
-					Exit Sub
+
+					'Application.RestartComputer()
+					WinAPI.OpenVisitLink(" -CleanComplete -Restart")
+					CloseDDU()
+					Return
 				End If
 
 				If config.Shutdown Then
-					Application.ShutdownComputer()
-					Exit Sub
+					'Application.ShutdownComputer()
+					WinAPI.OpenVisitLink(" -CleanComplete -Shutdown")
+					CloseDDU()
+					Return
 				End If
 
 				If config.Silent Then
 					CloseDDU()
-					Exit Sub
+					Return
 				End If
 
 				If Not config.Restart And Not config.Shutdown Then
@@ -746,7 +700,66 @@ Namespace Display_Driver_Uninstaller
 			Finally
 				EnableControls(True)
 			End Try
-		End Sub
+		End Function
+
+		Private Async Function ProcessCleaningArgumentsAsync(config As ThreadSettings) As Task
+
+			Dim cleanAllGpus As Boolean = config.SelectedGPU = GPUVendor.All
+
+			If config.CleanAmd OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.AMD
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanNvidia OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.Nvidia
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanIntel OrElse cleanAllGpus Then
+				config.Success = False
+				config.SelectedType = CleanType.GPU
+				config.SelectedAUDIO = AudioVendor.None
+				config.SelectedGPU = GPUVendor.Intel
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanRealtek Then
+				config.Success = False
+				config.SelectedType = CleanType.Audio
+				config.SelectedGPU = GPUVendor.None
+				config.SelectedAUDIO = AudioVendor.Realtek
+
+				Await StartThreadAsync(config, False)
+
+				CleaningTask = Nothing
+			End If
+
+			If config.CleanSoundBlaster Then
+				config.Success = False
+				config.SelectedType = CleanType.Audio
+				config.SelectedGPU = GPUVendor.None
+				config.SelectedAUDIO = AudioVendor.SoundBlaster
+
+				Await StartThreadAsync(config, False)
+			End If
+
+		End Function
 
 		Private Sub PreCleaning()
 			If Not Me.Dispatcher.CheckAccess() Then
@@ -858,7 +871,7 @@ Namespace Display_Driver_Uninstaller
 				Using regkey As RegistryKey = MyRegistry.OpenSubKey(Registry.LocalMachine, "SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}")
 					If regkey IsNot Nothing Then
 						For Each child As String In regkey.GetSubKeyNames
-							If IsNullOrWhitespace(child) Then Continue For
+							If String.IsNullOrWhiteSpace(child) Then Continue For
 
 							If Not StrContainsAny(child, True, "properties") Then
 
@@ -866,14 +879,14 @@ Namespace Display_Driver_Uninstaller
 									If subRegkey IsNot Nothing Then
 										Dim regValue As String = subRegkey.GetValue("Device Description", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}{1} - {2}: {3}", UpdateTextTranslated(11), child, UpdateTextTranslated(12), regValue))
 											If firstLaunch Then info.Add(String.Format("GPU #{0}", child), regValue)
 										Else
 
 											regValue = subRegkey.GetValue("DriverDesc", String.Empty).ToString()
 
-											If Not IsNullOrWhitespace(regValue) Then
+											If Not String.IsNullOrWhiteSpace(regValue) Then
 												If subRegkey.GetValueKind("DriverDesc") = RegistryValueKind.Binary Then
 													regValue = HexToString(GetREG_BINARY(subRegkey, "DriverDesc").Replace("00", ""))
 
@@ -882,7 +895,7 @@ Namespace Display_Driver_Uninstaller
 												End If
 											End If
 
-											If IsNullOrWhitespace(regValue) Then Continue For
+											If String.IsNullOrWhiteSpace(regValue) Then Continue For
 
 											UpdateTextMethod(String.Format("{0}{1} - {2}: {3}", UpdateTextTranslated(11), child, UpdateTextTranslated(12), regValue))
 											If firstLaunch Then info.Add(String.Format("GPU #{0}", child), regValue)
@@ -891,7 +904,7 @@ Namespace Display_Driver_Uninstaller
 
 										regValue = subRegkey.GetValue("MatchingDeviceId", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(13), regValue))
 											If firstLaunch Then info.Add("GPU DeviceID", regValue)
 										End If
@@ -899,7 +912,7 @@ Namespace Display_Driver_Uninstaller
 										Try
 											regValue = subRegkey.GetValue("HardwareInformation.BiosString", String.Empty).ToString()
 
-											If Not IsNullOrWhitespace(regValue) Then
+											If Not String.IsNullOrWhiteSpace(regValue) Then
 												If subRegkey.GetValueKind("HardwareInformation.BiosString") = RegistryValueKind.Binary Then
 													regValue = HexToString(GetREG_BINARY(subRegkey, "HardwareInformation.BiosString").Replace("00", ""))
 
@@ -932,21 +945,21 @@ Namespace Display_Driver_Uninstaller
 
 										regValue = subRegkey.GetValue("DriverVersion", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(14), regValue))
 											If firstLaunch Then info.Add("Detected Driver(s) Version(s)", regValue)
 										End If
 
 										regValue = subRegkey.GetValue("InfPath", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(15), regValue))
 											If firstLaunch Then info.Add("INF name", regValue)
 										End If
 
 										regValue = subRegkey.GetValue("InfSection", String.Empty).ToString()
 
-										If Not IsNullOrWhitespace(regValue) Then
+										If Not String.IsNullOrWhiteSpace(regValue) Then
 											UpdateTextMethod(String.Format("{0}: {1}", UpdateTextTranslated(16), regValue))
 											If firstLaunch Then info.Add("INF section", regValue)
 										End If
@@ -1324,6 +1337,11 @@ Namespace Display_Driver_Uninstaller
 							cbSelectedGPU.IsEnabled = True
 							ButtonsPanel.IsEnabled = True
 							Application.Settings.LastSelectedGPUIndex = cbSelectedGPU.SelectedIndex
+						Case 4
+							Application.Settings.SelectedGPU = GPUVendor.All
+							cbSelectedGPU.IsEnabled = True
+							ButtonsPanel.IsEnabled = True
+							Application.Settings.LastSelectedGPUIndex = cbSelectedGPU.SelectedIndex
 					End Select
 
 			End Select
@@ -1338,7 +1356,7 @@ Namespace Display_Driver_Uninstaller
 				Case 0
 					Application.Settings.SelectedType = CleanType.None
 					cbSelectedGPU.IsEnabled = True
-					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4")} 'the order is important, check Appsettings.vb
+					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4"), Languages.GetTranslation("frmMain", "Options_GPU", "Options5")} 'the order is important, check Appsettings.vb
 					cbSelectedGPU.SelectedIndex = 0
 					cbSelectedGPU.IsEnabled = False
 
@@ -1353,7 +1371,7 @@ Namespace Display_Driver_Uninstaller
 				Case 2
 					Application.Settings.SelectedType = CleanType.GPU
 					cbSelectedGPU.IsEnabled = True
-					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4")} 'the order is important, check Appsettings.vb
+					cbSelectedGPU.ItemsSource = {Languages.GetTranslation("frmMain", "Options_GPU", "Options1"), Languages.GetTranslation("frmMain", "Options_GPU", "Options2"), Languages.GetTranslation("frmMain", "Options_GPU", "Options3"), Languages.GetTranslation("frmMain", "Options_GPU", "Options4"), Languages.GetTranslation("frmMain", "Options_GPU", "Options5")} 'the order is important, check Appsettings.vb
 					cbSelectedGPU.SelectedIndex = 0
 					cbSelectedGPU.SelectedIndex = If(Application.Settings.RememberLastChoice, Application.Settings.LastSelectedGPUIndex, GPUIdentify())
 
