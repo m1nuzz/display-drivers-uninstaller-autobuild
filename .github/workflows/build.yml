@@ -57,6 +57,7 @@ jobs:
 
     - name: Get commit messages
       id: get_commits
+      shell: pwsh
       run: |
         # Get the latest tag that matches our version pattern
         $latestTag = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Select-Object -First 1
@@ -79,12 +80,16 @@ jobs:
             $_ -notmatch "^- fix: "
         }
         
-        # Escape special characters and convert to single line with \n
+        # Join messages with newlines
         $commitMsg = $commitMsg -join "`n"
-        $commitMsg = $commitMsg -replace '"','\"'
         
-        echo "commits=$commitMsg" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      shell: pwsh
+        # Generate a random delimiter
+        $delimiter = [guid]::NewGuid().ToString()
+        
+        # Write to GITHUB_OUTPUT using heredoc syntax
+        "commits<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $commitMsg | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $delimiter | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Check existing release
       id: check_release
