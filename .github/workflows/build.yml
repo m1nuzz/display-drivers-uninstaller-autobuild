@@ -134,9 +134,10 @@ jobs:
         COMMITS: ${{ steps.get_commits.outputs.commits }}
       run: |
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        
         $releaseId = "${{ steps.check_release.outputs.release_id }}"
         $commits = $Env:COMMITS
+        
+        # Создаем URI для API
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
         
         # Удаляем старые assets
@@ -147,12 +148,10 @@ jobs:
                           -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
         
-        # Формируем JSON-тело через heredoc
-        $body = @'
-        {
-          "body": "### Changelog:\n$commits"
-        }
-'@ | ConvertFrom-Json | ConvertTo-Json
+        # Создаем тело запроса через PowerShell-объект
+        $payload = @{
+          body = "### Changelog:`n$commits"
+        } | ConvertTo-Json
         
         # Обновляем релиз
         Invoke-RestMethod -Uri $uri `
@@ -161,7 +160,7 @@ jobs:
                           Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
                           Accept = "application/vnd.github.v3+json"
                         } `
-                        -Body $body `
+                        -Body $payload `
                         -ContentType "application/json"
         
         # Загружаем новый ZIP
