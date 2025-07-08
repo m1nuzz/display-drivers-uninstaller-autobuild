@@ -74,12 +74,12 @@ jobs:
           $range = "upstream/WPF"
         }
 
-        # Формируем список без merge-коммитов
-        $commitMsg = git log $range --pretty=format:"- %s (%ad)" --date=short --no-merges | Where-Object {
-          $_ -notmatch "^- Merge " -and
-          $_ -notmatch "^- feat: " -and
-          $_ -notmatch "^- fix: "
-        }
+        # Формируем список без merge-коммитов, убираем лишний дефис
+        $commitMsg = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges | Where-Object {
+          $_ -notmatch "^Merge " -and
+          $_ -notmatch "^feat: " -and
+          $_ -notmatch "^fix: "
+        } | ForEach-Object { "- $_" }
 
         # Пишем в GITHUB_OUTPUT через heredoc
         $delimiter = [guid]::NewGuid().ToString()
