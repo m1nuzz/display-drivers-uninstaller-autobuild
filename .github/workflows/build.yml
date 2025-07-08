@@ -142,34 +142,34 @@ jobs:
         # Удаляем старые assets
         $release = Invoke-RestMethod -Uri $uri -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         foreach($asset in $release.assets) {
-            Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
-                            -Method Delete `
-                            -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
+          Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
+                          -Method Delete `
+                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
         
         # Формируем JSON-тело через heredoc
-        $body = @"
+        $body = @'
         {
-          "body": "### Changelog:`n$commits"
+          "body": "### Changelog:\n$commits"
         }
-"@ | ConvertFrom-Json | ConvertTo-Json
+'@ | ConvertFrom-Json | ConvertTo-Json
         
         # Обновляем релиз
         Invoke-RestMethod -Uri $uri `
-                          -Method Patch `
-                          -Headers @{
-                            Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-                            Accept = "application/vnd.github.v3+json"
-                          } `
-                          -Body $body `
-                          -ContentType "application/json"
+                        -Method Patch `
+                        -Headers @{
+                          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                          Accept = "application/vnd.github.v3+json"
+                        } `
+                        -Body $body `
+                        -ContentType "application/json"
         
         # Загружаем новый ZIP
         Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
-                          -Method Post `
-                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
-                          -InFile "DDU-Build.zip" `
-                          -ContentType "application/zip"
+                        -Method Post `
+                        -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
+                        -InFile "DDU-Build.zip" `
+                        -ContentType "application/zip"
 
     - name: Create new release
       if: steps.check_release.outputs.exists == 'false'
