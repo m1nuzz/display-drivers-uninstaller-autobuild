@@ -61,18 +61,27 @@ jobs:
         # Get the latest tag that matches our version pattern
         $latestTag = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Select-Object -First 1
         
+        # Fetch all upstream history
+        git fetch upstream WPF
+        
         if ($latestTag) {
-          # Get commits since the last tag
-          $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short "${latestTag}..HEAD"
+            # Get commits from upstream between tags
+            $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short "upstream/WPF" --no-merges
         } else {
-          # If no tag exists, get all commits
-          $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short
+            # If no tag exists, get all upstream commits
+            $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short "upstream/WPF" --no-merges
+        }
+        
+        # Filter out merge commits and commits from the fork
+        $commitMsg = $commitMsg | Where-Object { 
+            $_ -notmatch "^- Merge " -and
+            $_ -notmatch "^- feat: " -and
+            $_ -notmatch "^- fix: "
         }
         
         # Escape special characters and convert to single line with \n
+        $commitMsg = $commitMsg -join "`n"
         $commitMsg = $commitMsg -replace '"','\"'
-        $commitMsg = $commitMsg -replace '\r\n','\n'
-        $commitMsg = $commitMsg -replace '\n','\n'
         
         echo "commits=$commitMsg" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
@@ -137,7 +146,7 @@ jobs:
         
         # Update release description
         $body = @{
-            body = "### Changelog:`n$commits"
+            body = "### Changelog (from upstream repository):`n$commits"
         } | ConvertTo-Json
         
         Invoke-RestMethod -Uri $uri -Method Patch -Headers @{
@@ -159,7 +168,7 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         body: |
-          ### Changelog:
+          ### Changelog (from upstream repository):
           ${{ steps.get_commits.outputs.commits }}
         files: DDU-Build.zip
       env:
