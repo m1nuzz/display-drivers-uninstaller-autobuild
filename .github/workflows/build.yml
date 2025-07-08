@@ -43,6 +43,49 @@ jobs:
         git merge upstream/WPF
       shell: pwsh
 
+    - name: Get version from AssemblyInfo
+      id: get_version
+      run: |
+        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+        echo "version=$content" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      shell: pwsh
+
+    - name: Get commit messages
+      id: get_commits
+      run: |
+        # Get the latest tag that matches our version pattern
+        $latestTag = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Select-Object -First 1
+        
+        if ($latestTag) {
+          # Get commits since the last tag
+          $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short "${latestTag}..HEAD"
+        } else {
+          # If no tag exists, get all commits
+          $commitMsg = git log --pretty=format:"- %s (%ad)" --date=short
+        }
+        
+        # Escape special characters and convert to single line with \n
+        $commitMsg = $commitMsg -replace '"','\"'
+        $commitMsg = $commitMsg -replace '\r\n','\n'
+        $commitMsg = $commitMsg -replace '\n','\n'
+        
+        echo "commits=$commitMsg" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      shell: pwsh
+
+    - name: Check existing release
+      id: check_release
+      run: |
+        $tag = "${{ steps.get_version.outputs.version }}"
+        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+        try {
+          $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
+          echo "release_id=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } catch {
+          echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+      shell: pwsh
+
     - name: Restore NuGet packages
       run: nuget restore "display-driver-uninstaller/Display Driver Uninstaller.sln"
       shell: pwsh
@@ -68,28 +111,38 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
-    - name: Get version from AssemblyInfo
-      id: get_version
+    - name: Update existing release
+      if: steps.check_release.outputs.exists == 'true'
       run: |
-        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches[0].Groups[1].Value }
-        echo "version=$content" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $releaseId = "${{ steps.check_release.outputs.release_id }}"
+        $commits = "${{ steps.get_commits.outputs.commits }}"
+        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
+        
+        $body = @{
+          body = "### Changelog:`n$commits"
+        } | ConvertTo-Json
+        
+        Invoke-RestMethod -Uri $uri -Method Patch -Headers @{
+          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+          Accept = "application/vnd.github.v3+json"
+        } -Body $body -ContentType "application/json"
+        
+        # Upload new asset
+        $uploadUri = "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip"
+        Invoke-RestMethod -Uri $uploadUri -Method Post -Headers @{
+          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+        } -InFile "DDU-Build.zip" -ContentType "application/zip"
       shell: pwsh
 
-    - name: Create tag for release
-      run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-        git tag ${{ steps.get_version.outputs.version }}
-        git push origin ${{ steps.get_version.outputs.version }}
-      shell: pwsh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create GitHub Release and Upload zip
+    - name: Create new release
+      if: steps.check_release.outputs.exists == 'false'
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
-        name: DDU ${{ steps.get_version.outputs.version }}
+        name: "DDU ${{ steps.get_version.outputs.version }}"
+        body: |
+          ### Changelog:
+          ${{ steps.get_commits.outputs.commits }}
         files: DDU-Build.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
