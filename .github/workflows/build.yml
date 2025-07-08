@@ -35,6 +35,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Configure TLS 1.2
+      run: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      shell: pwsh
+
     - name: Sync with upstream
       run: |
         git remote add upstream https://github.com/Wagnard/display-drivers-uninstaller.git
@@ -75,6 +80,7 @@ jobs:
     - name: Check existing release
       id: check_release
       run: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $tag = "${{ steps.get_version.outputs.version }}"
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
         try {
@@ -114,23 +120,35 @@ jobs:
     - name: Update existing release
       if: steps.check_release.outputs.exists == 'true'
       run: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        
         $releaseId = "${{ steps.check_release.outputs.release_id }}"
         $commits = "${{ steps.get_commits.outputs.commits }}"
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
         
+        # Delete existing assets if any
+        $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
+        foreach($asset in $release.assets) {
+            $deleteUri = "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)"
+            Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers @{
+                Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+            }
+        }
+        
+        # Update release description
         $body = @{
-          body = "### Changelog:`n$commits"
+            body = "### Changelog:`n$commits"
         } | ConvertTo-Json
         
         Invoke-RestMethod -Uri $uri -Method Patch -Headers @{
-          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-          Accept = "application/vnd.github.v3+json"
+            Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+            Accept = "application/vnd.github.v3+json"
         } -Body $body -ContentType "application/json"
         
         # Upload new asset
         $uploadUri = "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip"
         Invoke-RestMethod -Uri $uploadUri -Method Post -Headers @{
-          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+            Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
         } -InFile "DDU-Build.zip" -ContentType "application/zip"
       shell: pwsh
 
