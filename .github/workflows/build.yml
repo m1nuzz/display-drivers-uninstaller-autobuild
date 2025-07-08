@@ -51,7 +51,9 @@ jobs:
     - name: Get version from AssemblyInfo
       id: get_version
       run: |
-        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | 
+                  Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | 
+                  ForEach-Object { $_.Matches[0].Groups[1].Value }
         echo "version=$content" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
 
@@ -63,29 +65,37 @@ jobs:
       id: get_commits
       shell: pwsh
       run: |
-        # Находим последний релизный тег
-        $latestTag = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Select-Object -First 1
+        # 1) Находим последний семантический тег
+        $latestTag = git tag -l --sort=-v:refname |
+                     Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
+                     Select-Object -First 1
 
         if ($latestTag) {
-          # Показываем коммиты от этого тега до текущего состояния upstream/WPF
           $range = "$latestTag..upstream/WPF"
         } else {
-          # Если тегов нет, берём всю историю
           $range = "upstream/WPF"
         }
 
-        # Формируем список без merge-коммитов, убираем лишний дефис
-        $commitMsg = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges | Where-Object {
+        # 2) Берём сообщения коммитов без merge, feat, fix
+        $raw = git log $range `
+                 --pretty=format:"%s (%ad)" `
+                 --date=short `
+                 --no-merges
+
+        $filtered = $raw | Where-Object {
           $_ -notmatch "^Merge " -and
           $_ -notmatch "^feat: " -and
           $_ -notmatch "^fix: "
-        } | ForEach-Object { "- $_" }
+        }
 
-        # Пишем в GITHUB_OUTPUT через heredoc
+        # 3) Префиксим каждую строку ровно одним дефисом
+        $commitMsg = $filtered | ForEach-Object { "- $_" }
+
+        # 4) Пишем в GITHUB_OUTPUT через heredoc
         $delimiter = [guid]::NewGuid().ToString()
         "commits<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        $commitMsg | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        $delimiter | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $commitMsg             | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $delimiter             | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Check existing release
       id: check_release
