@@ -119,7 +119,7 @@ jobs:
                           -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
         
-        # Получаем список коммитов прямо здесь
+        # Находим последний семантический тег
         $latestTag = git tag -l --sort=-v:refname |
                     Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
                     Select-Object -First 1
@@ -133,7 +133,15 @@ jobs:
                     $_ -notmatch "^feat: " -and
                     $_ -notmatch "^fix: "
                   } |
-                  ForEach-Object { "- $_" }
+                  ForEach-Object { 
+                    # Убираем все начальные дефисы и пробелы
+                    $clean = $_ -replace '^[\s\-]*', ''
+                    "- $clean"
+                  }
+        
+        # Для отладки
+        Write-Host "Formatted commits:"
+        $commits | ForEach-Object { Write-Host "[$_]" }
         
         # Создаем тело запроса через PowerShell-объект
         $payload = @{
