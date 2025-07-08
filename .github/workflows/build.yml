@@ -61,6 +61,33 @@ jobs:
       run: git fetch --tags upstream
       shell: pwsh
 
+    - name: Generate changelog
+      id: changelog
+      shell: pwsh
+      run: |
+        # Получаем список коммитов
+        $latestTag = git tag -l --sort=-v:refname |
+                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
+                    Select-Object -First 1
+        
+        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
+        
+        # Формируем changelog с одним дефисом
+        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
+                  Where-Object {
+                    $_ -notmatch "^Merge " -and
+                    $_ -notmatch "^feat: " -and
+                    $_ -notmatch "^fix: "
+                  } |
+                  ForEach-Object { "- $_" }
+        
+        # Сохраняем changelog в output через heredoc
+        $delimiter = "EOF_CHANGELOG_$(Get-Random)"
+        "changelog<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "### Changelog:" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $commits | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $delimiter | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     - name: Check existing release
       id: check_release
       shell: pwsh
@@ -119,26 +146,15 @@ jobs:
                           -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
         
-        # Получаем список коммитов прямо здесь
-        $latestTag = git tag -l --sort=-v:refname |
-                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
-                    Select-Object -First 1
+        # Получаем changelog из предыдущего step
+        $changelogText = @"
+        ${{ steps.changelog.outputs.changelog }}
+"@
         
-        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
-        
-        # Формируем changelog с одним дефисом
-        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
-                  Where-Object {
-                    $_ -notmatch "^Merge " -and
-                    $_ -notmatch "^feat: " -and
-                    $_ -notmatch "^fix: "
-                  } |
-                  ForEach-Object { "- $_" }
-        
-        # Создаем тело запроса через PowerShell-объект
-        $payload = @{
-          body = "### Changelog:`n" + ($commits -join "`n")
-        } | ConvertTo-Json
+        # Создаем тело запроса
+        $body = [PSCustomObject]@{
+          body = $changelogText
+        } | ConvertTo-Json -Depth 10
         
         # Обновляем релиз
         Invoke-RestMethod -Uri $uri `
@@ -147,7 +163,7 @@ jobs:
                           Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
                           Accept = "application/vnd.github.v3+json"
                         } `
-                        -Body $payload `
+                        -Body $body `
                         -ContentType "application/json"
         
         # Загружаем новый ZIP
@@ -163,6 +179,7 @@ jobs:
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
+        body: ${{ steps.changelog.outputs.changelog }}
         files: DDU-Build.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
