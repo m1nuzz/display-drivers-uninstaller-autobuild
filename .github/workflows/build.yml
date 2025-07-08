@@ -146,7 +146,7 @@ jobs:
         
         # Update release description
         $body = @{
-            body = "### Changelog (from upstream repository):`n$commits"
+            body = "### Changelog:`n$commits"
         } | ConvertTo-Json
         
         Invoke-RestMethod -Uri $uri -Method Patch -Headers @{
@@ -168,7 +168,7 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         body: |
-          ### Changelog (from upstream repository):
+          ### Changelog:
           ${{ steps.get_commits.outputs.commits }}
         files: DDU-Build.zip
       env:
