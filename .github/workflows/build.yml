@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ WPF ]
   schedule:
-    - cron: '*/15 * * * *'  # Runs every 15 minutes to check for updates
-  workflow_dispatch:       # Allows manual triggering
+    - cron: '*/15 * * * *'  # Запускать каждые 15 минут для проверки обновлений
+  workflow_dispatch:      # Разрешить ручной запуск
 
 jobs:
   sync-and-build:
@@ -66,30 +66,28 @@ jobs:
       id: generate_changelog
       shell: pwsh
       run: |
-        # Get all tags and sort them by version
+        # Получаем все теги и сортируем их по версии
         $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         $currentVersion = "${{ steps.get_version.outputs.version }}"
         
-        # Find the previous tag
+        # Ищем предыдущий тег
         $previousTag = $null
         for ($i = 0; $i -lt $allTags.Count; $i++) {
-          # Look for the tag that precedes the current version
           if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
             $previousTag = $allTags[$i - 1]
             break
           }
         }
-        # If no exact previous tag is found, take the last one from the list
         if (-not $previousTag) {
             $previousTag = $allTags | Where-Object { [version]$_ -lt [version]$currentVersion } | Select-Object -Last 1
         }
 
-        # Define the commit range
+        # Определяем диапазон коммитов
         $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
         Write-Host "Generating changelog for range: $range"
         
-        # Format the changelog
-        $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges
+        # Формируем changelog, учитывая ТОЛЬКО коммиты, затрагивающие исходный код DDU
+        $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
         
         $changelogText = if ($commits) {
           "**Changelog:**`n" + ($commits -join "`n")
@@ -97,11 +95,11 @@ jobs:
           "**Changelog:**`n* No new changes found for this release."
         }
         
-        # Write the changelog to a file for the next step
+        # Записываем changelog в файл для следующего шага
         Set-Content -Path "release_body.md" -Value $changelogText -Encoding utf8
 
     - name: Fix all existing releases changelog (one-time run)
-      # This step only runs on manual trigger to fix historical releases
+      # Этот шаг запускается только при ручном запуске для исправления истории
       if: github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
@@ -127,9 +125,10 @@ jobs:
           $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
           Write-Host "Processing $currentVersion, range: $range"
           
-          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges
+          # КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Указываем путь, чтобы игнорировать коммиты самого workflow
+          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
           
-          $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No new changes found for this release." }
+          $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
           
           $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
           $payload = @{ body = $changelogText } | ConvertTo-Json
@@ -170,6 +169,6 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         files: DDU-Build.zip
-        body_path: "release_body.md" # Uses the changelog file
+        body_path: "release_body.md" # Используем файл с changelog
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
