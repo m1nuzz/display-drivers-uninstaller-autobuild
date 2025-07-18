@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ WPF ]
   schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes to check for updates
-  workflow_dispatch:  # Allow manual trigger
+    - cron: '*/15 * * * *'  # Runs every 15 minutes to check for updates
+  workflow_dispatch:       # Allows manual triggering
 
 jobs:
   sync-and-build:
@@ -58,48 +58,64 @@ jobs:
       shell: pwsh
 
     - name: Fetch all tags
-      run: git fetch --tags upstream
+      run: |
+        git fetch --all --tags
       shell: pwsh
 
-    - name: Check existing release
-      id: check_release
+    - name: Generate changelog for current release
+      id: generate_changelog
       shell: pwsh
       run: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $tag = "${{ steps.get_version.outputs.version }}"
-        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
-        try {
-          $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
-          echo "release_id=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          echo "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        } catch {
-          echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        # Get all tags and sort them by version
+        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
+        $currentVersion = "${{ steps.get_version.outputs.version }}"
+        
+        # Find the previous tag
+        $previousTag = $null
+        for ($i = 0; $i -lt $allTags.Count; $i++) {
+          # Look for the tag that precedes the current version
+          if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
+            $previousTag = $allTags[$i - 1]
+            break
+          }
+        }
+        # If no exact previous tag is found, take the last one from the list
+        if (-not $previousTag) {
+            $previousTag = $allTags | Where-Object { [version]$_ -lt [version]$currentVersion } | Select-Object -Last 1
         }
 
-    - name: Fix all existing releases changelog
+        # Define the commit range
+        $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
+        Write-Host "Generating changelog for range: $range"
+        
+        # Format the changelog
+        $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges
+        
+        $changelogText = if ($commits) {
+          "**Changelog:**`n" + ($commits -join "`n")
+        } else {
+          "**Changelog:**`n* No new changes found for this release."
+        }
+        
+        # Write the changelog to a file for the next step
+        Set-Content -Path "release_body.md" -Value $changelogText -Encoding utf8
+
+    - name: Fix all existing releases changelog (one-time run)
+      # This step only runs on manual trigger to fix historical releases
+      if: github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        
         Write-Host "=== Starting retroactive changelog fix ==="
         
-        # Получаем все релизы
         $releasesUri = "https://api.github.com/repos/${{ github.repository }}/releases"
         $releases = Invoke-RestMethod -Uri $releasesUri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
+        Write-Host "Found $($releases.Count) releases to check."
         
-        Write-Host "Found $($releases.Count) releases"
-        
-        # Получаем все теги и сортируем их по версии
         $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         
-        Write-Host "All tags: $($allTags -join ', ')"
-        
-        # Проходим по всем релизам и исправляем их changelog
         foreach ($release in $releases) {
           $currentVersion = $release.tag_name
-          Write-Host "Processing release: $currentVersion"
-          
-          # Находим предыдущий тег
           $previousTag = $null
           for ($i = 0; $i -lt $allTags.Count; $i++) {
             if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
@@ -108,79 +124,24 @@ jobs:
             }
           }
           
-          Write-Host "  Previous tag: $previousTag"
+          $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
+          Write-Host "Processing $currentVersion, range: $range"
           
-          # Определяем диапазон коммитов
-          $range = if ($previousTag) { 
-            "${previousTag}..upstream/WPF"
-          } else {
-            # Для самого первого релиза - берем все коммиты до этого тега
-            $tagCommit = git rev-list -n 1 $currentVersion 2>$null
-            if ($tagCommit) {
-              # Берем коммиты за месяц до создания первого тега
-              $tagDate = git log -1 --format="%ad" --date=iso $currentVersion 2>$null
-              if ($tagDate) {
-                $monthBefore = (Get-Date $tagDate).AddMonths(-1).ToString("yyyy-MM-dd")
-                git log --since="$monthBefore" --until="$tagDate" --pretty=format:"%H" upstream/WPF | Select-Object -First 50
-                "HEAD~50..upstream/WPF"
-              } else {
-                "HEAD~20..upstream/WPF"
-              }
-            } else {
-              "HEAD~20..upstream/WPF"
-            }
-          }
+          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges
           
-          Write-Host "  Git range: $range"
+          $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No new changes found for this release." }
           
-          # Формируем changelog для этого релиза
-          $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges 2>$null |
-                    Where-Object {
-                      $_ -and
-                      $_ -notmatch "^Merge " -and
-                      $_ -notmatch "^feat: " -and
-                      $_ -notmatch "^fix: " -and
-                      $_ -notmatch "^Update build.yml" -and
-                      $_ -notmatch "^Fix changelog"
-                    } |
-                    ForEach-Object { 
-                      $clean = $_ -replace '^[\s\-]*', ''
-                      "* $clean"
-                    }
-          
-          Write-Host "  Found $($commits.Count) commits"
-          
-          # Создаем changelog
-          $changelogText = if ($commits.Count -gt 0) {
-            "**Changelog:**`n" + ($commits -join "`n")
-          } else {
-            "**Changelog:**`n* No changes found for this release"
-          }
-          
-          # Обновляем релиз
           $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
-          $payload = @{
-            body = $changelogText
-          } | ConvertTo-Json
+          $payload = @{ body = $changelogText } | ConvertTo-Json
           
           try {
-            Invoke-RestMethod -Uri $updateUri `
-                            -Method Patch `
-                            -Headers @{
-                              Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-                              Accept = "application/vnd.github.v3+json"
-                            } `
-                            -Body $payload `
-                            -ContentType "application/json"
+            Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
             Write-Host "  ✓ Updated release $currentVersion"
           } catch {
-            Write-Host "  ✗ Failed to update release $currentVersion : $($_.Exception.Message)"
+            Write-Host "  ✗ Failed to update release $currentVersion"
           }
-          
-          # Небольшая пауза между запросами
           Start-Sleep -Seconds 1
         }
-        
         Write-Host "=== Retroactive changelog fix completed ==="
 
     - name: Restore NuGet packages
@@ -192,12 +153,7 @@ jobs:
         msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
       shell: pwsh
 
-    - name: List output directory
-      run: |
-        Get-ChildItem -Recurse "display-driver-uninstaller/Display Driver Uninstaller/bin/Release"
-      shell: pwsh
-
-    - name: Create artifact
+    - name: Create artifact directory
       run: |
         mkdir artifact
         Copy-Item "display-driver-uninstaller/Display Driver Uninstaller/bin/Release/*" -Destination "artifact/" -Recurse
@@ -208,38 +164,12 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
-    - name: Update existing release
-      if: steps.check_release.outputs.exists == 'true'
-      shell: pwsh
-      run: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $releaseId = "${{ steps.check_release.outputs.release_id }}"
-        $currentVersion = "${{ steps.get_version.outputs.version }}"
-        
-        # Создаем URI для API
-        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
-        
-        # Удаляем старые assets
-        $release = Invoke-RestMethod -Uri $uri -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        foreach($asset in $release.assets) {
-          Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
-                          -Method Delete `
-                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        }
-        
-        # Загружаем новый ZIP
-        Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
-                        -Method Post `
-                        -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
-                        -InFile "DDU-Build.zip" `
-                        -ContentType "application/zip"
-
-    - name: Create new release
-      if: steps.check_release.outputs.exists == 'false'
+    - name: Create or Update Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         files: DDU-Build.zip
+        body_path: "release_body.md" # Uses the changelog file
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
