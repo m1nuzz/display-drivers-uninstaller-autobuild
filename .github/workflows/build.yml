@@ -107,6 +107,7 @@ jobs:
       run: |
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $releaseId = "${{ steps.check_release.outputs.release_id }}"
+        $currentVersion = "${{ steps.get_version.outputs.version }}"
         
         # Создаем URI для API
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
@@ -119,14 +120,42 @@ jobs:
                           -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
         
-        # Находим последний семантический тег
-        $latestTag = git tag -l --sort=-v:refname |
-                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
-                    Select-Object -First 1
+        # Получаем все теги и сортируем их по версии
+        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         
-        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
+        # Находим предыдущий тег (не текущий)
+        $previousTag = $null
+        for ($i = 0; $i -lt $allTags.Count; $i++) {
+          if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
+            $previousTag = $allTags[$i - 1]
+            break
+          }
+        }
         
-        # Формируем changelog с одним дефисом
+        # Если предыдущий тег не найден, берем последний тег (исключая текущий)
+        if (-not $previousTag) {
+          $previousTag = $allTags | Where-Object { $_ -ne $currentVersion } | Select-Object -Last 1
+        }
+        
+        Write-Host "Current version: $currentVersion"
+        Write-Host "Previous tag: $previousTag"
+        
+        # Определяем диапазон коммитов
+        $range = if ($previousTag) { 
+          "${previousTag}..upstream/WPF" 
+        } else { 
+          # Если нет предыдущего тега, берем только последние коммиты (например, за последний месяц)
+          git log --since="1 month ago" --pretty=format:"%H" upstream/WPF | Select-Object -Last 1
+          if ($lastCommit) {
+            "${lastCommit}..upstream/WPF"
+          } else {
+            "upstream/WPF"
+          }
+        }
+        
+        Write-Host "Git range: $range"
+        
+        # Формируем changelog только для новых коммитов
         $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
                   Where-Object {
                     $_ -notmatch "^Merge " -and
@@ -136,7 +165,7 @@ jobs:
                   ForEach-Object { 
                     # Убираем все начальные дефисы и пробелы
                     $clean = $_ -replace '^[\s\-]*', ''
-                    "- $clean"
+                    "* $clean"
                   }
         
         # Для отладки
@@ -144,8 +173,14 @@ jobs:
         $commits | ForEach-Object { Write-Host "[$_]" }
         
         # Создаем тело запроса через PowerShell-объект
+        $changelogText = if ($commits.Count -gt 0) {
+          "**Changelog:**`n" + ($commits -join "`n")
+        } else {
+          "**Changelog:**`n* No new changes found"
+        }
+        
         $payload = @{
-          body = "### Changelog:`n" + ($commits -join "`n")
+          body = $changelogText
         } | ConvertTo-Json
         
         # Обновляем релиз
