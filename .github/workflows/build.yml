@@ -76,6 +76,113 @@ jobs:
           echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
 
+    - name: Fix all existing releases changelog
+      shell: pwsh
+      run: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        
+        Write-Host "=== Starting retroactive changelog fix ==="
+        
+        # Получаем все релизы
+        $releasesUri = "https://api.github.com/repos/${{ github.repository }}/releases"
+        $releases = Invoke-RestMethod -Uri $releasesUri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
+        
+        Write-Host "Found $($releases.Count) releases"
+        
+        # Получаем все теги и сортируем их по версии
+        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
+        
+        Write-Host "All tags: $($allTags -join ', ')"
+        
+        # Проходим по всем релизам и исправляем их changelog
+        foreach ($release in $releases) {
+          $currentVersion = $release.tag_name
+          Write-Host "Processing release: $currentVersion"
+          
+          # Находим предыдущий тег
+          $previousTag = $null
+          for ($i = 0; $i -lt $allTags.Count; $i++) {
+            if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
+              $previousTag = $allTags[$i - 1]
+              break
+            }
+          }
+          
+          Write-Host "  Previous tag: $previousTag"
+          
+          # Определяем диапазон коммитов
+          $range = if ($previousTag) { 
+            "${previousTag}..upstream/WPF"
+          } else {
+            # Для самого первого релиза - берем все коммиты до этого тега
+            $tagCommit = git rev-list -n 1 $currentVersion 2>$null
+            if ($tagCommit) {
+              # Берем коммиты за месяц до создания первого тега
+              $tagDate = git log -1 --format="%ad" --date=iso $currentVersion 2>$null
+              if ($tagDate) {
+                $monthBefore = (Get-Date $tagDate).AddMonths(-1).ToString("yyyy-MM-dd")
+                git log --since="$monthBefore" --until="$tagDate" --pretty=format:"%H" upstream/WPF | Select-Object -First 50
+                "HEAD~50..upstream/WPF"
+              } else {
+                "HEAD~20..upstream/WPF"
+              }
+            } else {
+              "HEAD~20..upstream/WPF"
+            }
+          }
+          
+          Write-Host "  Git range: $range"
+          
+          # Формируем changelog для этого релиза
+          $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges 2>$null |
+                    Where-Object {
+                      $_ -and
+                      $_ -notmatch "^Merge " -and
+                      $_ -notmatch "^feat: " -and
+                      $_ -notmatch "^fix: " -and
+                      $_ -notmatch "^Update build.yml" -and
+                      $_ -notmatch "^Fix changelog"
+                    } |
+                    ForEach-Object { 
+                      $clean = $_ -replace '^[\s\-]*', ''
+                      "* $clean"
+                    }
+          
+          Write-Host "  Found $($commits.Count) commits"
+          
+          # Создаем changelog
+          $changelogText = if ($commits.Count -gt 0) {
+            "**Changelog:**`n" + ($commits -join "`n")
+          } else {
+            "**Changelog:**`n* No changes found for this release"
+          }
+          
+          # Обновляем релиз
+          $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
+          $payload = @{
+            body = $changelogText
+          } | ConvertTo-Json
+          
+          try {
+            Invoke-RestMethod -Uri $updateUri `
+                            -Method Patch `
+                            -Headers @{
+                              Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                              Accept = "application/vnd.github.v3+json"
+                            } `
+                            -Body $payload `
+                            -ContentType "application/json"
+            Write-Host "  ✓ Updated release $currentVersion"
+          } catch {
+            Write-Host "  ✗ Failed to update release $currentVersion : $($_.Exception.Message)"
+          }
+          
+          # Небольшая пауза между запросами
+          Start-Sleep -Seconds 1
+        }
+        
+        Write-Host "=== Retroactive changelog fix completed ==="
+
     - name: Restore NuGet packages
       run: nuget restore "display-driver-uninstaller/Display Driver Uninstaller.sln"
       shell: pwsh
@@ -119,79 +226,6 @@ jobs:
                           -Method Delete `
                           -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
         }
-        
-        # Получаем все теги и сортируем их по версии
-        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
-        
-        # Находим предыдущий тег (не текущий)
-        $previousTag = $null
-        for ($i = 0; $i -lt $allTags.Count; $i++) {
-          if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
-            $previousTag = $allTags[$i - 1]
-            break
-          }
-        }
-        
-        # Если предыдущий тег не найден, берем последний тег (исключая текущий)
-        if (-not $previousTag) {
-          $previousTag = $allTags | Where-Object { $_ -ne $currentVersion } | Select-Object -Last 1
-        }
-        
-        Write-Host "Current version: $currentVersion"
-        Write-Host "Previous tag: $previousTag"
-        
-        # Определяем диапазон коммитов
-        $range = if ($previousTag) { 
-          "${previousTag}..upstream/WPF" 
-        } else { 
-          # Если нет предыдущего тега, берем только последние коммиты (например, за последний месяц)
-          git log --since="1 month ago" --pretty=format:"%H" upstream/WPF | Select-Object -Last 1
-          if ($lastCommit) {
-            "${lastCommit}..upstream/WPF"
-          } else {
-            "upstream/WPF"
-          }
-        }
-        
-        Write-Host "Git range: $range"
-        
-        # Формируем changelog только для новых коммитов
-        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
-                  Where-Object {
-                    $_ -notmatch "^Merge " -and
-                    $_ -notmatch "^feat: " -and
-                    $_ -notmatch "^fix: "
-                  } |
-                  ForEach-Object { 
-                    # Убираем все начальные дефисы и пробелы
-                    $clean = $_ -replace '^[\s\-]*', ''
-                    "* $clean"
-                  }
-        
-        # Для отладки
-        Write-Host "Formatted commits:"
-        $commits | ForEach-Object { Write-Host "[$_]" }
-        
-        # Создаем тело запроса через PowerShell-объект
-        $changelogText = if ($commits.Count -gt 0) {
-          "**Changelog:**`n" + ($commits -join "`n")
-        } else {
-          "**Changelog:**`n* No new changes found"
-        }
-        
-        $payload = @{
-          body = $changelogText
-        } | ConvertTo-Json
-        
-        # Обновляем релиз
-        Invoke-RestMethod -Uri $uri `
-                        -Method Patch `
-                        -Headers @{
-                          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-                          Accept = "application/vnd.github.v3+json"
-                        } `
-                        -Body $payload `
-                        -ContentType "application/json"
         
         # Загружаем новый ZIP
         Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
