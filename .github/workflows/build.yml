@@ -1,3 +1,5 @@
+# ... [rest of the file content unchanged until the Generate Changelog step]
+
 name: Build DDU
 
 on:
@@ -109,49 +111,68 @@ jobs:
         $allTags = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
         $currentTag = "${{ steps.get_version.outputs.version }}"
         
-        # Try to get the current tag date, if it exists
+        Write-Host "Current tag being processed: $currentTag"
+        Write-Host "Available tags: $($allTags -join ', ')"
+        
+        # Initialize dates
+        $currentTagDate = $null
+        $previousTagDate = $null
+        
+        # Try to get the current tag date
         try {
-            $currentTagDate = git log -1 --format=%ai $currentTag
+            $currentTagDate = git log -1 --format=%ai "$currentTag"
+            Write-Host "Found date for current tag: $currentTagDate"
         } catch {
-            # If the tag doesn't exist yet, use the current HEAD
+            Write-Host "Current tag $currentTag not found in git history, using HEAD date"
             $currentTagDate = git log -1 --format=%ai HEAD
         }
         
         # Find the previous tag
-        $currentTagIndex = [array]::IndexOf($allTags, $currentTag)
-        $previousTag = if ($currentTagIndex -lt ($allTags.Length - 1)) { $allTags[$currentTagIndex + 1] } else { $null }
-        
-        # Get previous tag date if it exists
-        $previousTagDate = if ($previousTag) { 
-            try {
-                git log -1 --format=%ai $previousTag
-            } catch {
-                $null
+        $previousTag = $null
+        if ($allTags) {
+            $currentTagIndex = [array]::IndexOf($allTags, $currentTag)
+            if ($currentTagIndex -lt ($allTags.Length - 1)) {
+                $previousTag = $allTags[$currentTagIndex + 1]
+                try {
+                    $previousTagDate = git log -1 --format=%ai $previousTag
+                    Write-Host "Found previous tag $previousTag with date: $previousTagDate"
+                } catch {
+                    Write-Host "Could not get date for previous tag $previousTag"
+                    $previousTagDate = $null
+                }
             }
-        } else { 
-            $null 
         }
 
-        Write-Host "Current tag: $currentTag at $currentTagDate"
-        Write-Host "Previous tag: $previousTag at $previousTagDate"
+        Write-Host "Processing commits between dates: $previousTagDate -> $currentTagDate"
 
-        # Get commits with full timestamp
+        # Get commits
         $commits = git log --pretty=format:"%H|%s|%ai" --no-merges |
             ForEach-Object {
                 $parts = $_ -split '\|'
-                @{
-                    Hash = $parts[0]
-                    Subject = $parts[1]
-                    Date = [DateTime]::Parse($parts[2])
+                if ($parts.Length -eq 3) {
+                    try {
+                        @{
+                            Hash = $parts[0]
+                            Subject = $parts[1]
+                            Date = [DateTime]::Parse($parts[2])
+                        }
+                    } catch {
+                        Write-Host "Error parsing commit: $_"
+                        $null
+                    }
+                } else {
+                    Write-Host "Skipping malformed commit line: $_"
+                    $null
                 }
             } |
+            Where-Object { $_ -ne $null } |
             Where-Object {
                 $date = $_.Date
-                # Include commits after previous tag (or all if no previous tag)
-                # but only up to current tag date
-                ($previousTagDate -eq $null -or $date -gt [DateTime]::Parse($previousTagDate)) -and
+                if ($previousTagDate) {
+                    $prevDate = [DateTime]::Parse($previousTagDate)
+                    $date -gt $prevDate
+                }
                 $date -le [DateTime]::Parse($currentTagDate) -and
-                # Filter out version announcements and merges
                 $_.Subject -notmatch "^(Release|Possible release)" -and
                 $_.Subject -notmatch "^Merge" -and
                 $_.Subject -notmatch "^feat: " -and
@@ -246,20 +267,20 @@ $($commits.FormattedMessage -join "`n")
     - name: Update old releases
       shell: pwsh
       run: |
-        # Получаем все теги версий
+        # Get all version tags
         $allTags = git tag -l --sort=v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
         
         Write-Host "Found tags: $($allTags -join ', ')"
         
-        # Для каждого тега
+        # Process each tag
         foreach ($tag in $allTags) {
             Write-Host "Processing tag: $tag"
             
-            # Получаем текущий и предыдущий тег
+            # Get current and previous tag
             $currentTagIndex = [array]::IndexOf($allTags, $tag)
             $previousTag = if ($currentTagIndex -gt 0) { $allTags[$currentTagIndex - 1] } else { $null }
             
-            # Получаем даты тегов
+            # Get tag dates
             try {
                 $currentTagDate = git log -1 --format=%ai $tag
             } catch {
@@ -267,32 +288,43 @@ $($commits.FormattedMessage -join "`n")
                 continue
             }
             
-            $previousTagDate = if ($previousTag) { 
-                try {
-                    git log -1 --format=%ai $previousTag
-                } catch {
-                    $null
-                }
-            } else { 
-                $null 
+            try {
+                $previousTagDate = if ($previousTag) { git log -1 --format=%ai $previousTag }
+            } catch {
+                Write-Host "Failed to get date for previous tag $previousTag, using null"
+                $previousTagDate = $null
             }
             
             Write-Host "Current tag: $tag at $currentTagDate"
             Write-Host "Previous tag: $previousTag at $previousTagDate"
             
-            # Получаем коммиты между тегами
+            # Get commits between tags
             $commits = git log --pretty=format:"%H|%s|%ai" --no-merges |
                 ForEach-Object {
                     $parts = $_ -split '\|'
-                    @{
-                        Hash = $parts[0]
-                        Subject = $parts[1]
-                        Date = [DateTime]::Parse($parts[2])
+                    if ($parts.Length -eq 3) {
+                        try {
+                            @{
+                                Hash = $parts[0]
+                                Subject = $parts[1]
+                                Date = [DateTime]::Parse($parts[2])
+                            }
+                        } catch {
+                            Write-Host "Error parsing commit: $_"
+                            $null
+                        }
+                    } else {
+                        Write-Host "Skipping malformed commit line: $_"
+                        $null
                     }
                 } |
+                Where-Object { $_ -ne $null } |
                 Where-Object {
                     $date = $_.Date
-                    ($previousTagDate -eq $null -or $date -gt [DateTime]::Parse($previousTagDate)) -and
+                    if ($previousTagDate) {
+                        $prevDate = [DateTime]::Parse($previousTagDate)
+                        $date -gt $prevDate
+                    }
                     $date -le [DateTime]::Parse($currentTagDate) -and
                     $_.Subject -notmatch "^(Release|Possible release)" -and
                     $_.Subject -notmatch "^Merge" -and
@@ -309,21 +341,21 @@ $($commits.FormattedMessage -join "`n")
                 } |
                 Select-Object -Unique
 
-            # Формируем новый чейнджлог
+            # Create changelog
             $changelogBody = @"
 ### Changelog for $tag ($(([DateTime]::Parse($currentTagDate)).ToString('yyyy-MM-dd')))
 
 $($commits.FormattedMessage -join "`n")
 "@
 
-            # Получаем ID релиза
+            # Get release ID
             $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
             try {
                 $release = Invoke-RestMethod -Uri $uri -Headers @{
                     Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
                 }
                 
-                # Обновляем описание релиза
+                # Update release description
                 $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
                 $payload = @{
                     body = $changelogBody
@@ -343,6 +375,6 @@ $($commits.FormattedMessage -join "`n")
                 Write-Host "Failed to update release $tag: $_"
             }
             
-            # Добавляем задержку между обновлениями
+            # Add delay between updates
             Start-Sleep -Seconds 2
         }
