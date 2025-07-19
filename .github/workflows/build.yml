@@ -108,13 +108,26 @@ jobs:
         # Get all version tags and sort them
         $allTags = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
         $currentTag = "${{ steps.get_version.outputs.version }}"
+        
+        # Try to get the current tag date, if it exists
+        try {
+            $currentTagDate = git log -1 --format=%ai $currentTag
+        } catch {
+            # If the tag doesn't exist yet, use the current HEAD
+            $currentTagDate = git log -1 --format=%ai HEAD
+        }
+        
+        # Find the previous tag
         $currentTagIndex = [array]::IndexOf($allTags, $currentTag)
         $previousTag = if ($currentTagIndex -lt ($allTags.Length - 1)) { $allTags[$currentTagIndex + 1] } else { $null }
-
-        # Get exact commit dates with timezone information
-        $currentTagDate = git log -1 --format=%ai $currentTag
+        
+        # Get previous tag date if it exists
         $previousTagDate = if ($previousTag) { 
-            git log -1 --format=%ai $previousTag 
+            try {
+                git log -1 --format=%ai $previousTag
+            } catch {
+                $null
+            }
         } else { 
             $null 
         }
@@ -225,11 +238,18 @@ $($commits.FormattedMessage -join "`n")
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
       shell: pwsh
 
+    - name: Fetch all tags
+      run: |
+        git fetch --tags --force
+      shell: pwsh
+
     - name: Update old releases
       shell: pwsh
       run: |
         # Получаем все теги версий
         $allTags = git tag -l --sort=v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
+        
+        Write-Host "Found tags: $($allTags -join ', ')"
         
         # Для каждого тега
         foreach ($tag in $allTags) {
@@ -240,12 +260,25 @@ $($commits.FormattedMessage -join "`n")
             $previousTag = if ($currentTagIndex -gt 0) { $allTags[$currentTagIndex - 1] } else { $null }
             
             # Получаем даты тегов
-            $currentTagDate = git log -1 --format=%ai $tag
+            try {
+                $currentTagDate = git log -1 --format=%ai $tag
+            } catch {
+                Write-Host "Failed to get date for tag $tag, skipping"
+                continue
+            }
+            
             $previousTagDate = if ($previousTag) { 
-                git log -1 --format=%ai $previousTag 
+                try {
+                    git log -1 --format=%ai $previousTag
+                } catch {
+                    $null
+                }
             } else { 
                 $null 
             }
+            
+            Write-Host "Current tag: $tag at $currentTagDate"
+            Write-Host "Previous tag: $previousTag at $previousTagDate"
             
             # Получаем коммиты между тегами
             $commits = git log --pretty=format:"%H|%s|%ai" --no-merges |
