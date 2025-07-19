@@ -66,36 +66,15 @@ jobs:
       id: generate_changelog
       shell: pwsh
       run: |
-        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         $currentVersion = "${{ steps.get_version.outputs.version }}"
-        
-        $previousTag = $null
-        for ($i = 0; $i -lt $allTags.Count; $i++) {
-          if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
-            $previousTag = $allTags[$i - 1]
-            break
-          }
-        }
-        if (-not $previousTag) {
-            $previousTag = $allTags | Where-Object { [version]$_ -lt [version]$currentVersion } | Select-Object -Last 1
-        }
-        
         $commits = ""
         try {
-          $currentUpstreamCommit = git merge-base $currentVersion upstream/WPF
-          
-          if ($previousTag) {
-            $previousUpstreamCommit = git merge-base $previousTag upstream/WPF
-            if ($currentUpstreamCommit -and $previousUpstreamCommit) {
-              $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
-              Write-Host "Generating changelog for upstream range: $range"
-              $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
-            }
-          } elseif ($currentUpstreamCommit) {
-             $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
-          }
+          # ОКОНЧАТЕЛЬНОЕ РЕШЕНИЕ: Анализируем разницу между родителями коммита слияния
+          $range = "${currentVersion}^1..${currentVersion}^2"
+          Write-Host "Generating changelog by inspecting merge commit parents: $range"
+          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
         } catch {
-            Write-Host "Could not determine upstream commit range."
+            Write-Host "Could not generate changelog for tag $currentVersion. It might not be a merge commit."
         }
 
         $changelogText = if ($commits) {
@@ -116,33 +95,16 @@ jobs:
         $releasesUri = "https://api.github.com/repos/${{ github.repository }}/releases"
         $releases = Invoke-RestMethod -Uri $releasesUri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
         
-        $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
-        
         foreach ($release in $releases) {
           $currentVersion = $release.tag_name
-          $previousTag = $null
-          for ($i = 0; $i -lt $allTags.Count; $i++) {
-            if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
-              $previousTag = $allTags[$i - 1]
-              break
-            }
-          }
-          
           $commits = ""
           try {
-            $currentUpstreamCommit = git merge-base $currentVersion upstream/WPF
-            if ($previousTag) {
-              $previousUpstreamCommit = git merge-base $previousTag upstream/WPF
-              if ($currentUpstreamCommit -and $previousUpstreamCommit) {
-                $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
-                Write-Host "Processing $currentVersion, upstream range: $range"
-                $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
-              }
-            } elseif ($currentUpstreamCommit) {
-                 $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
-            }
+            # Используем тот же надежный метод для исправления старых релизов
+            $range = "${currentVersion}^1..${currentVersion}^2"
+            Write-Host "Processing $currentVersion, inspecting merge commit parents: $range"
+            $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
           } catch {
-             Write-Host "Could not process $currentVersion."
+             Write-Host "Could not process tag $currentVersion. Skipping."
           }
 
           $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
