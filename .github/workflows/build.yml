@@ -82,25 +82,20 @@ jobs:
         
         $commits = ""
         try {
-          # Получаем хеш коммита из upstream, который был смержен в текущем теге
-          $currentUpstreamCommit = git rev-parse -q --verify "${currentVersion}^2"
+          $currentUpstreamCommit = git merge-base $currentVersion upstream/WPF
           
           if ($previousTag) {
-            # Получаем хеш коммита из upstream для предыдущего тега
-            $previousUpstreamCommit = git rev-parse -q --verify "${previousTag}^2"
+            $previousUpstreamCommit = git merge-base $previousTag upstream/WPF
             if ($currentUpstreamCommit -and $previousUpstreamCommit) {
               $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
               Write-Host "Generating changelog for upstream range: $range"
               $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
             }
           } elseif ($currentUpstreamCommit) {
-            # Если предыдущего тега нет, показываем коммиты до текущего upstream коммита
              $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
           }
         } catch {
-            Write-Host "Could not determine upstream commit range. Defaulting to standard log."
-            $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
-            $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
+            Write-Host "Could not determine upstream commit range."
         }
 
         $changelogText = if ($commits) {
@@ -135,9 +130,9 @@ jobs:
           
           $commits = ""
           try {
-            $currentUpstreamCommit = git rev-parse -q --verify "${currentVersion}^2"
+            $currentUpstreamCommit = git merge-base $currentVersion upstream/WPF
             if ($previousTag) {
-              $previousUpstreamCommit = git rev-parse -q --verify "${previousTag}^2"
+              $previousUpstreamCommit = git merge-base $previousTag upstream/WPF
               if ($currentUpstreamCommit -and $previousUpstreamCommit) {
                 $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
                 Write-Host "Processing $currentVersion, upstream range: $range"
@@ -147,7 +142,7 @@ jobs:
                  $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
             }
           } catch {
-             Write-Host "Could not process $currentVersion, it might not be a merge commit."
+             Write-Host "Could not process $currentVersion."
           }
 
           $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
