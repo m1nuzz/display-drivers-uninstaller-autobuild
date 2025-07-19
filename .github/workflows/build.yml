@@ -66,11 +66,9 @@ jobs:
       id: generate_changelog
       shell: pwsh
       run: |
-        # Получаем все теги и сортируем их по версии
         $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         $currentVersion = "${{ steps.get_version.outputs.version }}"
         
-        # Ищем предыдущий тег
         $previousTag = $null
         for ($i = 0; $i -lt $allTags.Count; $i++) {
           if ($allTags[$i] -eq $currentVersion -and $i -gt 0) {
@@ -81,25 +79,39 @@ jobs:
         if (-not $previousTag) {
             $previousTag = $allTags | Where-Object { [version]$_ -lt [version]$currentVersion } | Select-Object -Last 1
         }
+        
+        $commits = ""
+        try {
+          # Получаем хеш коммита из upstream, который был смержен в текущем теге
+          $currentUpstreamCommit = git rev-parse -q --verify "${currentVersion}^2"
+          
+          if ($previousTag) {
+            # Получаем хеш коммита из upstream для предыдущего тега
+            $previousUpstreamCommit = git rev-parse -q --verify "${previousTag}^2"
+            if ($currentUpstreamCommit -and $previousUpstreamCommit) {
+              $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
+              Write-Host "Generating changelog for upstream range: $range"
+              $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
+            }
+          } elseif ($currentUpstreamCommit) {
+            # Если предыдущего тега нет, показываем коммиты до текущего upstream коммита
+             $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
+          }
+        } catch {
+            Write-Host "Could not determine upstream commit range. Defaulting to standard log."
+            $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
+            $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
+        }
 
-        # Определяем диапазон коммитов
-        $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
-        Write-Host "Generating changelog for range: $range"
-        
-        # Формируем changelog, используя флаг -m для показа изменений из merge-коммитов
-        $commits = git log $range -m --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
-        
         $changelogText = if ($commits) {
           "**Changelog:**`n" + ($commits -join "`n")
         } else {
           "**Changelog:**`n* No new changes found for this release."
         }
         
-        # Записываем changelog в файл для следующего шага
         Set-Content -Path "release_body.md" -Value $changelogText -Encoding utf8
 
     - name: Fix all existing releases changelog (one-time run)
-      # Этот шаг запускается только при ручном запуске для исправления истории
       if: github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
@@ -108,7 +120,6 @@ jobs:
         
         $releasesUri = "https://api.github.com/repos/${{ github.repository }}/releases"
         $releases = Invoke-RestMethod -Uri $releasesUri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
-        Write-Host "Found $($releases.Count) releases to check."
         
         $allTags = git tag -l | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } | Sort-Object { [version]$_ }
         
@@ -122,25 +133,30 @@ jobs:
             }
           }
           
-          $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
-          Write-Host "Processing $currentVersion, range: $range"
-          
-          # КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Используем флаг -m для корректной обработки merge-коммитов
-          $commits = git log $range -m --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
-          
+          $commits = ""
+          try {
+            $currentUpstreamCommit = git rev-parse -q --verify "${currentVersion}^2"
+            if ($previousTag) {
+              $previousUpstreamCommit = git rev-parse -q --verify "${previousTag}^2"
+              if ($currentUpstreamCommit -and $previousUpstreamCommit) {
+                $range = "${previousUpstreamCommit}..${currentUpstreamCommit}"
+                Write-Host "Processing $currentVersion, upstream range: $range"
+                $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
+              }
+            } elseif ($currentUpstreamCommit) {
+                 $commits = git log $currentUpstreamCommit --pretty=format:"* %s (%ad)" --date=short
+            }
+          } catch {
+             Write-Host "Could not process $currentVersion, it might not be a merge commit."
+          }
+
           $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
           
-          # Проверяем, отличается ли новый changelog от существующего, чтобы избежать лишних обновлений
           if ($release.body -ne $changelogText) {
             $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
             $payload = @{ body = $changelogText } | ConvertTo-Json
-            
-            try {
-              Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
-              Write-Host "  ✓ Updated release $currentVersion"
-            } catch {
-              Write-Host "  ✗ Failed to update release $currentVersion"
-            }
+            Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
+            Write-Host "  ✓ Updated release $currentVersion"
             Start-Sleep -Seconds 1
           } else {
             Write-Host "  - Changelog for $currentVersion is already up to date. Skipping."
@@ -174,6 +190,6 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         files: DDU-Build.zip
-        body_path: "release_body.md" # Используем файл с changelog
+        body_path: "release_body.md"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
