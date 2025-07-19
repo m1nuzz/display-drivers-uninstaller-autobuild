@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ WPF ]
   schedule:
-    - cron: '*/15 * * * *'  # Запускать каждые 15 минут для проверки обновлений
-  workflow_dispatch:      # Разрешить ручной запуск
+    - cron: '*/15 * * * *'  # Run every 15 minutes to check for updates
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   sync-and-build:
@@ -58,68 +58,23 @@ jobs:
       shell: pwsh
 
     - name: Fetch all tags
-      run: |
-        git fetch --all --tags
+      run: git fetch --tags upstream
       shell: pwsh
 
-    - name: Generate changelog for current release
-      id: generate_changelog
-      shell: pwsh
-      run: |
-        $currentVersion = "${{ steps.get_version.outputs.version }}"
-        $commits = ""
-        try {
-          # ОКОНЧАТЕЛЬНОЕ РЕШЕНИЕ: Анализируем разницу между родителями коммита слияния
-          $range = "${currentVersion}^1..${currentVersion}^2"
-          Write-Host "Generating changelog by inspecting merge commit parents: $range"
-          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
-        } catch {
-            Write-Host "Could not generate changelog for tag $currentVersion. It might not be a merge commit."
-        }
-
-        $changelogText = if ($commits) {
-          "**Changelog:**`n" + ($commits -join "`n")
-        } else {
-          "**Changelog:**`n* No new changes found for this release."
-        }
-        
-        Set-Content -Path "release_body.md" -Value $changelogText -Encoding utf8
-
-    - name: Fix all existing releases changelog (one-time run)
-      if: github.event_name == 'workflow_dispatch'
+    - name: Check existing release
+      id: check_release
       shell: pwsh
       run: |
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Write-Host "=== Starting retroactive changelog fix ==="
-        
-        $releasesUri = "https://api.github.com/repos/${{ github.repository }}/releases"
-        $releases = Invoke-RestMethod -Uri $releasesUri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
-        
-        foreach ($release in $releases) {
-          $currentVersion = $release.tag_name
-          $commits = ""
-          try {
-            # Используем тот же надежный метод для исправления старых релизов
-            $range = "${currentVersion}^1..${currentVersion}^2"
-            Write-Host "Processing $currentVersion, inspecting merge commit parents: $range"
-            $commits = git log $range --pretty=format:"* %s (%ad)" --date=short
-          } catch {
-             Write-Host "Could not process tag $currentVersion. Skipping."
-          }
-
-          $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
-          
-          if ($release.body -ne $changelogText) {
-            $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
-            $payload = @{ body = $changelogText } | ConvertTo-Json
-            Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
-            Write-Host "  ✓ Updated release $currentVersion"
-            Start-Sleep -Seconds 1
-          } else {
-            Write-Host "  - Changelog for $currentVersion is already up to date. Skipping."
-          }
+        $tag = "${{ steps.get_version.outputs.version }}"
+        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+        try {
+          $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
+          echo "release_id=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } catch {
+          echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
-        Write-Host "=== Retroactive changelog fix completed ==="
 
     - name: Restore NuGet packages
       run: nuget restore "display-driver-uninstaller/Display Driver Uninstaller.sln"
@@ -130,7 +85,12 @@ jobs:
         msbuild "display-driver-uninstaller/Display Driver Uninstaller.sln" /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
       shell: pwsh
 
-    - name: Create artifact directory
+    - name: List output directory
+      run: |
+        Get-ChildItem -Recurse "display-driver-uninstaller/Display Driver Uninstaller/bin/Release"
+      shell: pwsh
+
+    - name: Create artifact
       run: |
         mkdir artifact
         Copy-Item "display-driver-uninstaller/Display Driver Uninstaller/bin/Release/*" -Destination "artifact/" -Recurse
@@ -141,12 +101,76 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
-    - name: Create or Update Release
+    - name: Update existing release
+      if: steps.check_release.outputs.exists == 'true'
+      shell: pwsh
+      run: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $releaseId = "${{ steps.check_release.outputs.release_id }}"
+        
+        # Создаем URI для API
+        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
+        
+        # Удаляем старые assets
+        $release = Invoke-RestMethod -Uri $uri -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
+        foreach($asset in $release.assets) {
+          Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
+                          -Method Delete `
+                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
+        }
+        
+        # Находим последний семантический тег
+        $latestTag = git tag -l --sort=-v:refname |
+                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
+                    Select-Object -First 1
+        
+        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
+        
+        # Формируем changelog с одним дефисом
+        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
+                  Where-Object {
+                    $_ -notmatch "^Merge " -and
+                    $_ -notmatch "^feat: " -and
+                    $_ -notmatch "^fix: "
+                  } |
+                  ForEach-Object { 
+                    # Убираем все начальные дефисы и пробелы
+                    $clean = $_ -replace '^[\s\-]*', ''
+                    "- $clean"
+                  }
+        
+        # Для отладки
+        Write-Host "Formatted commits:"
+        $commits | ForEach-Object { Write-Host "[$_]" }
+        
+        # Создаем тело запроса через PowerShell-объект
+        $payload = @{
+          body = "### Changelog:`n" + ($commits -join "`n")
+        } | ConvertTo-Json
+        
+        # Обновляем релиз
+        Invoke-RestMethod -Uri $uri `
+                        -Method Patch `
+                        -Headers @{
+                          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                          Accept = "application/vnd.github.v3+json"
+                        } `
+                        -Body $payload `
+                        -ContentType "application/json"
+        
+        # Загружаем новый ZIP
+        Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
+                        -Method Post `
+                        -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
+                        -InFile "DDU-Build.zip" `
+                        -ContentType "application/zip"
+
+    - name: Create new release
+      if: steps.check_release.outputs.exists == 'false'
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         files: DDU-Build.zip
-        body_path: "release_body.md"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
