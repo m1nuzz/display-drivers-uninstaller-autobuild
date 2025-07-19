@@ -50,10 +50,8 @@ jobs:
     - name: Get version from AssemblyInfo
       id: get_version
       run: |
-        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | 
-                  Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | 
-                  ForEach-Object { $_.Matches[0].Groups[1].Value }
-        echo "version=$content" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        $content = Get-Content 'display-driver-uninstaller/Display Driver Uninstaller/My Project/AssemblyInfo.vb' | Select-String -Pattern 'AssemblyVersion\("([0-9.]+)"\)' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+        "version=$content" >> $env:GITHUB_OUTPUT
       shell: pwsh
 
     - name: Fetch all tags
@@ -69,10 +67,10 @@ jobs:
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
         try {
           $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
-          echo "release_id=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          echo "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_id=$($release.id)" >> $env:GITHUB_OUTPUT
+          "exists=true" >> $env:GITHUB_OUTPUT
         } catch {
-          echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "exists=false" >> $env:GITHUB_OUTPUT
         }
 
     - name: Restore NuGet packages
@@ -105,20 +103,16 @@ jobs:
       if: steps.check_release.outputs.exists == 'true'
       shell: pwsh
       run: |
-        # Get current tag and version
         $currentTag = "${{ steps.get_version.outputs.version }}"
         Write-Host "Processing changelog for version: $currentTag"
         
-        # Get the current date for new version
         $currentDate = Get-Date -Format "yyyy-MM-dd"
         Write-Host "Using current date: $currentDate"
         
         try {
-            # Try to get all version tags
             $allTags = @(git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' })
             Write-Host "Found tags: $($allTags -join ', ')"
             
-            # Find the previous tag
             $previousTag = $null
             if ($allTags.Count -gt 0) {
                 $currentIndex = [array]::IndexOf($allTags, $currentTag)
@@ -128,7 +122,6 @@ jobs:
                 }
             }
             
-            # Get commits
             $commitArgs = @('log', '--pretty=format:%H|%s|%ai', '--no-merges')
             if ($previousTag) {
                 $commitArgs += "$previousTag.."
@@ -157,13 +150,11 @@ jobs:
                 $_.Subject -notmatch "^fix: "
             }
             
-            # Format commits
             $formattedCommits = $commits | ForEach-Object {
-                $clean = $_.Subject -replace '^[\s\-]*', ''
+                $clean = $_.Subject -replace '^\s*-*\s*', ''
                 "- $clean ($($_.Date.ToString('yyyy-MM-dd')))"
             } | Select-Object -Unique
             
-            # Create changelog
             $changelogBody = @"
 ### Changelog for $currentTag ($currentDate)
 
@@ -171,7 +162,9 @@ $($formattedCommits -join "`n")
 "@
             
             $changelogBody | Out-File -FilePath changelog.md -Encoding utf8
-            echo "changelog=$changelogBody" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            "changelog<<EOF" >> $env:GITHUB_OUTPUT
+            $changelogBody >> $env:GITHUB_OUTPUT
+            "EOF" >> $env:GITHUB_OUTPUT
             
         } catch {
             Write-Host "Error generating changelog: $_"
@@ -185,15 +178,12 @@ $($formattedCommits -join "`n")
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $releaseId = "${{ steps.check_release.outputs.release_id }}"
         
-        # Get changelog content
         $changelogContent = Get-Content -Path changelog.md -Raw
         
-        # Create body for API request
         $payload = @{
             body = $changelogContent
         } | ConvertTo-Json
         
-        # Update release
         $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
         Invoke-RestMethod -Uri $uri `
             -Method Patch `
@@ -204,7 +194,6 @@ $($formattedCommits -join "`n")
             -Body $payload `
             -ContentType "application/json"
         
-        # Upload new ZIP
         Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
             -Method Post `
             -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
@@ -247,19 +236,16 @@ $($formattedCommits -join "`n")
     - name: Update old releases
       shell: pwsh
       run: |
-        # Get all version tags
         $allTags = git tag -l --sort=v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
         Write-Host "Found tags: $($allTags -join ', ')"
         
         foreach ($tag in $allTags) {
             Write-Host "Processing tag: $tag"
             try {
-                # Get current date for new version
                 $tagDate = git log -1 --format=%ai $tag
                 $formattedDate = [DateTime]::Parse($tagDate).ToString('yyyy-MM-dd')
                 Write-Host "Tag date: $formattedDate"
                 
-                # Get commits
                 $previousTag = $null
                 $currentIndex = [array]::IndexOf($allTags, $tag)
                 if ($currentIndex -gt 0) {
@@ -295,20 +281,17 @@ $($formattedCommits -join "`n")
                     $_.Subject -notmatch "^fix: "
                 }
                 
-                # Format commits
                 $formattedCommits = $commits | ForEach-Object {
-                    $clean = $_.Subject -replace '^[\s\-]*', ''
+                    $clean = $_.Subject -replace '^\s*-*\s*', ''
                     "- $clean ($($_.Date.ToString('yyyy-MM-dd')))"
                 } | Select-Object -Unique
                 
-                # Create changelog
                 $changelogBody = @"
 ### Changelog for $tag ($formattedDate)
 
 $($formattedCommits -join "`n")
 "@
                 
-                # Update release
                 $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
                 try {
                     $release = Invoke-RestMethod -Uri $uri -Headers @{
@@ -334,7 +317,6 @@ $($formattedCommits -join "`n")
                     Write-Host "Failed to update release $tag: $_"
                 }
                 
-                # Add delay between updates
                 Start-Sleep -Seconds 2
                 
             } catch {
