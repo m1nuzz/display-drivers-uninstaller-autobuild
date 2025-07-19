@@ -6,15 +6,14 @@ on:
   pull_request:
     branches: [ WPF ]
   schedule:
-    - cron: '*/15 * * * *'  # Run every 15 minutes to check for updates
-  workflow_dispatch:  # Allow manual trigger
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 jobs:
   sync-and-build:
     runs-on: windows-latest
     permissions:
       contents: write
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -101,6 +100,70 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
+    - name: Generate Changelog
+      id: generate_changelog
+      if: steps.check_release.outputs.exists == 'true'
+      shell: pwsh
+      run: |
+        # Get all version tags and sort them
+        $allTags = git tag -l --sort=-v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
+        $currentTag = "${{ steps.get_version.outputs.version }}"
+        $currentTagIndex = [array]::IndexOf($allTags, $currentTag)
+        $previousTag = if ($currentTagIndex -lt ($allTags.Length - 1)) { $allTags[$currentTagIndex + 1] } else { $null }
+
+        # Get exact commit dates with timezone information
+        $currentTagDate = git log -1 --format=%ai $currentTag
+        $previousTagDate = if ($previousTag) { 
+            git log -1 --format=%ai $previousTag 
+        } else { 
+            $null 
+        }
+
+        Write-Host "Current tag: $currentTag at $currentTagDate"
+        Write-Host "Previous tag: $previousTag at $previousTagDate"
+
+        # Get commits with full timestamp
+        $commits = git log --pretty=format:"%H|%s|%ai" --no-merges |
+            ForEach-Object {
+                $parts = $_ -split '\|'
+                @{
+                    Hash = $parts[0]
+                    Subject = $parts[1]
+                    Date = [DateTime]::Parse($parts[2])
+                }
+            } |
+            Where-Object {
+                $date = $_.Date
+                # Include commits after previous tag (or all if no previous tag)
+                # but only up to current tag date
+                ($previousTagDate -eq $null -or $date -gt [DateTime]::Parse($previousTagDate)) -and
+                $date -le [DateTime]::Parse($currentTagDate) -and
+                # Filter out version announcements and merges
+                $_.Subject -notmatch "^(Release|Possible release)" -and
+                $_.Subject -notmatch "^Merge" -and
+                $_.Subject -notmatch "^feat: " -and
+                $_.Subject -notmatch "^fix: "
+            } |
+            Sort-Object -Property Date |
+            Select-Object -Property @{
+                Name = 'FormattedMessage'
+                Expression = {
+                    $clean = $_.Subject -replace '^[\s\-]*', ''
+                    "- $clean ($($_.Date.ToString('yyyy-MM-dd')))"
+                }
+            } |
+            Select-Object -Unique
+
+        # Create changelog
+        $changelogBody = @"
+### Changelog for $currentTag ($(([DateTime]::Parse($currentTagDate)).ToString('yyyy-MM-dd')))
+
+$($commits.FormattedMessage -join "`n")
+"@
+        
+        $changelogBody | Out-File -FilePath changelog.md -Encoding utf8
+        echo "changelog=$changelogBody" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     - name: Update existing release
       if: steps.check_release.outputs.exists == 'true'
       shell: pwsh
@@ -108,62 +171,31 @@ jobs:
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $releaseId = "${{ steps.check_release.outputs.release_id }}"
         
-        # Создаем URI для API
-        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
+        # Get changelog content
+        $changelogContent = Get-Content -Path changelog.md -Raw
         
-        # Удаляем старые assets
-        $release = Invoke-RestMethod -Uri $uri -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        foreach($asset in $release.assets) {
-          Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
-                          -Method Delete `
-                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        }
-        
-        # Находим последний семантический тег
-        $latestTag = git tag -l --sort=-v:refname |
-                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
-                    Select-Object -First 1
-        
-        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
-        
-        # Формируем changelog с одним дефисом
-        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
-                  Where-Object {
-                    $_ -notmatch "^Merge " -and
-                    $_ -notmatch "^feat: " -and
-                    $_ -notmatch "^fix: "
-                  } |
-                  ForEach-Object { 
-                    # Убираем все начальные дефисы и пробелы
-                    $clean = $_ -replace '^[\s\-]*', ''
-                    "- $clean"
-                  }
-        
-        # Для отладки
-        Write-Host "Formatted commits:"
-        $commits | ForEach-Object { Write-Host "[$_]" }
-        
-        # Создаем тело запроса через PowerShell-объект
+        # Create body for API request
         $payload = @{
-          body = "### Changelog:`n" + ($commits -join "`n")
+            body = $changelogContent
         } | ConvertTo-Json
         
-        # Обновляем релиз
+        # Update release
+        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
         Invoke-RestMethod -Uri $uri `
-                        -Method Patch `
-                        -Headers @{
-                          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-                          Accept = "application/vnd.github.v3+json"
-                        } `
-                        -Body $payload `
-                        -ContentType "application/json"
+            -Method Patch `
+            -Headers @{
+                Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                Accept = "application/vnd.github.v3+json"
+            } `
+            -Body $payload `
+            -ContentType "application/json"
         
-        # Загружаем новый ZIP
+        # Upload new ZIP
         Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
-                        -Method Post `
-                        -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
-                        -InFile "DDU-Build.zip" `
-                        -ContentType "application/zip"
+            -Method Post `
+            -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
+            -InFile "DDU-Build.zip" `
+            -ContentType "application/zip"
 
     - name: Create new release
       if: steps.check_release.outputs.exists == 'false'
@@ -174,3 +206,110 @@ jobs:
         files: DDU-Build.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-old-releases:
+    needs: sync-and-build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      shell: pwsh
+
+    - name: Update old releases
+      shell: pwsh
+      run: |
+        # Получаем все теги версий
+        $allTags = git tag -l --sort=v:refname | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' }
+        
+        # Для каждого тега
+        foreach ($tag in $allTags) {
+            Write-Host "Processing tag: $tag"
+            
+            # Получаем текущий и предыдущий тег
+            $currentTagIndex = [array]::IndexOf($allTags, $tag)
+            $previousTag = if ($currentTagIndex -gt 0) { $allTags[$currentTagIndex - 1] } else { $null }
+            
+            # Получаем даты тегов
+            $currentTagDate = git log -1 --format=%ai $tag
+            $previousTagDate = if ($previousTag) { 
+                git log -1 --format=%ai $previousTag 
+            } else { 
+                $null 
+            }
+            
+            # Получаем коммиты между тегами
+            $commits = git log --pretty=format:"%H|%s|%ai" --no-merges |
+                ForEach-Object {
+                    $parts = $_ -split '\|'
+                    @{
+                        Hash = $parts[0]
+                        Subject = $parts[1]
+                        Date = [DateTime]::Parse($parts[2])
+                    }
+                } |
+                Where-Object {
+                    $date = $_.Date
+                    ($previousTagDate -eq $null -or $date -gt [DateTime]::Parse($previousTagDate)) -and
+                    $date -le [DateTime]::Parse($currentTagDate) -and
+                    $_.Subject -notmatch "^(Release|Possible release)" -and
+                    $_.Subject -notmatch "^Merge" -and
+                    $_.Subject -notmatch "^feat: " -and
+                    $_.Subject -notmatch "^fix: "
+                } |
+                Sort-Object -Property Date |
+                Select-Object -Property @{
+                    Name = 'FormattedMessage'
+                    Expression = {
+                        $clean = $_.Subject -replace '^[\s\-]*', ''
+                        "- $clean ($($_.Date.ToString('yyyy-MM-dd')))"
+                    }
+                } |
+                Select-Object -Unique
+
+            # Формируем новый чейнджлог
+            $changelogBody = @"
+### Changelog for $tag ($(([DateTime]::Parse($currentTagDate)).ToString('yyyy-MM-dd')))
+
+$($commits.FormattedMessage -join "`n")
+"@
+
+            # Получаем ID релиза
+            $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+            try {
+                $release = Invoke-RestMethod -Uri $uri -Headers @{
+                    Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                }
+                
+                # Обновляем описание релиза
+                $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
+                $payload = @{
+                    body = $changelogBody
+                } | ConvertTo-Json
+
+                Invoke-RestMethod -Uri $updateUri `
+                    -Method Patch `
+                    -Headers @{
+                        Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+                        Accept = "application/vnd.github.v3+json"
+                    } `
+                    -Body $payload `
+                    -ContentType "application/json"
+                
+                Write-Host "Updated changelog for $tag"
+            } catch {
+                Write-Host "Failed to update release $tag: $_"
+            }
+            
+            # Добавляем задержку между обновлениями
+            Start-Sleep -Seconds 2
+        }
