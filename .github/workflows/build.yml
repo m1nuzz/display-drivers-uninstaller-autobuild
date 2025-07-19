@@ -86,8 +86,8 @@ jobs:
         $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
         Write-Host "Generating changelog for range: $range"
         
-        # Формируем changelog, учитывая ТОЛЬКО коммиты, затрагивающие исходный код DDU
-        $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
+        # Формируем changelog, используя флаг -m для показа изменений из merge-коммитов
+        $commits = git log $range -m --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
         
         $changelogText = if ($commits) {
           "**Changelog:**`n" + ($commits -join "`n")
@@ -125,21 +125,26 @@ jobs:
           $range = if ($previousTag) { "${previousTag}..${currentVersion}" } else { $currentVersion }
           Write-Host "Processing $currentVersion, range: $range"
           
-          # КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Указываем путь, чтобы игнорировать коммиты самого workflow
-          $commits = git log $range --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
+          # КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Используем флаг -m для корректной обработки merge-коммитов
+          $commits = git log $range -m --pretty=format:"* %s (%ad)" --date=short --no-merges -- 'display-driver-uninstaller/'
           
           $changelogText = if ($commits) { "**Changelog:**`n" + ($commits -join "`n") } else { "**Changelog:**`n* No changes found for this release." }
           
-          $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
-          $payload = @{ body = $changelogText } | ConvertTo-Json
-          
-          try {
-            Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
-            Write-Host "  ✓ Updated release $currentVersion"
-          } catch {
-            Write-Host "  ✗ Failed to update release $currentVersion"
+          # Проверяем, отличается ли новый changelog от существующего, чтобы избежать лишних обновлений
+          if ($release.body -ne $changelogText) {
+            $updateUri = "https://api.github.com/repos/${{ github.repository }}/releases/$($release.id)"
+            $payload = @{ body = $changelogText } | ConvertTo-Json
+            
+            try {
+              Invoke-RestMethod -Uri $updateUri -Method Patch -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; Accept = "application/vnd.github.v3+json" } -Body $payload -ContentType "application/json"
+              Write-Host "  ✓ Updated release $currentVersion"
+            } catch {
+              Write-Host "  ✗ Failed to update release $currentVersion"
+            }
+            Start-Sleep -Seconds 1
+          } else {
+            Write-Host "  - Changelog for $currentVersion is already up to date. Skipping."
           }
-          Start-Sleep -Seconds 1
         }
         Write-Host "=== Retroactive changelog fix completed ==="
 
