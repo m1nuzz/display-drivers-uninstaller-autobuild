@@ -82,12 +82,21 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
-    - name: Update or Create Release
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        $latest_tag = git describe --tags --abbrev=0
+        $commits = git log $latest_tag..HEAD --pretty=format:"- %s"
+        $changelog_body = "Changelog:`n`n$commits"
+        echo "body=$changelog_body" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      shell: pwsh
+
+    - name: Create or Update Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
+        body: ${{ steps.changelog.outputs.body }}
         files: DDU-Build.zip
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
