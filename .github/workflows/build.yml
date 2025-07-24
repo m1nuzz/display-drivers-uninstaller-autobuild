@@ -57,25 +57,6 @@ jobs:
         echo "version=$content" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
 
-    - name: Fetch all tags
-      run: git fetch --tags upstream
-      shell: pwsh
-
-    - name: Check existing release
-      id: check_release
-      shell: pwsh
-      run: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $tag = "${{ steps.get_version.outputs.version }}"
-        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
-        try {
-          $release = Invoke-RestMethod -Uri $uri -Headers @{Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"}
-          echo "release_id=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          echo "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        } catch {
-          echo "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        }
-
     - name: Restore NuGet packages
       run: nuget restore "display-driver-uninstaller/Display Driver Uninstaller.sln"
       shell: pwsh
@@ -101,76 +82,12 @@ jobs:
         Compress-Archive -Path artifact/* -DestinationPath DDU-Build.zip
       shell: pwsh
 
-    - name: Update existing release
-      if: steps.check_release.outputs.exists == 'true'
-      shell: pwsh
-      run: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $releaseId = "${{ steps.check_release.outputs.release_id }}"
-        
-        # Создаем URI для API
-        $uri = "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId"
-        
-        # Удаляем старые assets
-        $release = Invoke-RestMethod -Uri $uri -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        foreach($asset in $release.assets) {
-          Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" `
-                          -Method Delete `
-                          -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" }
-        }
-        
-        # Находим последний семантический тег
-        $latestTag = git tag -l --sort=-v:refname |
-                    Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
-                    Select-Object -First 1
-        
-        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
-        
-        # Формируем changelog с одним дефисом
-        $commits = git log $range --pretty=format:"%s (%ad)" --date=short --no-merges |
-                  Where-Object {
-                    $_ -notmatch "^Merge " -and
-                    $_ -notmatch "^feat: " -and
-                    $_ -notmatch "^fix: "
-                  } |
-                  ForEach-Object { 
-                    # Убираем все начальные дефисы и пробелы
-                    $clean = $_ -replace '^[\s\-]*', ''
-                    "- $clean"
-                  }
-        
-        # Для отладки
-        Write-Host "Formatted commits:"
-        $commits | ForEach-Object { Write-Host "[$_]" }
-        
-        # Создаем тело запроса через PowerShell-объект
-        $payload = @{
-          body = "### Changelog:`n" + ($commits -join "`n")
-        } | ConvertTo-Json
-        
-        # Обновляем релиз
-        Invoke-RestMethod -Uri $uri `
-                        -Method Patch `
-                        -Headers @{
-                          Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"
-                          Accept = "application/vnd.github.v3+json"
-                        } `
-                        -Body $payload `
-                        -ContentType "application/json"
-        
-        # Загружаем новый ZIP
-        Invoke-RestMethod -Uri "https://uploads.github.com/repos/${{ github.repository }}/releases/$releaseId/assets?name=DDU-Build.zip" `
-                        -Method Post `
-                        -Headers @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}" } `
-                        -InFile "DDU-Build.zip" `
-                        -ContentType "application/zip"
-
-    - name: Create new release
-      if: steps.check_release.outputs.exists == 'false'
+    - name: Update or Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
         files: DDU-Build.zip
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
