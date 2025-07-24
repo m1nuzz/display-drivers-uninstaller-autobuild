@@ -85,10 +85,26 @@ jobs:
     - name: Generate Changelog
       id: changelog
       run: |
-        $latest_tag = git describe --tags --abbrev=0
-        $commits = git log $latest_tag..HEAD --pretty=format:"- %s"
-        $changelog_body = "Changelog:`n`n$commits"
-        echo "body=$changelog_body" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        git fetch upstream --tags --force
+        $latestTag = git tag --sort=-v:refname | Select-Object -First 1
+        Write-Host "Latest tag found: $latestTag"
+        
+        $range = if ($latestTag) { "$latestTag..upstream/WPF" } else { "upstream/WPF" }
+        Write-Host "Using commit range: $range"
+
+        $commits = git log $range --pretty=format:'- %s (%cs)' --no-merges
+        
+        # Если коммитов нет, создать сообщение по умолчанию
+        if ([string]::IsNullOrWhiteSpace($commits)) {
+          $commits = "- No new user-facing changes since the last release."
+        }
+
+        Write-Host "Generated Changelog:"
+        Write-Host $commits
+
+        # Экранирование для многострочного вывода
+        $commits = $commits -replace '%', '%25' -replace "`n", '%0A' -replace "`r", '%0D'
+        echo "notes=$commits" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
 
     - name: Create or Update Release
@@ -96,7 +112,7 @@ jobs:
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: "DDU ${{ steps.get_version.outputs.version }}"
-        body: ${{ steps.changelog.outputs.body }}
+        body: ${{ steps.changelog.outputs.notes }}
         files: DDU-Build.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
